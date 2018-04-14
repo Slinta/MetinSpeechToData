@@ -6,34 +6,46 @@ using System.IO;
 namespace Metin2SpeechToData {
 	class SpeechRecognitionHelper {
 
-		private SpeechRecognitionEngine engine;
+		private SpeechRecognitionEngine control;
+		public ControlSpeechCommands controlCommands { get; private set; }
 
-		public SpeechRecognitionHelper(ref SpeechRecognitionEngine engine, string[] definitions) {
-			Grammar controlGrammar = LoadControlGrammar();
+		public SpeechRecognitionHelper(ref SpeechRecognitionEngine engine) {
+			control = new SpeechRecognitionEngine();
+			ControlSpeechCommands c;
+			Grammar controlGrammar = LoadControlGrammar(out c);
+			controlCommands = c;
+
+			control.LoadGrammar(controlGrammar);
+			control.SetInputToDefaultAudioDevice();
+			control.SpeechRecognized += Control_SpeechMatch;
 			Console.WriteLine("Control grammar loaded...");
-			this.engine = engine;
-			GrammarBuilder builder = new GrammarBuilder(new Choices(definitions));
-			Grammar g = new Grammar(builder);
-			this.engine.LoadGrammar(g);
-			Console.WriteLine("Voice commands for Metin2 loaded...");
 		}
 
-		/// <summary>
-		/// Switches grammar of the Speech Recognizer, used when changing drop locations
-		/// </summary>
-		/// <param name="definitions">as defined in DefinitionParser</param>
-		public bool SwitchGrammar(string[] definitions) {
-			GrammarBuilder builder = new GrammarBuilder(new Choices(definitions));
-			Grammar g = new Grammar(builder);
-			engine.LoadGrammar(g);
-			Console.WriteLine("Grammar changed");
-			return true;
+		private void Control_SpeechMatch(object sender, SpeechRecognizedEventArgs e) {
+			switch (e.Result.Text) {
+				case ControlSpeechCommands.START: {
+					Console.WriteLine("Starting Recognition, current mode");
+					break;
+				}
+				case ControlSpeechCommands.STOP: {
+					Console.WriteLine("Stopping Recognition, current mode");
+					break;
+				}
+				case ControlSpeechCommands.PAUSE: {
+					Console.WriteLine("Pausing Recognition, current mode");
+					break;
+				}
+				case ControlSpeechCommands.SWITCH: {
+					Console.WriteLine("Switching Recognition, current mode");
+					break;
+				}
+			}
 		}
 
 		/// <summary>
 		/// Loads grammar for the controling speech recognizer
 		/// </summary>
-		private Grammar LoadControlGrammar() {
+		private Grammar LoadControlGrammar(out ControlSpeechCommands commands) {
 			DirectoryInfo dir = new DirectoryInfo(Directory.GetCurrentDirectory());
 			FileInfo grammarFile;
 			try {
@@ -49,6 +61,7 @@ namespace Metin2SpeechToData {
 					gBuilder.Append(new Choices(line));
 				}
 			}
+			commands = new ControlSpeechCommands(grammarFile.Name);
 			return new Grammar(gBuilder);
 		}
 	}
