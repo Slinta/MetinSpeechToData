@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
+using System.Speech.Recognition;
 
 namespace Metin2SpeechToData {
 	public class DefinitionParser {
 
-		private Dictionary<string, string[]> availableDefinitions;
+		public Grammar getCurrentGrammar { get; private set; }
 
 		public DefinitionParser() {
 			DirectoryInfo d = new DirectoryInfo(Directory.GetCurrentDirectory());
@@ -16,21 +14,26 @@ namespace Metin2SpeechToData {
 			if (filesPresent.Length == 0) {
 				throw new Exception("Your program is missing voice recognition strings! Either redownload, or create your own *.definition text file.");
 			}
-
-			availableDefinitions = new Dictionary<string, string[]>();
-			for (int i = 0; i < availableDefinitions.Count; i++) {
-				List<string> strings = new List<string>();
+			GrammarBuilder gBuilder = new GrammarBuilder();
+			for (int i = 0; i < filesPresent.Length; i++) {
 				using (StreamReader s = filesPresent[i].OpenText()) {
 					while (!s.EndOfStream) {
-						strings.Add(s.ReadLine());
+						gBuilder.Append(new Choices(s.ReadLine().Split(',')));
 					}
 				}
-				availableDefinitions.Add(filesPresent[i].Name, strings.ToArray());
 			}
+			getCurrentGrammar = new Grammar(gBuilder);
 		}
 
-		public string[] getSprcificDefinitions(string identifier) {
-			return availableDefinitions[identifier];
+		public Grammar GetGrammar(string identifier) {
+			GrammarBuilder gBuilder = new GrammarBuilder();
+			using (StreamReader sr = File.OpenText(Directory.GetCurrentDirectory() + identifier + ".definition")) {
+				while (!sr.EndOfStream) {
+					gBuilder.Append(new Choices(sr.ReadLine().Split(',')));
+				}
+			}
+			getCurrentGrammar = new Grammar(gBuilder);
+			return getCurrentGrammar;
 		}
 	}
 }
