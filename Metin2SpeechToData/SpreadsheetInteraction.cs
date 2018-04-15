@@ -11,15 +11,15 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Excel file
 		/// </summary>
-		ExcelPackage xlspackage;
+		private ExcelPackage xlspackage;
 		/// <summary>
 		/// Excel workbook
 		/// </summary>
-		ExcelWorkbook xlsworkbook;
+		private ExcelWorkbook xlsworkbook;
 		/// <summary>
 		/// Excel sheet
 		/// </summary>
-		ExcelWorksheet xlssheet;
+		private ExcelWorksheet xlssheet;
 
 		/// <summary>
 		/// Open spreadsheet
@@ -29,8 +29,8 @@ namespace Metin2SpeechToData {
 		public SpreadsheetInteraction(string path, string worksheetName) {
 			xlspackage = new ExcelPackage(new FileInfo(path));
 			xlsworkbook = xlspackage.Workbook;
-			xlssheet = xlsworkbook.Worksheets[worksheetName];
-
+			OpenWorksheet(worksheetName);
+			xlspackage.Save();
 		}
 		/// <summary>
 		/// Open excel file
@@ -42,18 +42,27 @@ namespace Metin2SpeechToData {
 		}
 
 		/// <summary>
-		/// Add a sheet by name
+		/// Open existing worksheet or add one if it does't exist
 		/// </summary>
 		/// <param name="sheetname"></param>
 		public void OpenWorksheet(string sheetname) {
+			if (xlsworkbook.Worksheets[sheetname] == null) {
+				xlsworkbook.Worksheets.Add(sheetname);
+			}
 			xlssheet = xlsworkbook.Worksheets[sheetname];
 		}
+
 		/// <summary>
 		/// Add a sheet by index
 		/// </summary>
 		/// <param name="sheetindex"></param>
 		public void OpenWorksheet(int sheetindex) {
-			xlssheet = xlsworkbook.Worksheets[sheetindex];
+			if (xlsworkbook.Worksheets[sheetindex] == null) {
+				throw new Exception("No worksheet with id " + sheetindex + " exists");
+			}
+			else {
+				xlssheet = xlsworkbook.Worksheets[sheetindex];
+			}
 		}
 
 		/// <summary>
