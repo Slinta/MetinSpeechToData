@@ -12,6 +12,8 @@ namespace Metin2SpeechToData {
 		}
 
 		public delegate void Recognition(RecognitionState state);
+		public delegate void ModifierTrigger(string word, params string[] args);
+		public static event ModifierTrigger OnModifierWordHear;
 
 		private static SpeechRecognitionEngine game;
 		private static DefinitionParser parser;
@@ -19,14 +21,15 @@ namespace Metin2SpeechToData {
 		//The object containing current spreadsheet, excel file and the methods to alter it
 		public static SpreadsheetInteraction interaction;
 		public static bool debug = false;
+
+		public static readonly string[] modifierWords = new string[1] { "New Target" };
+		private static bool listeningForArgument = false;
 		
 		static void Main(string[] args) {
 			Console.WriteLine("Welcome to Metin2 siNDiCATE Drop logger");
 
 			bool continueRunning = true;
 	
-			
-
 			while (continueRunning) {
 				string command = Console.ReadLine();
 
@@ -187,6 +190,7 @@ namespace Metin2SpeechToData {
 				case RecognitionState.DROP_LOGGER_RUNNING: {
 					game.SetInputToDefaultAudioDevice();
 					game.SpeechRecognized += Game_SpeechRecognized;
+					game.SpeechRecognized += Game_ModifierArgument;
 					game.RecognizeAsync(RecognizeMode.Multiple);
 					break;
 				}
@@ -196,10 +200,37 @@ namespace Metin2SpeechToData {
 			}
 		}
 
+		private static string currentModifier;
+
 		private static void Game_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {
+			foreach (string s in modifierWords) {
+				if(s == e.Result.Text) {
+					switch (s) {
+						case "New Target": {
+							game.Grammars[0].Enabled = false;
+							game.Grammars[2].Enabled = true;
+							listeningForArgument = true;
+							Console.WriteLine("Listening for enemy type");
+							currentModifier = s;
+							Console.WriteLine(e.Result.Text + " -- " + e.Result.Confidence);
+							return;
+						}
+					}
+				}
+			}
 			Console.WriteLine(e.Result.Text + " -- " + e.Result.Confidence);
 
 			interaction.AddNumberTo(interaction.AddressFromName(e.Result.Text), 1);
+		}
+
+		private static void Game_ModifierArgument(object sender, SpeechRecognizedEventArgs e) {
+			if (listeningForArgument && e.Result.Text != "New Target") {
+				listeningForArgument = false;
+				Console.WriteLine(e.Result.Text);
+				OnModifierWordHear?.Invoke(currentModifier, e.Result.Text);
+				game.Grammars[0].Enabled = true;
+				game.Grammars[2].Enabled = false;
+			}
 		}
 	}
 }

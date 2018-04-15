@@ -16,25 +16,30 @@ namespace Metin2SpeechToData {
 		/// Get all parsed definitions
 		/// </summary>
 		public DefinitionParserData[] getDefinitions { get; }
-
+		public MobParserData[] getMobDefinitions { get; }
 		public DefinitionParserData currentGrammarFile;
 
 		#region Constructor/Destructor
 		public DefinitionParser() {
 			DirectoryInfo d = new DirectoryInfo(Directory.GetCurrentDirectory());
-			FileInfo[] filesPresent = d.GetFiles("*.definition").Where(name => !name.Name.Split('.')[0].StartsWith("Control")).ToArray();
+			FileInfo[] filesPresent = d.GetFiles("*.definition").Where(
+				name => !name.Name.Split('.')[0].StartsWith("Control") &&
+						!name.Name.Split('.')[0].StartsWith("Mob")).ToArray();
 			if (filesPresent.Length == 0) {
 				throw new Exception("Your program is missing voice recognition strings! Either redownload, or create your own *.definition text file.");
 			}
-			getDefinitions = new DefinitionParserData[filesPresent.Length];
+			if(d.GetFiles("Mob_*.definition").Length != 0) {
+				getMobDefinitions = new MobParserData().Parse(d);
+			}
 
+			getDefinitions = new DefinitionParserData[filesPresent.Length];
 			for (int i = 0; i < filesPresent.Length; i++) {
 				DefinitionParserData data = new DefinitionParserData();
 				using (StreamReader s = filesPresent[i].OpenText()) {
 					data.ID = filesPresent[i].Name.Split('.')[0];
 					data.groups = ParseHeader(s);
 					data.entries = ParseEntries(s);
-					data.ContructGrammar();
+					data.ConstructGrammar();
 					getDefinitions[i] = data;
 				}
 			}
@@ -92,9 +97,27 @@ namespace Metin2SpeechToData {
 			throw new Exception("Grammar with identifier " + identifier + " does not exist!");
 		}
 
+		public Grammar GetMobGrammar(string identifier) {
+			foreach (MobParserData def in getMobDefinitions) {
+				if (def.ID == identifier) {
+					return def.grammar;
+				}
+			}
+			throw new Exception("Grammar with identifier " + identifier + " does not exist!");
+		}
+
 		public DefinitionParserData GetDefinitionByName(string name) {
 			foreach (DefinitionParserData data in getDefinitions) {
 				if(data.ID == name) {
+					return data;
+				}
+			}
+			throw new Exception("Definiton not found");
+		}
+
+		public MobParserData GetMobDefinitionByName(string name) {
+			foreach (MobParserData data in getMobDefinitions) {
+				if (data.ID == name) {
 					return data;
 				}
 			}

@@ -14,7 +14,7 @@ namespace Metin2SpeechToData {
 			public string group;
 		}
 
-		public void ContructGrammar() {
+		public void ConstructGrammar() {
 			Choices main = new Choices();
 			foreach (Entry e in entries) {
 				main.Add(e.mainPronounciation);

@@ -139,6 +139,11 @@ namespace Metin2SpeechToData {
 			Console.WriteLine("\nSelected - " + e.Result.Text);
 			main.UnloadAllGrammars();
 			main.LoadGrammar(DefinitionParser.instance.GetGrammar(e.Result.Text));
+			main.LoadGrammar(new Grammar(new Choices(Program.modifierWords)));
+			main.LoadGrammar(DefinitionParser.instance.GetMobGrammar("Mob_" + e.Result.Text));
+			main.Grammars[0].Enabled = true;
+			main.Grammars[1].Enabled = true;
+			main.Grammars[2].Enabled = false;
 			control.SpeechRecognized -= Switch_WordRecognized;
 			control.Grammars[0].Enabled = true;
 			control.SpeechRecognized += Control_SpeechMatch;

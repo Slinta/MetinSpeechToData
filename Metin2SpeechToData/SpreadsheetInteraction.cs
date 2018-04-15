@@ -136,6 +136,7 @@ namespace Metin2SpeechToData {
 			if (nameLookupDictionary.ContainsKey(name)) {
 				return nameLookupDictionary[name];
 			}
+			//return new ExcelCellAddress(2, 2);
 			throw new Exception("The word you're looking for isn't in the dictionary");
 		}
 	}
