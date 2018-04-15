@@ -1,0 +1,8 @@
+# Control commands definition, no alternatives allowed!
+# lines with '#' are ignored
+# !DO NOT MODIFY KEYWORDS BEFORE ':' YOU HAVE BEEN WARNED!
+
+START: Computer start recognition
+PAUSE: Computer pause recognition
+STOP: Computer stop recognition
+SWITCH: Computer switch grammar
