@@ -99,5 +99,19 @@ namespace Metin2SpeechToData {
 			Console.WriteLine("Failed to add " + number + " to cell[" + address.Row + " " + address.Column + "], cell doesn't contain a number");
 		}
 
+		public void InsertText(ExcelCellAddress address, string text) {
+			//If there's no sheet then you can't edit it
+			if (xlssheet == null) {
+				Console.WriteLine("No sheet set");
+				return;
+			}
+			
+			//change the cell
+
+			xlssheet.Cells[address.Row, address.Column].Value = text;
+			Console.WriteLine("Changed cell [" + address.Row + " " + address.Column + "] to " + text + ", cell was empty");
+			xlspackage.Save();
+			return;
+		}
 	}
 }

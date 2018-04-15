@@ -154,6 +154,27 @@ namespace Metin2SpeechToData {
 								}
 								break;
 							}
+
+							case "val": {
+								if (interaction == null) {
+									Console.WriteLine("No file set yet");
+									return;
+								}
+								int row;
+								int collum;
+								int successCounter = 0;
+								if (int.TryParse(commandBlocks[1], out row)) {
+									successCounter += 1;
+								}
+								if (int.TryParse(commandBlocks[2], out collum)) {
+									successCounter += 1;
+								}
+								if (successCounter == 2) {
+
+									interaction.InsertText(new ExcelCellAddress(collum, row), commandBlocks[3]);
+								}
+								break;
+							}
 							default: {
 								break;
 							}
