@@ -24,57 +24,13 @@ namespace Metin2SpeechToData {
 		public static bool debug = false;
 
 		static void Main(string[] args) {
-/*
-			if(args.Length == 0) {
-				debug = false;
-			}
-			else if (args[0] == "debug") {
-				debug = true;
-			}
-
-			parser = new DefinitionParser();
-			game = new SpeechRecognitionEngine();
-			if (debug) {
-				Console.WriteLine(game.Grammars.Count);
-			}
-			helper = new SpeechRecognitionHelper(ref game);
-			helper.OnRecognitionChange += OnRecognitionChange;
-			Console.ReadKey();
-		}
-
-		private static void OnRecognitionChange(RecognitionState state) {
-			switch (state) {
-				case RecognitionState.ERROR: {
-					Console.WriteLine("Something went wrong");
-					break;
-				}
-				case RecognitionState.CONTROL_RUNNING: {
-					game.SpeechRecognized -= Game_SpeechRecognized;
-					game.RecognizeAsyncStop();
-					break;
-				}
-				case RecognitionState.DROP_LOGGER_RUNNING: {
-					game.SetInputToDefaultAudioDevice();
-					game.SpeechRecognized += Game_SpeechRecognized;
-					game.RecognizeAsync(RecognizeMode.Multiple);
-					break;
-				}
-				default: {
-					break;
-				}
-			}
-		}
-
-		private static void Game_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {
-			Console.WriteLine(e.Result.Text + " -- " + e.Result.Confidence);
-*/
 			//Welcome
 			Console.WriteLine("Welcome");
 			Console.WriteLine("This is a project");
 
 			//exit condition
 			bool continueRunning = true;
-			
+
 			//the object containing the current spreadsheet, excel file and the methods to alter it
 			SpreadsheetInteraction interaction = null;
 			//main program
@@ -129,11 +85,26 @@ namespace Metin2SpeechToData {
 							//change the sheet in the edited file, sheet must already exist
 							case "sheet": {
 								if (interaction == null) {
-									Console.WriteLine ("You have to assign a file before you assign the sheet");
+									Console.WriteLine("You have to assign a file before you assign the sheet");
 									break;
 								}
 								string sheet = commandBlocks[1];
 								interaction.OpenWorksheet(sheet);
+								break;
+							}
+
+							case "vr": {
+								if (commandBlocks[1] == "debug") {
+									debug = true;
+								}
+
+								parser = new DefinitionParser();
+								game = new SpeechRecognitionEngine();
+								if (debug) {
+									Console.WriteLine(game.Grammars.Count);
+								}
+								helper = new SpeechRecognitionHelper(ref game);
+								helper.OnRecognitionChange += OnRecognitionChange;
 								break;
 							}
 						}
@@ -151,7 +122,7 @@ namespace Metin2SpeechToData {
 								if (commandBlocks[2] == "default") {
 									sheet = "Data";
 								}
-								interaction = new SpreadsheetInteraction(location,sheet);
+								interaction = new SpreadsheetInteraction(location, sheet);
 								break;
 							}
 						}
@@ -191,6 +162,32 @@ namespace Metin2SpeechToData {
 					}
 				}
 			}
+		}
+		private static void OnRecognitionChange(RecognitionState state) {
+			switch (state) {
+				case RecognitionState.ERROR: {
+					Console.WriteLine("Something went wrong");
+					break;
+				}
+				case RecognitionState.CONTROL_RUNNING: {
+					game.SpeechRecognized -= Game_SpeechRecognized;
+					game.RecognizeAsyncStop();
+					break;
+				}
+				case RecognitionState.DROP_LOGGER_RUNNING: {
+					game.SetInputToDefaultAudioDevice();
+					game.SpeechRecognized += Game_SpeechRecognized;
+					game.RecognizeAsync(RecognizeMode.Multiple);
+					break;
+				}
+				default: {
+					break;
+				}
+			}
+		}
+
+		private static void Game_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {
+			Console.WriteLine(e.Result.Text + " -- " + e.Result.Confidence);
 		}
 	}
 }
