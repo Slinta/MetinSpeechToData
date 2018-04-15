@@ -51,6 +51,15 @@ namespace Metin2SpeechToData {
 			throw new Exception("Grammar with identifier " + identifier + " does not exist!");
 		}
 
+		public Grammar GetGrammar(int index) {
+			try {
+				return definitions[index];
+			}
+			catch {
+				throw new Exception("Grammar with index " + index + " does not exist!");
+			}
+		}
+
 		/// <summary>
 		/// Get all parsed definitions by name
 		/// </summary>

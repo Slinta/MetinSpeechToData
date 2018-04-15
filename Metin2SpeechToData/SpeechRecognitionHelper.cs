@@ -10,61 +10,79 @@ namespace Metin2SpeechToData {
 		private SpeechRecognitionEngine main;
 		public ControlSpeechCommands controlCommands { get; private set; }
 
+		public event Program.Recognition OnRecognitionChange;
+
 		public SpeechRecognitionHelper(ref SpeechRecognitionEngine engine) {
 			main = engine;
 			control = new SpeechRecognitionEngine();
-			ControlSpeechCommands c;
-			Grammar controlGrammar = LoadControlGrammar(out c);
+			Grammar controlGrammar = LoadControlGrammar(out ControlSpeechCommands c);
 			controlGrammar.Name = "Controler Grammar";
 			controlCommands = c;
 
 			control.LoadGrammar(controlGrammar);
 			control.SetInputToDefaultAudioDevice();
 			control.SpeechRecognized += Control_SpeechMatch;
-			Console.WriteLine("Control grammar loaded...");
+			if (Program.debug) {
+				Console.WriteLine("Control grammar loaded...");
+			}
+			Console.Write("Available commands:\n" +
+						  controlCommands.getStartCommand + " - Start recognition\n" +
+						  controlCommands.getPauseCommand + " - Pauses main recognition\n" +
+						  controlCommands.getStopCommand + " - Exits App\n" +
+						  controlCommands.getSwitchGrammarCommand + " - Changes grammar (your drop location)\n");
 			control.RecognizeAsync(RecognizeMode.Multiple);
 		}
+
 
 		private void Control_SpeechMatch(object sender, SpeechRecognizedEventArgs e) {
 			string res = e.Result.Text;
 
-			if(res == controlCommands.getStartCommand) {
-				Console.WriteLine("Starting Recognition. Current grammar: " + (main.Grammars.Count == 0 ? "NOT INITIALIZED":main.Grammars[0].Name));
+			if (res == controlCommands.getStartCommand) {
+				Console.Write("Starting Recognition. Current grammar: ");
+				if (main.Grammars.Count == 0) {
+					Console.WriteLine("NOT INITIALIZED!");
+					Console.WriteLine("Set grammar first with 'Computer switch grammar'");
+					return;
+				}
+				else {
+					Console.WriteLine(main.Grammars[0].Name);
+					main.Grammars[0].Enabled = true;
+					OnRecognitionChange(Program.RecognitionState.DROP_LOGGER_RUNNING);
+				}
 			}
-			else if(res == controlCommands.getStopCommand) {
+			else if (res == controlCommands.getStopCommand) {
 				Console.WriteLine("Stopping Recognition!");
+				Environment.Exit(0);
 			}
 			else if (res == controlCommands.getPauseCommand) {
 				Console.WriteLine("Pausing Recognition!");
+				OnRecognitionChange(Program.RecognitionState.CONTROL_RUNNING);
+
 			}
 			else if (res == controlCommands.getSwitchGrammarCommand) {
-				Console.WriteLine("Switching Grammar, available: ");
-				foreach (string s in DefinitionParser.instance.getDefinitions) {
-					Console.Write(s + ", ");
+				Choices definitions = new Choices();
+				Console.Write("Switching Grammar, available: ");
+				string[] available = DefinitionParser.instance.getDefinitions;
+				for (int i = 0; i < available.Length; i++) {
+					definitions.Add(available[i]);
+					if (i == available.Length - 1) {
+						Console.Write(available[i]);
+					}
+					else {
+						Console.Write(available[i] + ", ");
+					}
 				}
-
+				if (control.Grammars.Count == 1) {
+					control.LoadGrammar(new Grammar(definitions));
+				}
+				control.Grammars[0].Enabled = false;
+				control.SpeechRecognized -= Control_SpeechMatch;
+				control.SpeechRecognized += Switch_WordRecognized;
+				OnRecognitionChange(Program.RecognitionState.SWITCHING);
 			}
-
-			/* Switch cases must be known at compile time /./
-			 * switch (e.Result.Text) {
-				case ControlSpeechCommands.START: {
-					Console.WriteLine("Starting Recognition, current mode");
-					break;
-				}
-				case ControlSpeechCommands.STOP: {
-					Console.WriteLine("Stopping Recognition, current mode");
-					break;
-				}
-				case ControlSpeechCommands.PAUSE: {
-					Console.WriteLine("Pausing Recognition, current mode");
-					break;
-				}
-				case ControlSpeechCommands.SWITCH: {
-					Console.WriteLine("Switching Grammar, current mode");
-					break;
-				}
+			else {
+				OnRecognitionChange(Program.RecognitionState.ERROR);
 			}
-			*/
 		}
 
 		/// <summary>
@@ -80,7 +98,7 @@ namespace Metin2SpeechToData {
 				throw new Exception("Could not locate 'Control.definition' file! You have to redownload this application");
 			}
 			Choices choices = new Choices();
-			using(StreamReader sr = grammarFile.OpenText()) {
+			using (StreamReader sr = grammarFile.OpenText()) {
 				while (!sr.EndOfStream) {
 					string line = sr.ReadLine();
 					if (line.StartsWith("#") || string.IsNullOrWhiteSpace(line)) {
@@ -99,11 +117,35 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		private bool IsAnyOf(string original, string[] alrenatives) {
 			foreach (string alt in alrenatives) {
-				if(original == alt) {
+				if (original == alt) {
 					return true;
 				}
 			}
 			return false;
+		}
+
+		private int IsAnyOfIndex(string original, string[] alrenatives) {
+			for (int i = 0; i < alrenatives.Length; i++) {
+				if (original == alrenatives[i]) {
+					return i;
+				}
+			}
+			return -1;
+		}
+
+		private void Switch_WordRecognized(object sender, SpeechRecognizedEventArgs e) {
+			Console.WriteLine("\nSelected - " + e.Result.Text);
+			//string[] s = .DebugShowPhrases.Replace("[", "").Replace("]", "").Replace("’", "").Replace("‘", "").Split(',');
+			//int index = IsAnyOfIndex(e.Result.Text, s);
+			main.UnloadAllGrammars();
+			main.LoadGrammar(DefinitionParser.instance.GetGrammar(e.Result.Text));
+			control.SpeechRecognized -= Switch_WordRecognized;
+			control.Grammars[0].Enabled = true;
+			control.SpeechRecognized += Control_SpeechMatch;
+			control.Grammars[1].Enabled = false;
+			if (Program.debug) {
+				Console.WriteLine(main.Grammars.Count);
+			}
 		}
 	}
 }
