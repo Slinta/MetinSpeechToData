@@ -10,6 +10,8 @@ namespace Metin2SpeechToData {
 		private SpeechRecognitionEngine main;
 		public ControlSpeechCommands controlCommands { get; private set; }
 
+		private DefinitionParserData currentGrammarFile;
+
 		public event Program.Recognition OnRecognitionChange;
 
 		public SpeechRecognitionHelper(ref SpeechRecognitionEngine engine) {
@@ -62,7 +64,7 @@ namespace Metin2SpeechToData {
 			else if (res == controlCommands.getSwitchGrammarCommand) {
 				Choices definitions = new Choices();
 				Console.Write("Switching Grammar, available: ");
-				string[] available = DefinitionParser.instance.getDefinitions;
+				string[] available = DefinitionParser.instance.getDefinitionNames;
 				for (int i = 0; i < available.Length; i++) {
 					definitions.Add(available[i]);
 					if (i == available.Length - 1) {
@@ -135,14 +137,13 @@ namespace Metin2SpeechToData {
 
 		private void Switch_WordRecognized(object sender, SpeechRecognizedEventArgs e) {
 			Console.WriteLine("\nSelected - " + e.Result.Text);
-			//string[] s = .DebugShowPhrases.Replace("[", "").Replace("]", "").Replace("’", "").Replace("‘", "").Split(',');
-			//int index = IsAnyOfIndex(e.Result.Text, s);
 			main.UnloadAllGrammars();
 			main.LoadGrammar(DefinitionParser.instance.GetGrammar(e.Result.Text));
 			control.SpeechRecognized -= Switch_WordRecognized;
 			control.Grammars[0].Enabled = true;
 			control.SpeechRecognized += Control_SpeechMatch;
 			control.Grammars[1].Enabled = false;
+			currentGrammarFile = DefinitionParser.instance.GetDefinitionByName(e.Result.Text);
 			if (Program.debug) {
 				Console.WriteLine(main.Grammars.Count);
 			}
