@@ -2,7 +2,7 @@
 # lines with '#' are ignored
 # !DO NOT MODIFY KEYWORDS BEFORE ':' YOU HAVE BEEN WARNED!
 
-START: Computer start recognition
+START: Computer begin recognition
 PAUSE: Computer pause recognition
-STOP: Computer stop recognition
+STOP: Computer stop and quit recognition
 SWITCH: Computer switch grammar
