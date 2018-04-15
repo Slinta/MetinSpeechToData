@@ -103,5 +103,29 @@ namespace Metin2SpeechToData {
 			xlspackage.Save();
 			return;
 		}
+
+		public void MakeANewSpreadsheet(DefinitionParserData data) {
+			int[] rowOfEachGroup = new int[data.groups.Length];
+			int[] collonOfEachGroup = new int[data.groups.Length];
+			int collonOffset = 4;
+			int groupcounter = 0;
+			foreach (string group in data.groups) {
+				rowOfEachGroup[groupcounter] = 1;
+				collonOfEachGroup[groupcounter] = groupcounter * collonOffset + 1;
+				InsertText(new ExcelCellAddress(rowOfEachGroup[groupcounter],collonOfEachGroup[groupcounter]), group);
+				groupcounter += 1;
+			}
+			foreach (DefinitionParserData.Entry entry in data.entries) {
+				for (int i = 0; i < data.groups.Length; i++) {
+					if(data.groups[i] == entry.group) {
+						groupcounter = i;
+					}
+				}
+				rowOfEachGroup[groupcounter] += 1;
+				InsertText(new ExcelCellAddress(rowOfEachGroup[groupcounter], collonOfEachGroup[groupcounter]), entry.mainPronounciation);
+				InsertText(new ExcelCellAddress(rowOfEachGroup[groupcounter], collonOfEachGroup[groupcounter] + 1), entry.yangValue.ToString());
+				InsertText(new ExcelCellAddress(rowOfEachGroup[groupcounter], collonOfEachGroup[groupcounter] + 2), "0");
+			}
+		}
 	}
 }

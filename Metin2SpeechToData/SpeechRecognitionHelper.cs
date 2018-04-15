@@ -10,7 +10,7 @@ namespace Metin2SpeechToData {
 		private SpeechRecognitionEngine main;
 		public ControlSpeechCommands controlCommands { get; private set; }
 
-		private DefinitionParserData currentGrammarFile;
+		
 
 		public event Program.Recognition OnRecognitionChange;
 
@@ -143,7 +143,7 @@ namespace Metin2SpeechToData {
 			control.Grammars[0].Enabled = true;
 			control.SpeechRecognized += Control_SpeechMatch;
 			control.Grammars[1].Enabled = false;
-			currentGrammarFile = DefinitionParser.instance.GetDefinitionByName(e.Result.Text);
+			DefinitionParser.instance.currentGrammarFile = DefinitionParser.instance.GetDefinitionByName(e.Result.Text);
 			if (Program.debug) {
 				Console.WriteLine(main.Grammars.Count);
 			}
