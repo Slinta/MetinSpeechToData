@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
 using OfficeOpenXml;
 
@@ -24,8 +21,6 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Open spreadsheet
 		/// </summary>
-		/// <param name="path"></param>
-		/// <param name="worksheetName"></param>
 		public SpreadsheetInteraction(string path, string worksheetName) {
 			xlspackage = new ExcelPackage(new FileInfo(path));
 			xlsworkbook = xlspackage.Workbook;
@@ -35,7 +30,6 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Open excel file
 		/// </summary>
-		/// <param name="path"></param>
 		public SpreadsheetInteraction(string path) {
 			xlspackage = new ExcelPackage(new FileInfo(path));
 			xlsworkbook = xlspackage.Workbook;
@@ -44,7 +38,6 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Open existing worksheet or add one if it does't exist
 		/// </summary>
-		/// <param name="sheetname"></param>
 		public void OpenWorksheet(string sheetname) {
 			if (xlsworkbook.Worksheets[sheetname] == null) {
 				xlsworkbook.Worksheets.Add(sheetname);
@@ -55,7 +48,6 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Add a sheet by index
 		/// </summary>
-		/// <param name="sheetindex"></param>
 		public void OpenWorksheet(int sheetindex) {
 			if (xlsworkbook.Worksheets[sheetindex] == null) {
 				throw new Exception("No worksheet with id " + sheetindex + " exists");
@@ -68,8 +60,6 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Adds a specified number to the number in a single cell specified by the address and saves the document
 		/// </summary>
-		/// <param name="address"></param>
-		/// <param name="number"></param>
 		public void AddNumberTo (ExcelCellAddress address, int number) {
 			//If there's no sheet then you can't edit it
 			if (xlssheet == null) {

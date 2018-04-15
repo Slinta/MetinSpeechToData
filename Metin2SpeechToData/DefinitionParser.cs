@@ -99,6 +99,9 @@ namespace Metin2SpeechToData {
 			throw new Exception("Definiton not found");
 		}
 
+		/// <summary>
+		/// Get names of files that were used to create definitions
+		/// </summary>
 		public string[] getDefinitionNames {
 			get {
 				string[] names = new string[getDefinitions.Length];
