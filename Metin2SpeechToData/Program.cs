@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Speech.Recognition;
-using System.IO;
 using OfficeOpenXml;
-
 
 namespace Metin2SpeechToData {
 	class Program {
@@ -24,85 +20,78 @@ namespace Metin2SpeechToData {
 		public static bool debug = false;
 
 		static void Main(string[] args) {
-			//Welcome
-			Console.WriteLine("Welcome");
-			Console.WriteLine("This is a project");
+			Console.WriteLine("Welcome to Metin2 siNDiCATE Drop logger");
 
-			//exit condition
 			bool continueRunning = true;
-
-			//the object containing the current spreadsheet, excel file and the methods to alter it
+	
+			//The object containing current spreadsheet, excel file and the methods to alter it
 			SpreadsheetInteraction interaction = null;
-			//main program
+
 			while (continueRunning) {
-				//check for commands
 				string command = Console.ReadLine();
-				//divide the string onto blocks separated by spacebar
-				string[] commandBlocks = command.Split((char)ConsoleKey.Spacebar);
+
+				string[] commandBlocks = command.Split(' ');
+
+				//Switch over length
 				switch (commandBlocks.Length) {
-					//One word command
 					case 1: {
 						switch (commandBlocks[0]) {
-							//ask for confirmation and then exit the application by stoping while
 							case "quit": {
 								Console.WriteLine("Do you want to quit? y/n");
 								if (Console.ReadKey().Key == ConsoleKey.Y) {
 									continueRunning = false;
 								}
-								else {
-									Console.WriteLine("Exit aborted");
+								break;
+							}
+							case "exit": {
+								Console.WriteLine("Do you want to quit? y/n");
+								if (Console.ReadKey().Key == ConsoleKey.Y) {
+									continueRunning = false;
 								}
 								break;
 							}
-							//list commands
 							case "help": {
-								Console.WriteLine("commands are:");
-								Console.WriteLine("add collom row number");
-								Console.WriteLine("quit");
+								Console.WriteLine("Existing commands:");
+								Console.WriteLine("quit / exit --> Close the application");
+								break;
+							}
+							case "voice": {
+								parser = new DefinitionParser();
+								game = new SpeechRecognitionEngine();
+								helper = new SpeechRecognitionHelper(ref game);
+								helper.OnRecognitionChange += OnRecognitionChange;
 								break;
 							}
 							default: {
-
-
+								Console.WriteLine("Not a valid command, type 'help' for more info");
 								break;
 							}
 						}
 						break;
 					}
 					case 2: {
-						//switch by  firs word in command
 						switch (commandBlocks[0]) {
-							//change the edited file
 							case "file": {
 								string location = commandBlocks[1];
-								//if the location is default use this
 								if (commandBlocks[1] == "default") {
-									location = "\\\\SLINTA-PC\\Sharing\\Metin2\\BokjungData.xlsx";
+									location = @"\\SLINTA-PC\Sharing\Metin2\BokjungData.xlsx";
 								}
 								interaction = new SpreadsheetInteraction(location);
 								break;
 							}
-							//change the sheet in the edited file, sheet must already exist
+							//Switch current working sheet, sheet must already exist!
 							case "sheet": {
-								if (interaction == null) {
-									Console.WriteLine("You have to assign a file before you assign the sheet");
-									break;
-								}
 								string sheet = commandBlocks[1];
 								interaction.OpenWorksheet(sheet);
 								break;
 							}
-
-							case "vr": {
+							case "voice": {
 								if (commandBlocks[1] == "debug") {
 									debug = true;
 								}
-
 								parser = new DefinitionParser();
 								game = new SpeechRecognitionEngine();
-								if (debug) {
-									Console.WriteLine(game.Grammars.Count);
-								}
+								Console.WriteLine(game.Grammars.Count);
 								helper = new SpeechRecognitionHelper(ref game);
 								helper.OnRecognitionChange += OnRecognitionChange;
 								break;
@@ -112,12 +101,11 @@ namespace Metin2SpeechToData {
 					}
 					case 3: {
 						switch (commandBlocks[0]) {
-							//specify both file and sheet
 							case "file": {
 								string location = commandBlocks[1];
 								string sheet = commandBlocks[2];
 								if (commandBlocks[1] == "default") {
-									location = "\\\\SLINTA-PC\\Sharing\\Metin2\\BokjungData.xlsx";
+									location = @"\\SLINTA-PC\Sharing\Metin2\BokjungData.xlsx";
 								}
 								if (commandBlocks[2] == "default") {
 									sheet = "Data";
@@ -133,49 +121,37 @@ namespace Metin2SpeechToData {
 							//add a number to a cell, args: collon, row, number
 							case "add": {
 								if (interaction == null) {
-									Console.WriteLine("No file set yet");
+									throw new Exception("File does not exist");
 								}
-								int row;
-								int collum;
-								int add;
 								int successCounter = 0;
-								if (int.TryParse(commandBlocks[1], out row)) {
+								if (int.TryParse(commandBlocks[1], out int row)) {
 									successCounter += 1;
 								}
-								if (int.TryParse(commandBlocks[2], out collum)) {
+								if (int.TryParse(commandBlocks[2], out int collum)) {
 									successCounter += 1;
 								}
-								if (int.TryParse(commandBlocks[3], out add)) {
+								if (int.TryParse(commandBlocks[3], out int add)) {
 									successCounter += 1;
 								}
 								if (successCounter == 3) {
-
 									interaction.AddNumberTo(new ExcelCellAddress(collum, row), add);
 								}
 								break;
 							}
-
 							case "val": {
 								if (interaction == null) {
-									Console.WriteLine("No file set yet");
-									return;
+									throw new Exception("File does not exist");
 								}
-								int row;
-								int collum;
 								int successCounter = 0;
-								if (int.TryParse(commandBlocks[1], out row)) {
+								if (int.TryParse(commandBlocks[1], out int row)) {
 									successCounter += 1;
 								}
-								if (int.TryParse(commandBlocks[2], out collum)) {
+								if (int.TryParse(commandBlocks[2], out int collum)) {
 									successCounter += 1;
 								}
 								if (successCounter == 2) {
-
 									interaction.InsertText(new ExcelCellAddress(collum, row), commandBlocks[3]);
 								}
-								break;
-							}
-							default: {
 								break;
 							}
 						}
@@ -184,6 +160,7 @@ namespace Metin2SpeechToData {
 				}
 			}
 		}
+
 		private static void OnRecognitionChange(RecognitionState state) {
 			switch (state) {
 				case RecognitionState.ERROR: {
