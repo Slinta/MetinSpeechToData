@@ -96,6 +96,10 @@ namespace Metin2SpeechToData {
 								helper.OnRecognitionChange += OnRecognitionChange;
 								break;
 							}
+							default: {
+								Console.WriteLine("Not a valid command, type 'help' for more info");
+								break;
+							}
 						}
 						break;
 					}
@@ -111,6 +115,10 @@ namespace Metin2SpeechToData {
 									sheet = "Data";
 								}
 								interaction = new SpreadsheetInteraction(location, sheet);
+								break;
+							}
+							default: {
+								Console.WriteLine("Not a valid command, type 'help' for more info");
 								break;
 							}
 						}
@@ -152,6 +160,10 @@ namespace Metin2SpeechToData {
 								if (successCounter == 2) {
 									interaction.InsertText(new ExcelCellAddress(collum, row), commandBlocks[3]);
 								}
+								break;
+							}
+							default: {
+								Console.WriteLine("Not a valid command, type 'help' for more info");
 								break;
 							}
 						}

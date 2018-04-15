@@ -22,7 +22,9 @@ namespace Metin2SpeechToData {
 					main.Add(s);
 				}
 			}
-			grammar = new Grammar(main);
+			grammar = new Grammar(main) {
+				Name = ID
+			};
 		}
 	}
 }
