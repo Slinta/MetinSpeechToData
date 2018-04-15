@@ -15,7 +15,7 @@ namespace Metin2SpeechToData {
 		public delegate void ModifierTrigger(string word, params string[] args);
 		public static event ModifierTrigger OnModifierWordHear;
 
-		private static EnemyHandling enemyHandling;
+		//private static EnemyHandling enemyHandling;
 		private static SpeechRecognitionEngine game;
 		private static DefinitionParser parser;
 		private static SpeechRecognitionHelper helper;
@@ -28,7 +28,7 @@ namespace Metin2SpeechToData {
 		
 		static void Main(string[] args) {
 			Console.WriteLine("Welcome to Metin2 siNDiCATE Drop logger");
-			enemyHandling = new EnemyHandling();
+			//enemyHandling = new EnemyHandling();
 			bool continueRunning = true;
 	
 			while (continueRunning) {
@@ -221,7 +221,7 @@ namespace Metin2SpeechToData {
 			}
 			Console.WriteLine(e.Result.Text + " -- " + e.Result.Confidence);
 
-			enemyHandling.Drop(e.Result.Text);
+			//enemyHandling.Drop(e.Result.Text);
 		}
 
 		private static void Game_ModifierArgument(object sender, SpeechRecognizedEventArgs e) {
