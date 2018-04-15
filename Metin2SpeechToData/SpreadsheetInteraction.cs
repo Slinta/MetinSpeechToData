@@ -133,7 +133,7 @@ namespace Metin2SpeechToData {
 		}
 
 		public ExcelCellAddress AddressFromName(string name) {
-			if (nameLookupDictionary.Keys.Contains<string>(name)) {
+			if (nameLookupDictionary.ContainsKey(name)) {
 				return nameLookupDictionary[name];
 			}
 			throw new Exception("The word you're looking for isn't in the dictionary");
