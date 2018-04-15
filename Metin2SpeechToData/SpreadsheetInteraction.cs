@@ -113,5 +113,18 @@ namespace Metin2SpeechToData {
 			xlspackage.Save();
 			return;
 		}
+
+		public void MakeANewSpreadsheet(DefinitionParserData data) {
+			int[] rowOfEachGroup = new int[data.groups.Length];
+			int[] collonOfEachGroup = new int[data.groups.Length];
+			int collonOffset = 4;
+			int groupcounter = 0;
+			foreach (string group in data.groups) {
+				rowOfEachGroup[groupcounter] = 0;
+				collonOfEachGroup[groupcounter] = groupcounter * collonOffset;
+				InsertText(new ExcelCellAddress(rowOfEachGroup[groupcounter],collonOfEachGroup[groupcounter]), group);
+				groupcounter += 1;
+			}
+		}
 	}
 }
