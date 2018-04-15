@@ -21,6 +21,8 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		private ExcelWorksheet xlssheet;
 
+
+		private Dictionary<string, ExcelCellAddress> nameLookupDictionary;
 		/// <summary>
 		/// Open spreadsheet
 		/// </summary>
@@ -115,6 +117,7 @@ namespace Metin2SpeechToData {
 		}
 
 		public void MakeANewSpreadsheet(DefinitionParserData data) {
+			nameLookupDictionary = new Dictionary<string, ExcelCellAddress>();
 			int[] rowOfEachGroup = new int[data.groups.Length];
 			int[] collonOfEachGroup = new int[data.groups.Length];
 			int collonOffset = 4;
@@ -135,7 +138,15 @@ namespace Metin2SpeechToData {
 				InsertText(new ExcelCellAddress(rowOfEachGroup[groupcounter], collonOfEachGroup[groupcounter]), entry.mainPronounciation);
 				InsertText(new ExcelCellAddress(rowOfEachGroup[groupcounter], collonOfEachGroup[groupcounter] + 1), entry.yangValue.ToString());
 				InsertText(new ExcelCellAddress(rowOfEachGroup[groupcounter], collonOfEachGroup[groupcounter] + 2), "0");
+				nameLookupDictionary.Add(entry.mainPronounciation, new ExcelCellAddress(rowOfEachGroup[groupcounter], collonOfEachGroup[groupcounter] + 2));
 			}
+		}
+
+		public ExcelCellAddress AddressFromName(string name) {
+			if (nameLookupDictionary.Keys.Contains<string>(name)) {
+				return nameLookupDictionary[name];
+			}
+			throw new Exception("The word you're looking for isn't in the dictionary");
 		}
 	}
 }

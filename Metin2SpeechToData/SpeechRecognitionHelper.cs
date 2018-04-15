@@ -144,6 +144,7 @@ namespace Metin2SpeechToData {
 			control.SpeechRecognized += Control_SpeechMatch;
 			control.Grammars[1].Enabled = false;
 			DefinitionParser.instance.currentGrammarFile = DefinitionParser.instance.GetDefinitionByName(e.Result.Text);
+			Program.interaction.MakeANewSpreadsheet(DefinitionParser.instance.currentGrammarFile);
 			if (Program.debug) {
 				Console.WriteLine(main.Grammars.Count);
 			}

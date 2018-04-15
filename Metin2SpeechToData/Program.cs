@@ -186,7 +186,8 @@ namespace Metin2SpeechToData {
 
 		private static void Game_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {
 			Console.WriteLine(e.Result.Text + " -- " + e.Result.Confidence);
-			Program.interaction.MakeANewSpreadsheet(DefinitionParser.instance.currentGrammarFile);
+
+			interaction.AddNumberTo(interaction.AddressFromName(e.Result.Text), 1);
 		}
 	}
 }
