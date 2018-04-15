@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Speech.Recognition;
@@ -6,33 +7,33 @@ using System.Speech.Recognition;
 namespace Metin2SpeechToData {
 	public class DefinitionParser {
 
+		/// <summary>
+		/// Instance of this class
+		/// </summary>
 		public static DefinitionParser instance { get; private set; }
 
-		private Grammar[] definitions; //Holds all loaded definitions that were present in Application folder
+		/// <summary>
+		/// Get all parsed definitions
+		/// </summary>
+		public DefinitionParserData[] getDefinitions { get; }
 
+		#region Constructor/Destructor
 		public DefinitionParser() {
 			DirectoryInfo d = new DirectoryInfo(Directory.GetCurrentDirectory());
 			FileInfo[] filesPresent = d.GetFiles("*.definition").Where(name => !name.Name.Split('.')[0].StartsWith("Control")).ToArray();
-			
-			if (filesPresent.Length == 1) {
+			if (filesPresent.Length == 0) {
 				throw new Exception("Your program is missing voice recognition strings! Either redownload, or create your own *.definition text file.");
 			}
-			definitions = new Grammar[filesPresent.Length];
+			getDefinitions = new DefinitionParserData[filesPresent.Length];
+
 			for (int i = 0; i < filesPresent.Length; i++) {
-				if (filesPresent[i].Name == "Control.definition") {
-					
-					continue;
-				}
-				Choices choices = new Choices();
+				DefinitionParserData data = new DefinitionParserData();
 				using (StreamReader s = filesPresent[i].OpenText()) {
-					while (!s.EndOfStream) {
-						string line = s.ReadLine();
-						if (line.StartsWith("#") || string.IsNullOrWhiteSpace(line)) {
-							continue;
-						}
-						choices.Add(new Choices(line.Split(',')));
-					}
-					definitions[i] = new Grammar(choices) { Name = filesPresent[i].Name.Split('.')[0] };
+					data.ID = filesPresent[i].Name.Split('.')[0];
+					data.groups = ParseHeader(s);
+					data.entries = ParseEntries(s);
+					data.ContructGrammar();
+					getDefinitions[i] = data;
 				}
 			}
 			instance = this;
@@ -41,36 +42,72 @@ namespace Metin2SpeechToData {
 		~DefinitionParser() {
 			instance = null;
 		}
+		#endregion
+
+		private string[] ParseHeader(StreamReader r) {
+			List<string> strings = new List<string>();
+			string line = r.ReadLine();
+			while (line != "}") {
+				if (line.StartsWith("#") || line.Contains("{")) {
+					line = r.ReadLine();
+					continue;
+				}
+				strings.Add(line.Trim('\t'));
+				line = r.ReadLine();
+			}
+			return strings.ToArray();
+		}
+
+		private DefinitionParserData.Entry[] ParseEntries(StreamReader r) {
+			List<DefinitionParserData.Entry> entries = new List<DefinitionParserData.Entry>();
+			while (!r.EndOfStream) {
+				string line = r.ReadLine();
+				if (string.IsNullOrWhiteSpace(line)) {
+					continue;
+				}
+
+				string[] split = line.Split(',');
+				string[] same = split[0].Split('/');
+				for (int i = 0; i < same.Length; i++) {
+					same[i] = same[i].TrimStart(' ');
+				}
+				entries.Add(new DefinitionParserData.Entry {
+					mainPronounciation = same[0],
+					group = split[2].TrimStart(' '),
+					yangValue = uint.Parse(split[1].TrimStart(' ')),
+					ambiguous = same.Where(a => a != same[0]).ToArray()
+				});
+			}
+			return entries.ToArray();
+		}
 
 		public Grammar GetGrammar(string identifier) {
-			foreach (Grammar def in definitions) {
-				if (def.Name == identifier) {
-					return def;
+			foreach (DefinitionParserData def in getDefinitions) {
+				if (def.ID == identifier) {
+					return def.grammar;
 				}
 			}
 			throw new Exception("Grammar with identifier " + identifier + " does not exist!");
 		}
 
-		public Grammar GetGrammar(int index) {
-			try {
-				return definitions[index];
+		public DefinitionParserData GetDefinitionByName(string name) {
+			foreach (DefinitionParserData data in getDefinitions) {
+				if(data.ID == name) {
+					return data;
+				}
 			}
-			catch {
-				throw new Exception("Grammar with index " + index + " does not exist!");
+			throw new Exception("Definiton not found");
+		}
+
+		public string[] getDefinitionNames {
+			get {
+				string[] names = new string[getDefinitions.Length];
+				for (int i = 0; i < getDefinitions.Length; i++) {
+					names[i] = getDefinitions[i].ID;
+				}
+				return names;
 			}
 		}
 
-		/// <summary>
-		/// Get all parsed definitions by name
-		/// </summary>
-		public string[] getDefinitions {
-			get {
-				string[] strings = new string[definitions.Length];
-				for (int i = 0; i < definitions.Length; i++) {
-					strings[i] = definitions[i].Name;
-				}
-				return strings;
-			}
-		}
 	}
 }
