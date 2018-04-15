@@ -16,16 +16,16 @@ namespace Metin2SpeechToData {
 		private static SpeechRecognitionEngine game;
 		private static DefinitionParser parser;
 		private static SpeechRecognitionHelper helper;
-
+		//The object containing current spreadsheet, excel file and the methods to alter it
+		public static SpreadsheetInteraction interaction;
 		public static bool debug = false;
-
+		
 		static void Main(string[] args) {
 			Console.WriteLine("Welcome to Metin2 siNDiCATE Drop logger");
 
 			bool continueRunning = true;
 	
-			//The object containing current spreadsheet, excel file and the methods to alter it
-			SpreadsheetInteraction interaction = null;
+			
 
 			while (continueRunning) {
 				string command = Console.ReadLine();
@@ -186,6 +186,7 @@ namespace Metin2SpeechToData {
 
 		private static void Game_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {
 			Console.WriteLine(e.Result.Text + " -- " + e.Result.Confidence);
+			Program.interaction.MakeANewSpreadsheet(DefinitionParser.instance.currentGrammarFile);
 		}
 	}
 }

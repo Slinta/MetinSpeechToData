@@ -17,6 +17,8 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		public DefinitionParserData[] getDefinitions { get; }
 
+		public DefinitionParserData currentGrammarFile;
+
 		#region Constructor/Destructor
 		public DefinitionParser() {
 			DirectoryInfo d = new DirectoryInfo(Directory.GetCurrentDirectory());
