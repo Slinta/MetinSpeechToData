@@ -13,6 +13,7 @@ namespace Metin2SpeechToData {
 
 		public delegate void Recognition(RecognitionState state);
 
+		private static EnemyHandling enemyHandling;
 		private static SpeechRecognitionEngine game;
 		private static DefinitionParser parser;
 		private static SpeechRecognitionHelper helper;
@@ -22,7 +23,7 @@ namespace Metin2SpeechToData {
 		
 		static void Main(string[] args) {
 			Console.WriteLine("Welcome to Metin2 siNDiCATE Drop logger");
-
+			enemyHandling = new EnemyHandling();
 			bool continueRunning = true;
 	
 			
@@ -199,7 +200,7 @@ namespace Metin2SpeechToData {
 		private static void Game_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {
 			Console.WriteLine(e.Result.Text + " -- " + e.Result.Confidence);
 
-			interaction.AddNumberTo(interaction.AddressFromName(e.Result.Text), 1);
+			enemyHandling.Drop(e.Result.Text);
 		}
 	}
 }
