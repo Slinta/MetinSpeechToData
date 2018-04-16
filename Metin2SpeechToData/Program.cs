@@ -15,7 +15,7 @@ namespace Metin2SpeechToData {
 		public delegate void ModifierTrigger(string word, params string[] args);
 		public static event ModifierTrigger OnModifierWordHear;
 
-		//private static EnemyHandling enemyHandling;
+		private static EnemyHandling enemyHandling;
 		private static SpeechRecognitionEngine game;
 		private static DefinitionParser parser;
 		private static SpeechRecognitionHelper helper;
@@ -28,9 +28,9 @@ namespace Metin2SpeechToData {
 		
 		static void Main(string[] args) {
 			Console.WriteLine("Welcome to Metin2 siNDiCATE Drop logger");
-			//enemyHandling = new EnemyHandling();
+			enemyHandling = new EnemyHandling();
 			bool continueRunning = true;
-	
+			interaction = new SpreadsheetInteraction(@"\\SLINTA-PC\Sharing\Metin2\BokjungData.xlsx", "Data");
 			while (continueRunning) {
 				string command = Console.ReadLine();
 
@@ -216,21 +216,24 @@ namespace Metin2SpeechToData {
 							Console.WriteLine(e.Result.Text + " -- " + e.Result.Confidence);
 							return;
 						}
+						
 					}
 				}
 			}
 			Console.WriteLine(e.Result.Text + " -- " + e.Result.Confidence);
-
-			//enemyHandling.Drop(e.Result.Text);
 		}
 
 		private static void Game_ModifierArgument(object sender, SpeechRecognizedEventArgs e) {
 			if (listeningForArgument && e.Result.Text != "New Target") {
+				enemyHandling.EnemyFinished();
 				listeningForArgument = false;
 				Console.WriteLine(e.Result.Text);
 				OnModifierWordHear?.Invoke(currentModifier, e.Result.Text);
 				game.Grammars[0].Enabled = true;
 				game.Grammars[2].Enabled = false;
+			}
+			else if(!listeningForArgument){
+				enemyHandling.Drop(e.Result.Text);
 			}
 		}
 	}

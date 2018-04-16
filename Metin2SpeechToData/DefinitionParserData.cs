@@ -14,6 +14,18 @@ namespace Metin2SpeechToData {
 			public string group;
 		}
 
+		public string GetMainPronounciation(string calledAmbiguity) {
+			foreach (Entry entry in entries) {
+				foreach (string ambiguity in entry.ambiguous) {
+					if (ambiguity == calledAmbiguity) {
+						return entry.mainPronounciation;
+					}
+				}
+			}
+
+			return null;
+		}
+
 		public void ConstructGrammar() {
 			Choices main = new Choices();
 			foreach (Entry e in entries) {

@@ -18,6 +18,7 @@ namespace Metin2SpeechToData {
 		public DefinitionParserData[] getDefinitions { get; }
 		public MobParserData[] getMobDefinitions { get; }
 		public DefinitionParserData currentGrammarFile;
+		public MobParserData currentMobGrammarFile;
 
 		#region Constructor/Destructor
 		public DefinitionParser() {

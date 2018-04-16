@@ -18,6 +18,12 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		private ExcelWorksheet xlssheet;
 
+		public ExcelWorksheet xlsSheet {
+			get {
+				return xlssheet;
+			}
+
+		}
 
 		private Dictionary<string, ExcelCellAddress> nameLookupDictionary;
 		/// <summary>
@@ -147,6 +153,17 @@ namespace Metin2SpeechToData {
 				return nameLookupDictionary[name];
 			}
 			//return new ExcelCellAddress(2, 2);
+			else
+			{
+				string s = DefinitionParser.instance.currentGrammarFile.GetMainPronounciation(name);
+				if (s != null && nameLookupDictionary.ContainsKey(s)) {
+					
+					return nameLookupDictionary[s];
+					
+				}	
+				
+				
+			}
 			throw new Exception("The word you're looking for isn't in the dictionary");
 		}
 	}

@@ -14,24 +14,41 @@ namespace Metin2SpeechToData {
 		public EnemyState state;
 		private string currentEnemy;
 		public EnemyHandling() {
-
+			Program.OnModifierWordHear += EnemyFighting;
 		}
-		public void EnemyFighting(string enemy) {
-			if (state == EnemyState.Fighting) {
-				if(currentEnemy != enemy) {
+		public void EnemyFighting(string enemy, params string[] args) {
+			string actualEnemyName;
+			try {
+				actualEnemyName = args[0];
+			}
+			catch {
+				throw new Exception("args was empty");
+			}
+			actualEnemyName = DefinitionParser.instance.currentMobGrammarFile.GetMainPronounciation(actualEnemyName);
+
+				if (string.IsNullOrEmpty(currentEnemy) || currentEnemy != actualEnemyName) {
 					state = EnemyState.Fighting;
-					Program.interaction.OpenWorksheet(enemy);
+					
+					try{
+						Program.interaction.OpenWorksheet(actualEnemyName);
+						currentEnemy = actualEnemyName;
+					}
+					catch {
+						throw new Exception("args was empty");
+					}
+					
 					Program.interaction.InitialiseWorksheet();
 				}
 				else {
-					state = EnemyState.Fighting;
-					Program.interaction.AddNumberTo(new ExcelCellAddress(1,5), 1);
+					throw new Exception("Enemy not finished");
 				}
-			}
+			
 		}
 
-		public void EnemyFinished(string enemy) {
+		public void EnemyFinished() {
 			state = EnemyState.NoEnemy;
+			Console.WriteLine(currentEnemy + " killed");
+			Console.WriteLine("The death noted in " + Program.interaction.xlsSheet.Name);
 			Program.interaction.AddNumberTo(new ExcelCellAddress(1, 5), 1);
 		}
 

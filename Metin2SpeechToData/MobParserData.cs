@@ -95,6 +95,23 @@ namespace Metin2SpeechToData {
 			public MobClass mobClass;
 		}
 
+		public string GetMainPronounciation(string calledAmbiguity) {
+			calledAmbiguity.Trim(' ');
+			foreach (Enemy enemy in enemies) {
+				if(enemy.mobMainPronounciation == calledAmbiguity) {
+					return enemy.mobMainPronounciation;
+				}
+				foreach (string ambiguity in enemy.ambiguous) {
+					ambiguity.Trim(' ');
+					if (ambiguity == calledAmbiguity) {
+						return enemy.mobMainPronounciation;
+					}
+				}
+			}
+
+			throw new Exception("no such ambiguity");
+		}
+
 		public Grammar ConstructGrammar(Enemy[] enemies) {
 			Choices main = new Choices();
 			foreach (Enemy e in enemies) {
