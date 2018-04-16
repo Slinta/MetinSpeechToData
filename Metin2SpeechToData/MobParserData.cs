@@ -21,35 +21,34 @@ namespace Metin2SpeechToData {
 		}
 
 		/// <summary>
-		/// Use with .Parse(DirectoryInfo dir); !!!
+		/// Parses all mob files that exists in current folder
 		/// </summary>
-		public MobParserData() {
-			//Constructor
-		}
-
 		public MobParserData[] Parse(DirectoryInfo dir) {
 			List<MobParserData> dataList = new List<MobParserData>();
 			List<Enemy> mobs = new List<Enemy>();
 			FileInfo[] mobFiles = dir.GetFiles("Mob_*.definition");
 			for (int i = 0; i < mobFiles.Length; i++) {
-				using(StreamReader sr = mobFiles[i].OpenText()) {
+				using (StreamReader sr = mobFiles[i].OpenText()) {
 					MobParserData data = new MobParserData() {
 						ID = mobFiles[i].Name.Split('.')[0],
 					};
 					while (!sr.EndOfStream) {
 						string line = sr.ReadLine();
-						if(string.IsNullOrWhiteSpace(line) || line.StartsWith("#")) {
+						if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#")) {
 							line = sr.ReadLine();
 							continue;
 						}
 						string[] split = line.Split(',');
 						string[] same = split[0].Split('/');
 						for (int j = 0; j < same.Length; j++) {
-							same[i] = same[i].TrimStart(' ');
+							same[j] = same[j].Trim(' ');
+						}
+						for (int k = 0; k < split.Length; k++) {
+							split[k] = split[k].Trim(' ');
 						}
 						Enemy parsed = new Enemy() {
 							mobMainPronounciation = same[0],
-							ambiguous = same.Where( a => a != same[0]).ToArray(),
+							ambiguous = same.Where(a => a != same[0]).ToArray(),
 							mobLevel = ushort.Parse(split[1]),
 							mobClass = ParseClass(split[2]),
 							asociatedDrops = null
@@ -87,29 +86,21 @@ namespace Metin2SpeechToData {
 			throw new Exception("Invalid Mob type " + s);
 		}
 
-		public struct Enemy {
-			public string mobMainPronounciation;
-			public string[] ambiguous;
-			public ushort mobLevel;
-			public string[] asociatedDrops;
-			public MobClass mobClass;
-		}
-
+		/// <summary>
+		/// Gets main mob pronounciation by comparing ambiguities
+		/// </summary>
 		public string GetMainPronounciation(string calledAmbiguity) {
-			calledAmbiguity.Trim(' ');
 			foreach (Enemy enemy in enemies) {
-				if(enemy.mobMainPronounciation == calledAmbiguity) {
-					return enemy.mobMainPronounciation;
+				if(calledAmbiguity == enemy.mobMainPronounciation) {
+					return calledAmbiguity; // == enemy.mainMobPronounciation
 				}
 				foreach (string ambiguity in enemy.ambiguous) {
-					ambiguity.Trim(' ');
 					if (ambiguity == calledAmbiguity) {
 						return enemy.mobMainPronounciation;
 					}
 				}
 			}
-
-			throw new Exception("no such ambiguity");
+			throw new Exception("No entry found, data was parsed incorrectly");
 		}
 
 		public Grammar ConstructGrammar(Enemy[] enemies) {
@@ -121,6 +112,14 @@ namespace Metin2SpeechToData {
 				}
 			}
 			return new Grammar(main) { Name = ID };
+		}
+
+		public struct Enemy {
+			public string mobMainPronounciation;
+			public string[] ambiguous;
+			public ushort mobLevel;
+			public string[] asociatedDrops;
+			public MobClass mobClass;
 		}
 	}
 }

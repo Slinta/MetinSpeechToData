@@ -3,7 +3,7 @@ using System.Speech.Recognition;
 using OfficeOpenXml;
 
 namespace Metin2SpeechToData {
-	class Program {
+	public class Program {
 		public enum RecognitionState {
 			ERROR,
 			CONTROL_RUNNING,
@@ -12,22 +12,25 @@ namespace Metin2SpeechToData {
 		}
 
 		public delegate void Recognition(RecognitionState state);
-		public delegate void ModifierTrigger(string word, params string[] args);
+		public delegate void ModifierTrigger(SpeechRecognitionHelper.ModifierWords word, params string[] args);
+
 		public static event ModifierTrigger OnModifierWordHear;
 
-		private static EnemyHandling enemyHandling;
 		private static SpeechRecognitionEngine game;
-		private static DefinitionParser parser;
 		private static SpeechRecognitionHelper helper;
-		//The object containing current spreadsheet, excel file and the methods to alter it
+
+		private static DefinitionParser parser;
+		private static EnemyHandling enemyHandling;
+
 		public static SpreadsheetInteraction interaction;
+
+
 		public static bool debug = false;
 
-		public static readonly string[] modifierWords = new string[1] { "New Target" };
-		private static bool listeningForArgument = false;
-		
 		static void Main(string[] args) {
 			Console.WriteLine("Welcome to Metin2 siNDiCATE Drop logger");
+			Console.WriteLine("Type 'help' for more info on how to use this program");
+
 			enemyHandling = new EnemyHandling();
 			bool continueRunning = true;
 			interaction = new SpreadsheetInteraction(@"\\SLINTA-PC\Sharing\Metin2\BokjungData.xlsx", "Data");
@@ -57,6 +60,12 @@ namespace Metin2SpeechToData {
 							case "help": {
 								Console.WriteLine("Existing commands:");
 								Console.WriteLine("quit / exit --> Close the application");
+								Console.WriteLine("voice / voice debug --> Enables voice control without/with debug prints");
+								Console.WriteLine("file 'location' --> Creates a new file at 'location' <- replace with valid path");
+								Console.WriteLine("file 'location' 'sheet name' --> Creates a new file at 'location' <- replace with valid path, with a sheet 'sheet name' inside");
+								Console.WriteLine("sheet 'sheet name' --> Swithches current working sheet to 'sheet name' <- replace with valid sheet name, sheet MUST already exist(by typing \"file 'location' 'sheet name'\")");
+								Console.WriteLine("add 'row' 'collumn' 'number' --> Adds value of 'number' to currently open sheet at 'row' 'collumn', sheet MUST already exist");
+								Console.WriteLine("val 'row' 'collumn' 'number' --> Same as 'add' but the value is overwritten!");
 								break;
 							}
 							case "voice": {
@@ -130,7 +139,7 @@ namespace Metin2SpeechToData {
 					}
 					case 4: {
 						switch (commandBlocks[0]) {
-							//add a number to a cell, args: collon, row, number
+							//Add a number to a cell, args: row, col, number
 							case "add": {
 								if (interaction == null) {
 									throw new Exception("File does not exist");
@@ -191,7 +200,6 @@ namespace Metin2SpeechToData {
 				case RecognitionState.DROP_LOGGER_RUNNING: {
 					game.SetInputToDefaultAudioDevice();
 					game.SpeechRecognized += Game_SpeechRecognized;
-					game.SpeechRecognized += Game_ModifierArgument;
 					game.RecognizeAsync(RecognizeMode.Multiple);
 					break;
 				}
@@ -201,40 +209,48 @@ namespace Metin2SpeechToData {
 			}
 		}
 
-		private static string currentModifier;
 
 		private static void Game_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {
-			foreach (string s in modifierWords) {
-				if(s == e.Result.Text) {
+			foreach (string s in SpeechRecognitionHelper.modifierDict.Values) {
+				if (s == e.Result.Text) {
 					switch (s) {
 						case "New Target": {
 							game.Grammars[0].Enabled = false;
 							game.Grammars[2].Enabled = true;
-							listeningForArgument = true;
+							OnModifierWordHear?.Invoke(SpeechRecognitionHelper.currentModifier, "");
 							Console.WriteLine("Listening for enemy type");
-							currentModifier = s;
-							Console.WriteLine(e.Result.Text + " -- " + e.Result.Confidence);
+							SpeechRecognitionHelper.currentModifier = SpeechRecognitionHelper.ModifierWords.NEW_TARGET;
+							break;
+						}
+						case "Undo": {
+							Console.Write("Undoing...");
+							OnModifierWordHear?.Invoke(SpeechRecognitionHelper.ModifierWords.UNDO, "");
 							return;
 						}
-						
 					}
 				}
 			}
+			if(SpeechRecognitionHelper.currentModifier != SpeechRecognitionHelper.ModifierWords.NONE) {
+				game.SpeechRecognized += Game_ModifierRecognized;
+				game.SpeechRecognized -= Game_SpeechRecognized;
+				return;
+			}
+			enemyHandling.Drop(e.Result.Text);
 			Console.WriteLine(e.Result.Text + " -- " + e.Result.Confidence);
 		}
 
-		private static void Game_ModifierArgument(object sender, SpeechRecognizedEventArgs e) {
-			if (listeningForArgument && e.Result.Text != "New Target") {
-				enemyHandling.EnemyFinished();
-				listeningForArgument = false;
-				Console.WriteLine(e.Result.Text);
-				OnModifierWordHear?.Invoke(currentModifier, e.Result.Text);
-				game.Grammars[0].Enabled = true;
-				game.Grammars[2].Enabled = false;
+		private static void Game_ModifierRecognized(object sender, SpeechRecognizedEventArgs e) {
+			switch (SpeechRecognitionHelper.currentModifier) {
+				case SpeechRecognitionHelper.ModifierWords.NEW_TARGET: {
+					OnModifierWordHear?.Invoke(SpeechRecognitionHelper.currentModifier, e.Result.Text);
+					game.Grammars[0].Enabled = true;
+					game.Grammars[2].Enabled = false;
+					SpeechRecognitionHelper.currentModifier = SpeechRecognitionHelper.ModifierWords.NONE;
+					break;
+				}
 			}
-			else if(!listeningForArgument){
-				enemyHandling.Drop(e.Result.Text);
-			}
+			game.SpeechRecognized -= Game_ModifierRecognized;
+			game.SpeechRecognized += Game_SpeechRecognized;
 		}
 	}
 }

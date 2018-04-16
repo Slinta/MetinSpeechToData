@@ -1,16 +1,32 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Speech.Recognition;
 using System.IO;
 
 namespace Metin2SpeechToData {
-	class SpeechRecognitionHelper {
+	public class SpeechRecognitionHelper {
+
+		public enum ModifierWords {
+			NONE,
+			NEW_TARGET,
+			UNDO
+		};
+
+		/// <summary>
+		/// Modifiers dictionary, used to convert enum valuies to spoken word
+		/// </summary>
+		public static IReadOnlyDictionary<ModifierWords, string> modifierDict = new Dictionary<ModifierWords, string>() {
+			{ ModifierWords.NONE, "None" },
+			{ ModifierWords.NEW_TARGET , "New Target" },
+			{ ModifierWords.UNDO, "Undo" },
+		};
 
 		private SpeechRecognitionEngine control;
 		private SpeechRecognitionEngine main;
 		public ControlSpeechCommands controlCommands { get; private set; }
 
-		
+		public static ModifierWords currentModifier = ModifierWords.NONE;
 
 		public event Program.Recognition OnRecognitionChange;
 
@@ -23,7 +39,7 @@ namespace Metin2SpeechToData {
 
 			control.LoadGrammar(controlGrammar);
 			control.SetInputToDefaultAudioDevice();
-			control.SpeechRecognized += Control_SpeechMatch;
+			control.SpeechRecognized += Control_SpeechRecognized;
 			if (Program.debug) {
 				Console.WriteLine("Control grammar loaded...");
 			}
@@ -36,7 +52,7 @@ namespace Metin2SpeechToData {
 		}
 
 
-		private void Control_SpeechMatch(object sender, SpeechRecognizedEventArgs e) {
+		private void Control_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {
 			string res = e.Result.Text;
 
 			if (res == controlCommands.getStartCommand) {
@@ -78,7 +94,7 @@ namespace Metin2SpeechToData {
 					control.LoadGrammar(new Grammar(definitions));
 				}
 				control.Grammars[0].Enabled = false;
-				control.SpeechRecognized -= Control_SpeechMatch;
+				control.SpeechRecognized -= Control_SpeechRecognized;
 				control.SpeechRecognized += Switch_WordRecognized;
 				OnRecognitionChange(Program.RecognitionState.SWITCHING);
 			}
@@ -87,9 +103,6 @@ namespace Metin2SpeechToData {
 			}
 		}
 
-		/// <summary>
-		/// Loads grammar for the controling speech recognizer
-		/// </summary>
 		private Grammar LoadControlGrammar(out ControlSpeechCommands commands) {
 			DirectoryInfo dir = new DirectoryInfo(Directory.GetCurrentDirectory());
 			FileInfo grammarFile;
@@ -114,39 +127,18 @@ namespace Metin2SpeechToData {
 			return new Grammar(choices);
 		}
 
-		/// <summary>
-		/// Checks said string for matches in alternatives 
-		/// </summary>
-		private bool IsAnyOf(string original, string[] alrenatives) {
-			foreach (string alt in alrenatives) {
-				if (original == alt) {
-					return true;
-				}
-			}
-			return false;
-		}
-
-		private int IsAnyOfIndex(string original, string[] alrenatives) {
-			for (int i = 0; i < alrenatives.Length; i++) {
-				if (original == alrenatives[i]) {
-					return i;
-				}
-			}
-			return -1;
-		}
-
 		private void Switch_WordRecognized(object sender, SpeechRecognizedEventArgs e) {
 			Console.WriteLine("\nSelected - " + e.Result.Text);
 			main.UnloadAllGrammars();
 			main.LoadGrammar(DefinitionParser.instance.GetGrammar(e.Result.Text));
-			main.LoadGrammar(new Grammar(new Choices(Program.modifierWords)));
+			main.LoadGrammar(new Grammar(new Choices(modifierDict.Values.ToArray())));
 			main.LoadGrammar(DefinitionParser.instance.GetMobGrammar("Mob_" + e.Result.Text));
 			main.Grammars[0].Enabled = true;
 			main.Grammars[1].Enabled = true;
 			main.Grammars[2].Enabled = false;
 			control.SpeechRecognized -= Switch_WordRecognized;
 			control.Grammars[0].Enabled = true;
-			control.SpeechRecognized += Control_SpeechMatch;
+			control.SpeechRecognized += Control_SpeechRecognized;
 			control.Grammars[1].Enabled = false;
 			DefinitionParser.instance.currentGrammarFile = DefinitionParser.instance.GetDefinitionByName(e.Result.Text);
 			DefinitionParser.instance.currentMobGrammarFile = DefinitionParser.instance.GetMobDefinitionByName("Mob_" + e.Result.Text);

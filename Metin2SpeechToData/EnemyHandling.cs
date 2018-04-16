@@ -8,50 +8,54 @@ using OfficeOpenXml;
 namespace Metin2SpeechToData {
 	public class EnemyHandling {
 		public enum EnemyState {
-			Fighting,
 			NoEnemy,
+			Fighting
 		}
+
 		public EnemyState state;
-		private string currentEnemy;
+		private string currentEnemy = "";
+
 		public EnemyHandling() {
-			Program.OnModifierWordHear += EnemyFighting;
+			Program.OnModifierWordHear += EnemyTargetingModifierRecognized;
 		}
-		public void EnemyFighting(string enemy, params string[] args) {
-			string actualEnemyName;
-			try {
-				actualEnemyName = args[0];
-			}
-			catch {
-				throw new Exception("args was empty");
-			}
-			actualEnemyName = DefinitionParser.instance.currentMobGrammarFile.GetMainPronounciation(actualEnemyName);
 
-				if (string.IsNullOrEmpty(currentEnemy) || currentEnemy != actualEnemyName) {
+		~EnemyHandling() {
+			Program.OnModifierWordHear -= EnemyTargetingModifierRecognized;
+		}
+
+		/// <summary>
+		/// Event fired after a modifier word "New Target" was said
+		/// </summary>
+		/// <param name="keyWord">In this case always equal to "NEW_TARGET"</param>
+		/// <param name="args">In this case always contains the enemy name/ambiguity at [0]</param>
+		public void EnemyTargetingModifierRecognized(SpeechRecognitionHelper.ModifierWords keyWord, params string[] args) {
+			switch (state) {
+				case EnemyState.NoEnemy: {
+					//Initial state
+					if(args[0] == "" && currentEnemy == "") {
+						return;
+					}
+					string actualEnemyName = DefinitionParser.instance.currentMobGrammarFile.GetMainPronounciation(args[0]);
 					state = EnemyState.Fighting;
-					
-					try{
-						Program.interaction.OpenWorksheet(actualEnemyName);
-						currentEnemy = actualEnemyName;
-					}
-					catch {
-						throw new Exception("args was empty");
-					}
-					
+					Program.interaction.OpenWorksheet(actualEnemyName);
 					Program.interaction.InitialiseWorksheet();
+					currentEnemy = actualEnemyName;
+					Console.WriteLine("Acquired target: " + currentEnemy);
+					break;
 				}
-				else {
-					throw new Exception("Enemy not finished");
+				case EnemyState.Fighting: {
+					state = EnemyState.NoEnemy;
+					Console.WriteLine("Killed " + currentEnemy + ", the death noted in " + Program.interaction.xlsSheet.Name);
+					Program.interaction.AddNumberTo(new ExcelCellAddress(1, 5), 1);
+					currentEnemy = "";
+					break;
 				}
-			
+			}
 		}
 
-		public void EnemyFinished() {
-			state = EnemyState.NoEnemy;
-			Console.WriteLine(currentEnemy + " killed");
-			Console.WriteLine("The death noted in " + Program.interaction.xlsSheet.Name);
-			Program.interaction.AddNumberTo(new ExcelCellAddress(1, 5), 1);
-		}
-
+		/// <summary>
+		/// Increases number count to 'item' in current speadsheet
+		/// </summary>
 		public void Drop(string item) {
 			Program.interaction.AddNumberTo(Program.interaction.AddressFromName(item), 1);
 		}

@@ -13,17 +13,8 @@ namespace Metin2SpeechToData {
 		/// Excel workbook
 		/// </summary>
 		private ExcelWorkbook xlsworkbook;
-		/// <summary>
-		/// Excel sheet
-		/// </summary>
-		private ExcelWorksheet xlssheet;
 
-		public ExcelWorksheet xlsSheet {
-			get {
-				return xlssheet;
-			}
-
-		}
+		public ExcelWorksheet xlsSheet { get; private set; }
 
 		private Dictionary<string, ExcelCellAddress> nameLookupDictionary;
 		/// <summary>
@@ -50,7 +41,7 @@ namespace Metin2SpeechToData {
 			if (xlsworkbook.Worksheets[sheetname] == null) {
 				xlsworkbook.Worksheets.Add(sheetname);
 			}
-			xlssheet = xlsworkbook.Worksheets[sheetname];
+			xlsSheet = xlsworkbook.Worksheets[sheetname];
 		}
 
 		/// <summary>
@@ -61,37 +52,36 @@ namespace Metin2SpeechToData {
 				throw new Exception("No worksheet with id " + sheetindex + " exists");
 			}
 			else {
-				xlssheet = xlsworkbook.Worksheets[sheetindex];
+				xlsSheet = xlsworkbook.Worksheets[sheetindex];
 			}
 		}
 
 		/// <summary>
-		/// Adds a specified number to the number in a single cell specified by the address and saves the document
+		/// Adds a 'number' to the number cell at 'address' and saves the document
 		/// </summary>
-		public void AddNumberTo (ExcelCellAddress address, int number) {
+		public void AddNumberTo(ExcelCellAddress address, int number) {
 			//If there's no sheet then you can't edit it
-			if (xlssheet == null) {
+			if (xlsSheet == null) {
 				Console.WriteLine("No sheet set");
 				return;
 			}
 			//The value in the cell
-			int numberInCell;
 			//If the cell is empty change the value anyway
-			if(xlssheet.Cells[address.Row, address.Column].Value == null) {
-				xlssheet.Cells[address.Row, address.Column].Value = number;
+			if (xlsSheet.Cells[address.Row, address.Column].Value == null) {
+				xlsSheet.Cells[address.Row, address.Column].Value = number;
 				Console.WriteLine("Changed cell [" + address.Row + " " + address.Column + "] to " + number + ", cell was empty");
 
 				xlspackage.Save();
 				return;
 			}
 			//if the cell already has a number add the new one to the existing one
-			if (int.TryParse(xlssheet.Cells[address.Row, address.Column].Value.ToString(), out numberInCell)) {
+			if (int.TryParse(xlsSheet.Cells[address.Row, address.Column].Value.ToString(), out int numberInCell)) {
 				numberInCell += number;
-				xlssheet.Cells[address.Row, address.Column].Value = numberInCell;
+				xlsSheet.Cells[address.Row, address.Column].Value = numberInCell;
 				Console.WriteLine("Changed cell [" + address.Row + " " + address.Column + "] to " + number + ", cell was empty");
 
 				xlspackage.Save();
-				return;		
+				return;
 			}
 			//if no criterium is met write the error
 			Console.WriteLine("Failed to add " + number + " to cell[" + address.Row + " " + address.Column + "], cell doesn't contain a number");
@@ -99,21 +89,20 @@ namespace Metin2SpeechToData {
 
 		public void InsertText(ExcelCellAddress address, string text) {
 			//If there's no sheet then you can't edit it
-			if (xlssheet == null) {
+			if (xlsSheet == null) {
 				Console.WriteLine("No sheet set");
 				return;
 			}
-			
-			//change the cell
 
-			xlssheet.Cells[address.Row, address.Column].Value = text;
+			//change the cell
+			xlsSheet.Cells[address.Row, address.Column].Value = text;
 			Console.WriteLine("Changed cell [" + address.Row + " " + address.Column + "] to " + text + ", cell was empty");
 			xlspackage.Save();
 			return;
 		}
 
 		public void MakeANewSpreadsheet(DefinitionParserData data) {
-			InsertText(new ExcelCellAddress(1, 1), "Spreadsheet for enemy: " + xlssheet.Name);
+			InsertText(new ExcelCellAddress(1, 1), "Spreadsheet for enemy: " + xlsSheet.Name);
 			InsertText(new ExcelCellAddress(1, 4), "Num killed:");
 			InsertText(new ExcelCellAddress(1, 5), "0");
 			nameLookupDictionary = new Dictionary<string, ExcelCellAddress>();
@@ -124,12 +113,12 @@ namespace Metin2SpeechToData {
 			foreach (string group in data.groups) {
 				rowOfEachGroup[groupcounter] = 2;
 				collonOfEachGroup[groupcounter] = groupcounter * collonOffset + 1;
-				InsertText(new ExcelCellAddress(rowOfEachGroup[groupcounter],collonOfEachGroup[groupcounter]), group);
+				InsertText(new ExcelCellAddress(rowOfEachGroup[groupcounter], collonOfEachGroup[groupcounter]), group);
 				groupcounter += 1;
 			}
 			foreach (DefinitionParserData.Entry entry in data.entries) {
 				for (int i = 0; i < data.groups.Length; i++) {
-					if(data.groups[i] == entry.group) {
+					if (data.groups[i] == entry.group) {
 						groupcounter = i;
 					}
 				}
@@ -142,9 +131,8 @@ namespace Metin2SpeechToData {
 		}
 
 		public void InitialiseWorksheet() {
-			if (xlssheet.Cells[1, 1].Value == null) {
+			if (xlsSheet.Cells[1, 1].Value == null) {
 				MakeANewSpreadsheet(DefinitionParser.instance.currentGrammarFile);
-
 			}
 		}
 
@@ -152,17 +140,11 @@ namespace Metin2SpeechToData {
 			if (nameLookupDictionary.ContainsKey(name)) {
 				return nameLookupDictionary[name];
 			}
-			//return new ExcelCellAddress(2, 2);
-			else
-			{
+			else {
 				string s = DefinitionParser.instance.currentGrammarFile.GetMainPronounciation(name);
 				if (s != null && nameLookupDictionary.ContainsKey(s)) {
-					
 					return nameLookupDictionary[s];
-					
-				}	
-				
-				
+				}
 			}
 			throw new Exception("The word you're looking for isn't in the dictionary");
 		}

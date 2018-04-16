@@ -16,8 +16,19 @@ namespace Metin2SpeechToData {
 		/// Get all parsed definitions
 		/// </summary>
 		public DefinitionParserData[] getDefinitions { get; }
+
+		/// <summary>
+		/// Get all mob parsed definitions
+		/// </summary>
 		public MobParserData[] getMobDefinitions { get; }
+
+		/// <summary>
+		/// Current major grammar file files
+		/// </summary>
 		public DefinitionParserData currentGrammarFile;
+		/// <summary>
+		/// Current major grammar file files
+		/// </summary>
 		public MobParserData currentMobGrammarFile;
 
 		#region Constructor/Destructor
@@ -89,6 +100,9 @@ namespace Metin2SpeechToData {
 			return entries.ToArray();
 		}
 
+		/// <summary>
+		/// Get grammar by its name (file name)
+		/// </summary>
 		public Grammar GetGrammar(string identifier) {
 			foreach (DefinitionParserData def in getDefinitions) {
 				if (def.ID == identifier) {
@@ -98,6 +112,9 @@ namespace Metin2SpeechToData {
 			throw new Exception("Grammar with identifier " + identifier + " does not exist!");
 		}
 
+		/// <summary>
+		/// Get mob grammar by its name (file name)
+		/// </summary>
 		public Grammar GetMobGrammar(string identifier) {
 			foreach (MobParserData def in getMobDefinitions) {
 				if (def.ID == identifier) {
@@ -107,6 +124,9 @@ namespace Metin2SpeechToData {
 			throw new Exception("Grammar with identifier " + identifier + " does not exist!");
 		}
 
+		/// <summary>
+		/// Get drop definition by its name (file name)
+		/// </summary>
 		public DefinitionParserData GetDefinitionByName(string name) {
 			foreach (DefinitionParserData data in getDefinitions) {
 				if(data.ID == name) {
@@ -116,6 +136,9 @@ namespace Metin2SpeechToData {
 			throw new Exception("Definiton not found");
 		}
 
+		/// <summary>
+		/// Get mob definition by its name (file name)
+		/// </summary>
 		public MobParserData GetMobDefinitionByName(string name) {
 			foreach (MobParserData data in getMobDefinitions) {
 				if (data.ID == name) {
@@ -137,6 +160,5 @@ namespace Metin2SpeechToData {
 				return names;
 			}
 		}
-
 	}
 }
