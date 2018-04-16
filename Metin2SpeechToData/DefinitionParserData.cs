@@ -34,11 +34,17 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		public string GetMainPronounciation(string calledAmbiguity) {
 			foreach (Entry entry in entries) {
+				if (entry.mainPronounciation == calledAmbiguity) {
+					return calledAmbiguity;
+				}
 				foreach (string ambiguity in entry.ambiguous) {
 					if (ambiguity == calledAmbiguity) {
 						return entry.mainPronounciation;
 					}
 				}
+			}
+			if (!Program.debug) {
+				throw new System.Exception("This error should never be called becuse this function is called only when valid word from grammar is said!");
 			}
 			return null;
 		}

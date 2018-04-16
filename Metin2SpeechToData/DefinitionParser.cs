@@ -33,8 +33,8 @@ namespace Metin2SpeechToData {
 
 		#region Constructor/Destructor
 		public DefinitionParser() {
-			DirectoryInfo d = new DirectoryInfo(Directory.GetCurrentDirectory());
-			FileInfo[] filesPresent = d.GetFiles("*.definition").Where(
+			DirectoryInfo d = new DirectoryInfo(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Definitions");
+			FileInfo[] filesPresent = d.GetFiles("*.definition",SearchOption.AllDirectories).Where(
 				name => !name.Name.Split('.')[0].StartsWith("Control") &&
 						!name.Name.Split('.')[0].StartsWith("Mob")).ToArray();
 			if (filesPresent.Length == 0) {

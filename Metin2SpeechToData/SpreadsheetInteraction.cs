@@ -146,7 +146,10 @@ namespace Metin2SpeechToData {
 					return nameLookupDictionary[s];
 				}
 			}
-			throw new Exception("The word you're looking for isn't in the dictionary");
+			if (!Program.debug) {
+				throw new Exception("The word you're looking for isn't in the dictionary due to parsing problems.");
+			}
+			return new ExcelCellAddress(100, 100);
 		}
 	}
 }

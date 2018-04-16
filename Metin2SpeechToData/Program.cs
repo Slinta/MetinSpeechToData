@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Speech.Recognition;
 using OfficeOpenXml;
 
@@ -26,14 +27,13 @@ namespace Metin2SpeechToData {
 
 
 		public static bool debug = false;
+		private static WrittenControl debugControl;
 
 		static void Main(string[] args) {
 			Console.WriteLine("Welcome to Metin2 siNDiCATE Drop logger");
 			Console.WriteLine("Type 'help' for more info on how to use this program");
-
-			enemyHandling = new EnemyHandling();
 			bool continueRunning = true;
-			interaction = new SpreadsheetInteraction(@"\\SLINTA-PC\Sharing\Metin2\BokjungData.xlsx", "Data");
+			interaction = new SpreadsheetInteraction(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Data.xlsx", "Sheet1");
 			while (continueRunning) {
 				string command = Console.ReadLine();
 
@@ -72,6 +72,7 @@ namespace Metin2SpeechToData {
 								parser = new DefinitionParser();
 								game = new SpeechRecognitionEngine();
 								helper = new SpeechRecognitionHelper(ref game);
+								enemyHandling = new EnemyHandling();
 								helper.OnRecognitionChange += OnRecognitionChange;
 								break;
 							}
@@ -87,7 +88,7 @@ namespace Metin2SpeechToData {
 							case "file": {
 								string location = commandBlocks[1];
 								if (commandBlocks[1] == "default") {
-									location = @"\\SLINTA-PC\Sharing\Metin2\BokjungData.xlsx";
+									location = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Data.xlsx";
 								}
 								interaction = new SpreadsheetInteraction(location);
 								break;
@@ -107,6 +108,8 @@ namespace Metin2SpeechToData {
 								Console.WriteLine(game.Grammars.Count);
 								helper = new SpeechRecognitionHelper(ref game);
 								helper.OnRecognitionChange += OnRecognitionChange;
+								enemyHandling = new EnemyHandling();
+								debugControl = new WrittenControl(helper.controlCommands, ref enemyHandling);
 								break;
 							}
 							default: {
@@ -122,7 +125,7 @@ namespace Metin2SpeechToData {
 								string location = commandBlocks[1];
 								string sheet = commandBlocks[2];
 								if (commandBlocks[1] == "default") {
-									location = @"\\SLINTA-PC\Sharing\Metin2\BokjungData.xlsx";
+									location = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Data.xlsx";
 								}
 								if (commandBlocks[2] == "default") {
 									sheet = "Data";
@@ -209,7 +212,6 @@ namespace Metin2SpeechToData {
 			}
 		}
 
-
 		private static void Game_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {
 			foreach (string s in SpeechRecognitionHelper.modifierDict.Values) {
 				if (s == e.Result.Text) {
@@ -230,7 +232,7 @@ namespace Metin2SpeechToData {
 					}
 				}
 			}
-			if(SpeechRecognitionHelper.currentModifier != SpeechRecognitionHelper.ModifierWords.NONE) {
+			if (SpeechRecognitionHelper.currentModifier != SpeechRecognitionHelper.ModifierWords.NONE) {
 				game.SpeechRecognized += Game_ModifierRecognized;
 				game.SpeechRecognized -= Game_SpeechRecognized;
 				return;

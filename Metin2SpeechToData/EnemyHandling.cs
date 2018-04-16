@@ -16,10 +16,16 @@ namespace Metin2SpeechToData {
 		private string currentEnemy = "";
 
 		public EnemyHandling() {
+			if (Program.debug) {
+				WrittenControl.OnModifierWordHear += EnemyTargetingModifierRecognized;
+			}
 			Program.OnModifierWordHear += EnemyTargetingModifierRecognized;
 		}
 
 		~EnemyHandling() {
+			if (Program.debug) {
+				WrittenControl.OnModifierWordHear += EnemyTargetingModifierRecognized;
+			}
 			Program.OnModifierWordHear -= EnemyTargetingModifierRecognized;
 		}
 
