@@ -19,6 +19,7 @@ namespace Metin2SpeechToData {
 
 		private void Main() {
 			Console.WriteLine("Entered debug mode");
+			stayInDebug = true;
 			while (stayInDebug) {
 				bool newCycle = true;
 				string command = Console.ReadLine();
@@ -39,6 +40,10 @@ namespace Metin2SpeechToData {
 				}
 				else if(artificialStart) {
 					Game_SpeechRecognized(command);
+				}
+				if(command == "ret") {
+					stayInDebug = false;
+					Console.WriteLine("Exitting debug mode!");
 				}
 			}
 		}
