@@ -29,6 +29,7 @@ namespace Metin2SpeechToData {
 		public static bool debug = false;
 		private static WrittenControl debugControl;
 
+		[STAThread]
 		static void Main(string[] args) {
 			Console.WriteLine("Welcome to Metin2 siNDiCATE Drop logger");
 			Console.WriteLine("Type 'help' for more info on how to use this program");
@@ -174,7 +175,7 @@ namespace Metin2SpeechToData {
 									successCounter += 1;
 								}
 								if (successCounter == 2) {
-									interaction.InsertText(new ExcelCellAddress(collum, row), commandBlocks[3]);
+									interaction.InsertValue(new ExcelCellAddress(collum, row), commandBlocks[3]);
 								}
 								break;
 							}
@@ -237,7 +238,7 @@ namespace Metin2SpeechToData {
 				game.SpeechRecognized -= Game_SpeechRecognized;
 				return;
 			}
-			enemyHandling.Drop(e.Result.Text);
+			enemyHandling.ItemDropped(e.Result.Text);
 			Console.WriteLine(e.Result.Text + " -- " + e.Result.Confidence);
 		}
 

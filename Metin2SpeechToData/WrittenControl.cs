@@ -113,7 +113,7 @@ namespace Metin2SpeechToData {
 					}
 				}
 			}
-			enemyHandling.Drop(speechKappa);
+			enemyHandling.ItemDropped(speechKappa);
 			Console.WriteLine(speechKappa + " -- 100% confident.");
 		}
 

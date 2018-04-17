@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using OfficeOpenXml;
 
 namespace Metin2SpeechToData {
@@ -51,7 +47,7 @@ namespace Metin2SpeechToData {
 				}
 				case EnemyState.Fighting: {
 					state = EnemyState.NoEnemy;
-					Console.WriteLine("Killed " + currentEnemy + ", the death noted in " + Program.interaction.xlsSheet.Name);
+					Console.WriteLine("Killed " + currentEnemy + ", the death noted in " + Program.interaction.currentSheet.Name);
 					Program.interaction.AddNumberTo(new ExcelCellAddress(1, 5), 1);
 					currentEnemy = "";
 					break;
@@ -62,7 +58,7 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Increases number count to 'item' in current speadsheet
 		/// </summary>
-		public void Drop(string item) {
+		public void ItemDropped(string item) {
 			Program.interaction.AddNumberTo(Program.interaction.AddressFromName(item), 1);
 		}
 	}
