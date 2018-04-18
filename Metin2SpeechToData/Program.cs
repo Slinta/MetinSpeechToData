@@ -29,10 +29,14 @@ namespace Metin2SpeechToData {
 		public static bool debug = false;
 		private static WrittenControl debugControl;
 
+		public static Configuration config;
+
 		[STAThread]
 		static void Main(string[] args) {
+			config = new Configuration(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
 			Console.WriteLine("Welcome to Metin2 siNDiCATE Drop logger");
 			Console.WriteLine("Type 'help' for more info on how to use this program");
+
 			bool continueRunning = true;
 			interaction = new SpreadsheetInteraction(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Data.xlsx", "Sheet1");
 			while (continueRunning) {

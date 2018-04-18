@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration.cs" />
     <Compile Include="ControlSpeechCommands.cs" />
     <Compile Include="DefinitionParser.cs" />
     <Compile Include="DefinitionParserData.cs" />
