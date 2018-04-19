@@ -83,7 +83,7 @@ namespace Metin2SpeechToData {
 					return MobClass.SPECIAL;
 				}
 			}
-			throw new Exception("Invalid Mob type " + s);
+			throw new CustomException("Invalid Mob type " + s);
 		}
 
 		/// <summary>
@@ -100,7 +100,7 @@ namespace Metin2SpeechToData {
 					}
 				}
 			}
-			throw new Exception("No entry found, data was parsed incorrectly");
+			throw new CustomException("No entry found, data was parsed incorrectly");
 		}
 
 		public Grammar ConstructGrammar(Enemy[] enemies) {

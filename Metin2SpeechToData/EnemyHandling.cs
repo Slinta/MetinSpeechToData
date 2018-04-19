@@ -20,7 +20,7 @@ namespace Metin2SpeechToData {
 
 		~EnemyHandling() {
 			if (Program.debug) {
-				WrittenControl.OnModifierWordHear += EnemyTargetingModifierRecognized;
+				WrittenControl.OnModifierWordHear -= EnemyTargetingModifierRecognized;
 			}
 			Program.OnModifierWordHear -= EnemyTargetingModifierRecognized;
 		}

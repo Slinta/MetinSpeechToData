@@ -11,13 +11,15 @@ namespace Metin2SpeechToData {
 		private bool artificialStart = false;
 		public static event Program.ModifierTrigger OnModifierWordHear;
 
+
 		public WrittenControl(ControlSpeechCommands controlCommands, ref EnemyHandling handling) {
 			this.controlCommands = controlCommands;
 			enemyHandling = handling;
-			Main();
+			Control();
 		}
 
-		private void Main() {
+		private void Control() {
+			Console.WriteLine("ret - Return to normal mode");
 			Console.WriteLine("Entered debug mode");
 			stayInDebug = true;
 			while (stayInDebug) {
@@ -26,7 +28,6 @@ namespace Metin2SpeechToData {
 				if (Debug_ControlSpeechRecongized(command)) {
 					continue;
 				}
-
 				foreach (string val in SpeechRecognitionHelper.modifierDict.Values) {
 					if (val.ToLower() == command.ToLower()) {
 						Game_SpeechRecognized(command);
@@ -34,16 +35,11 @@ namespace Metin2SpeechToData {
 						break;
 					}
 				}
-
 				if (!newCycle) {
 					continue;
 				}
-				else if(artificialStart) {
+				if(artificialStart) {
 					Game_SpeechRecognized(command);
-				}
-				if(command == "ret") {
-					stayInDebug = false;
-					Console.WriteLine("Exitting debug mode!");
 				}
 			}
 		}
@@ -77,6 +73,13 @@ namespace Metin2SpeechToData {
 				Console.WriteLine();
 				string selected = Console.ReadLine();
 				Switch_WordRecognized(selected);
+			}
+			else if(res == "ret") {
+				stayInDebug = false;
+				Console.WriteLine("Exitting debug mode!");
+			}
+			else if(res == "clear") {
+				Console.Clear();
 			}
 			else {
 				return false;

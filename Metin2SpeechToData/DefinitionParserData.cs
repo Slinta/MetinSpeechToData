@@ -44,7 +44,7 @@ namespace Metin2SpeechToData {
 				}
 			}
 			if (!Program.debug) {
-				throw new System.Exception("This error should never be called becuse this function is called only when valid word from grammar is said!");
+				throw new CustomException("This error should never be called becuse this function is called only when valid word from grammar is said!");
 			}
 			return null;
 		}

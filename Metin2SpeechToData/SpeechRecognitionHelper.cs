@@ -110,7 +110,7 @@ namespace Metin2SpeechToData {
 				grammarFile = dir.GetFiles("Control.definition")[0];
 			}
 			catch {
-				throw new Exception("Could not locate 'Control.definition' file! You have to redownload this application");
+				throw new CustomException("Could not locate 'Control.definition' file! You have to redownload this application");
 			}
 			Choices choices = new Choices();
 			using (StreamReader sr = grammarFile.OpenText()) {

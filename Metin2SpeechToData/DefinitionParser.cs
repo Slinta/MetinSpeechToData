@@ -38,7 +38,7 @@ namespace Metin2SpeechToData {
 				name => !name.Name.Split('.')[0].StartsWith("Control") &&
 						!name.Name.Split('.')[0].StartsWith("Mob")).ToArray();
 			if (filesPresent.Length == 0) {
-				throw new Exception("Your program is missing voice recognition strings! Either redownload, or create your own *.definition text file.");
+				throw new CustomException("Your program is missing voice recognition strings! Either redownload, or create your own *.definition text file.");
 			}
 			if(d.GetFiles("Mob_*.definition").Length != 0) {
 				getMobDefinitions = new MobParserData().Parse(d);
@@ -109,7 +109,7 @@ namespace Metin2SpeechToData {
 					return def.grammar;
 				}
 			}
-			throw new Exception("Grammar with identifier " + identifier + " does not exist!");
+			throw new CustomException("Grammar with identifier " + identifier + " does not exist!");
 		}
 
 		/// <summary>
@@ -121,7 +121,7 @@ namespace Metin2SpeechToData {
 					return def.grammar;
 				}
 			}
-			throw new Exception("Grammar with identifier " + identifier + " does not exist!");
+			throw new CustomException("Grammar with identifier " + identifier + " does not exist!");
 		}
 
 		/// <summary>
@@ -133,7 +133,7 @@ namespace Metin2SpeechToData {
 					return data;
 				}
 			}
-			throw new Exception("Definiton not found");
+			throw new CustomException("Definiton not found");
 		}
 
 		/// <summary>
@@ -145,7 +145,7 @@ namespace Metin2SpeechToData {
 					return data;
 				}
 			}
-			throw new Exception("Definiton not found");
+			throw new CustomException("Definiton not found");
 		}
 
 		/// <summary>

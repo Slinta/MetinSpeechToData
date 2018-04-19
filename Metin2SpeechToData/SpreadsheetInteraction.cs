@@ -13,22 +13,14 @@ namespace Metin2SpeechToData {
 		private Dictionary<string, ExcelCellAddress> nameLookupDictionary;
 
 		/// <summary>
-		/// Create new file and add initial sheet, set content and sheet file is saved in the process!
+		/// Initializes spreadsheet control with given file
 		/// </summary>
-		public SpreadsheetInteraction(string path, string worksheetName) {
-			xlsxFile = new ExcelPackage(new FileInfo(path));
+		public SpreadsheetInteraction(FileInfo path) {
+			xlsxFile = new ExcelPackage(path);
 			content = xlsxFile.Workbook;
-			OpenWorksheet(worksheetName);
-			xlsxFile.Save();
+			currentSheet = content.Worksheets["Metin2 Drop Analyzer"];
 		}
-		/// <summary>
-		/// Create new file at 'path' and set constent, sheet it null!
-		/// </summary>
-		public SpreadsheetInteraction(string path) {
-			xlsxFile = new ExcelPackage(new FileInfo(path));
-			content = xlsxFile.Workbook;
-		}
-
+		
 		/// <summary>
 		/// Open existing worksheet or add one if it does't exist
 		/// </summary>
@@ -40,15 +32,19 @@ namespace Metin2SpeechToData {
 		}
 
 		/// <summary>
-		/// Add a sheet by index
+		/// Open existing worksheet or add one if it does't exist
 		/// </summary>
 		public void OpenWorksheet(int sheetindex) {
 			if (content.Worksheets[sheetindex] == null) {
-				throw new Exception("No worksheet with id " + sheetindex + " exists");
+				throw new CustomException("No worksheet with id " + sheetindex + " exists");
 			}
 			else {
 				currentSheet = content.Worksheets[sheetindex];
 			}
+		}
+
+		public void Save() {
+			xlsxFile.Save();
 		}
 
 		/// <summary>
@@ -56,7 +52,7 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		public void AddNumberTo(ExcelCellAddress address, int number) {
 			if (currentSheet == null) {
-				throw new Exception("No sheet open!");
+				throw new CustomException("No sheet open!");
 			}
 			//If the cell is empty set its value
 			if (currentSheet.Cells[address.Row, address.Column].Value == null) {
@@ -78,7 +74,7 @@ namespace Metin2SpeechToData {
 		[Obsolete("Use the generic function 'InsertValue()' to get correctly formatted cells")]
 		public void InsertText(ExcelCellAddress address, string text) {
 			if (currentSheet == null) {
-				throw new Exception("No sheet open!");
+				throw new CustomException("No sheet open!");
 			}
 			currentSheet.SetValue(address.Address, text);
 			Console.WriteLine("Cell[" + address.Address + "] = " + text);
@@ -88,7 +84,7 @@ namespace Metin2SpeechToData {
 
 		public void InsertValue<T>(ExcelCellAddress address, T value) {
 			if (currentSheet == null) {
-				throw new Exception("No sheet open!");
+				throw new CustomException("No sheet open!");
 			}
 			currentSheet.SetValue(address.Address, value);
 			Console.WriteLine("Cell[" + address.Address + "] = " + value.ToString());
@@ -143,7 +139,7 @@ namespace Metin2SpeechToData {
 				}
 			}
 			if (!Program.debug) {
-				throw new Exception("The word you're looking for isn't in the dictionary due to parsing problems.");
+				throw new CustomException("The word you're looking for isn't in the dictionary due to parsing problems.");
 			}
 			return new ExcelCellAddress(100, 100);
 		}

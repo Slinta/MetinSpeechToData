@@ -30,15 +30,19 @@ namespace Metin2SpeechToData {
 		private static WrittenControl debugControl;
 
 		public static Configuration config;
-
 		[STAThread]
 		static void Main(string[] args) {
+			//TODO: replace Folder dialog with something more user friendly
+
+			// Init
 			config = new Configuration(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
+			interaction = new SpreadsheetInteraction(config.xlsxFile);
+			bool continueRunning = true;
+			//
+
 			Console.WriteLine("Welcome to Metin2 siNDiCATE Drop logger");
 			Console.WriteLine("Type 'help' for more info on how to use this program");
 
-			bool continueRunning = true;
-			interaction = new SpreadsheetInteraction(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Data.xlsx", "Sheet1");
 			while (continueRunning) {
 				string command = Console.ReadLine();
 
@@ -64,13 +68,19 @@ namespace Metin2SpeechToData {
 							}
 							case "help": {
 								Console.WriteLine("Existing commands:");
-								Console.WriteLine("quit / exit --> Close the application");
-								Console.WriteLine("voice / voice debug --> Enables voice control without/with debug prints");
-								Console.WriteLine("file 'location' --> Creates a new file at 'location' <- replace with valid path");
-								Console.WriteLine("file 'location' 'sheet name' --> Creates a new file at 'location' <- replace with valid path, with a sheet 'sheet name' inside");
-								Console.WriteLine("sheet 'sheet name' --> Swithches current working sheet to 'sheet name' <- replace with valid sheet name, sheet MUST already exist(by typing \"file 'location' 'sheet name'\")");
-								Console.WriteLine("add 'row' 'collumn' 'number' --> Adds value of 'number' to currently open sheet at 'row' 'collumn', sheet MUST already exist");
-								Console.WriteLine("val 'row' 'collumn' 'number' --> Same as 'add' but the value is overwritten!");
+								Console.WriteLine("quit / exit --> Close the application\n");
+								Console.WriteLine("clear --> Clears the console\n");
+								Console.WriteLine("voice / voice debug --> Enables voice control without/with debug prints\n");
+								Console.WriteLine("sheet 'sheet name' --> Swithches current working sheet to 'sheet name'" +
+												  "\n'sheet name' = sheet name, sheet MUST already exist!\n");
+								Console.WriteLine("sheet add 'name' --> adds a sheet with name 'name'\n");
+								Console.WriteLine("[Deprecated for single item addition]\n" +
+												  "add 'row' 'collumn' 'number' --> Adds value to cell\n" +
+												  "'number' = the number to add\n" +
+												  "'row', 'collumn' = indexes of the cell\n" +
+												  "sheet MUST already exist!\n");
+								Console.WriteLine("[Deprecated for dictionary values]\n" +
+												  "val 'row' 'collumn' 'number' --> Same as 'add' but the value is overwritten!");
 								break;
 							}
 							case "voice": {
@@ -79,6 +89,12 @@ namespace Metin2SpeechToData {
 								helper = new SpeechRecognitionHelper(ref game);
 								enemyHandling = new EnemyHandling();
 								helper.OnRecognitionChange += OnRecognitionChange;
+								break;
+							}
+							case "clear": {
+								Console.Clear();
+								Console.WriteLine("Welcome to Metin2 siNDiCATE Drop logger");
+								Console.WriteLine("Type 'help' for more info on how to use this program");
 								break;
 							}
 							default: {
@@ -90,15 +106,6 @@ namespace Metin2SpeechToData {
 					}
 					case 2: {
 						switch (commandBlocks[0]) {
-							case "file": {
-								string location = commandBlocks[1];
-								if (commandBlocks[1] == "default") {
-									location = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Data.xlsx";
-								}
-								interaction = new SpreadsheetInteraction(location);
-								break;
-							}
-							//Switch current working sheet, sheet must already exist!
 							case "sheet": {
 								string sheet = commandBlocks[1];
 								interaction.OpenWorksheet(sheet);
@@ -107,14 +114,14 @@ namespace Metin2SpeechToData {
 							case "voice": {
 								if (commandBlocks[1] == "debug") {
 									debug = true;
+									parser = new DefinitionParser();
+									game = new SpeechRecognitionEngine();
+									Console.WriteLine(game.Grammars.Count);
+									helper = new SpeechRecognitionHelper(ref game);
+									helper.OnRecognitionChange += OnRecognitionChange;
+									enemyHandling = new EnemyHandling();
+									debugControl = new WrittenControl(helper.controlCommands, ref enemyHandling);
 								}
-								parser = new DefinitionParser();
-								game = new SpeechRecognitionEngine();
-								Console.WriteLine(game.Grammars.Count);
-								helper = new SpeechRecognitionHelper(ref game);
-								helper.OnRecognitionChange += OnRecognitionChange;
-								enemyHandling = new EnemyHandling();
-								debugControl = new WrittenControl(helper.controlCommands, ref enemyHandling);
 								break;
 							}
 							default: {
@@ -126,20 +133,11 @@ namespace Metin2SpeechToData {
 					}
 					case 3: {
 						switch (commandBlocks[0]) {
-							case "file": {
-								string location = commandBlocks[1];
-								string sheet = commandBlocks[2];
-								if (commandBlocks[1] == "default") {
-									location = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Data.xlsx";
+							case "sheet": {
+								if(commandBlocks[1] == "add") {
+									interaction.OpenWorksheet(commandBlocks[2]);
+									Console.WriteLine("Added sheet " + commandBlocks[2]);
 								}
-								if (commandBlocks[2] == "default") {
-									sheet = "Data";
-								}
-								interaction = new SpreadsheetInteraction(location, sheet);
-								break;
-							}
-							default: {
-								Console.WriteLine("Not a valid command, type 'help' for more info");
 								break;
 							}
 						}
@@ -149,9 +147,6 @@ namespace Metin2SpeechToData {
 						switch (commandBlocks[0]) {
 							//Add a number to a cell, args: row, col, number
 							case "add": {
-								if (interaction == null) {
-									throw new Exception("File does not exist");
-								}
 								int successCounter = 0;
 								if (int.TryParse(commandBlocks[1], out int row)) {
 									successCounter += 1;
@@ -159,18 +154,16 @@ namespace Metin2SpeechToData {
 								if (int.TryParse(commandBlocks[2], out int collum)) {
 									successCounter += 1;
 								}
-								if (int.TryParse(commandBlocks[3], out int add)) {
+								if (int.TryParse(commandBlocks[3], out int numberToAdd)) {
 									successCounter += 1;
 								}
 								if (successCounter == 3) {
-									interaction.AddNumberTo(new ExcelCellAddress(collum, row), add);
+									interaction.AddNumberTo(new ExcelCellAddress(collum, row), numberToAdd);
+									Console.WriteLine("Added " + numberToAdd + " to sheet at [" + row + "," + collum + "]");
 								}
 								break;
 							}
 							case "val": {
-								if (interaction == null) {
-									throw new Exception("File does not exist");
-								}
 								int successCounter = 0;
 								if (int.TryParse(commandBlocks[1], out int row)) {
 									successCounter += 1;
@@ -180,6 +173,7 @@ namespace Metin2SpeechToData {
 								}
 								if (successCounter == 2) {
 									interaction.InsertValue(new ExcelCellAddress(collum, row), commandBlocks[3]);
+									Console.WriteLine("Added " + commandBlocks[3] + " to sheet at [" + row + "," + collum + "]");
 								}
 								break;
 							}
@@ -209,9 +203,6 @@ namespace Metin2SpeechToData {
 					game.SetInputToDefaultAudioDevice();
 					game.SpeechRecognized += Game_SpeechRecognized;
 					game.RecognizeAsync(RecognizeMode.Multiple);
-					break;
-				}
-				default: {
 					break;
 				}
 			}
