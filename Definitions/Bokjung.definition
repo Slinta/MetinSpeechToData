@@ -9,8 +9,8 @@ Groups{
 }
 
 Gold rod 500K/ Half a million, 500000, Rods
-Gold rod 1kk/ Million/ Gold rod 1 million, 1000000, Rods
-Gold rod 2kk/ Two million, 2000000, Rods
+Gold rod 1kk/ Million/ Gold rod 1 million/ One million, 1000000, Rods
+Gold rod 2kk/ Two millions, 2000000, Rods
 
 Silver Chest, 800000, Chests
 Silver Chest +, 600000, Chests
@@ -36,6 +36,9 @@ Blue Herb/ Blue Flower, 10000, Herbs
 Mushroom Tue, 10000, Herbs
 
 Book of Mining, 200, Books
+Book WeiLiao Zi, 200, Books
+Book of Change Advanced, 200, Books
+
 
 Rune bow/ Rune hwal, 400000, Runes
 Rune shoes/ Rune boots/ Rune gudu, 500000, Runes
@@ -48,4 +51,4 @@ Rune bell/ Rune jong, 400000, Runes
 Rune double handed sword/ Rune chang, 500000, Runes
 Rune bracelet/Rune pai/ Rune paji, 500000, Runes
 Rune necklace/Rune mog, 500000, Runes
-Rune shield/Rune bangpae, 500000, Runes
+Rune shield/ Rune bangpae, 500000, Runes

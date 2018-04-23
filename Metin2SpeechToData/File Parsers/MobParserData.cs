@@ -35,7 +35,6 @@ namespace Metin2SpeechToData {
 					while (!sr.EndOfStream) {
 						string line = sr.ReadLine();
 						if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#")) {
-							line = sr.ReadLine();
 							continue;
 						}
 						string[] split = line.Split(',');
@@ -51,7 +50,7 @@ namespace Metin2SpeechToData {
 							ambiguous = same.Where(a => a != same[0]).ToArray(),
 							mobLevel = ushort.Parse(split[1]),
 							mobClass = ParseClass(split[2]),
-							asociatedDrops = null
+							asociatedDrops = GetAsociatedDrops(same[0])
 						};
 						mobs.Add(parsed);
 
@@ -62,6 +61,52 @@ namespace Metin2SpeechToData {
 				}
 			}
 			return dataList.ToArray();
+		}
+
+		/// <summary>
+		/// Gets main mob pronounciation by comparing ambiguities
+		/// </summary>
+		public string GetMainPronounciation(string calledAmbiguity) {
+			foreach (Enemy enemy in enemies) {
+				if (calledAmbiguity == enemy.mobMainPronounciation) {
+					return calledAmbiguity; // == enemy.mainMobPronounciation
+				}
+				foreach (string ambiguity in enemy.ambiguous) {
+					if (ambiguity == calledAmbiguity) {
+						return enemy.mobMainPronounciation;
+					}
+				}
+			}
+			throw new CustomException("No entry found, data was parsed incorrectly");
+		}
+
+		private string[] GetAsociatedDrops(string mobMainPronounciation) {
+			string path = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Mob Asociated Drops.definition";
+			if (File.Exists(path)) {
+				using(StreamReader r = File.OpenText(path)) {
+					while (!r.EndOfStream) {
+						string line = r.ReadLine();
+						if(line.StartsWith("#") || string.IsNullOrWhiteSpace(line)) {
+							continue;
+						}
+						if (line.Contains("{")) {
+							string[] split = line.Split('{');
+							if(split[0] == mobMainPronounciation) {
+								return ParseMobDropLine(r);
+							}
+						}
+					}
+				}
+			}
+			return null;
+		}
+
+		private string[] ParseMobDropLine(StreamReader r) {
+			string[] drops = r.ReadLine().Split(',');
+			for(int i = 0; i < drops.Length; i++) { 
+				drops[i] = drops[i].Trim('\n', ' ', '\t');
+			}
+			return drops;
 		}
 
 		private MobClass ParseClass(string s) {
@@ -84,23 +129,6 @@ namespace Metin2SpeechToData {
 				}
 			}
 			throw new CustomException("Invalid Mob type " + s);
-		}
-
-		/// <summary>
-		/// Gets main mob pronounciation by comparing ambiguities
-		/// </summary>
-		public string GetMainPronounciation(string calledAmbiguity) {
-			foreach (Enemy enemy in enemies) {
-				if(calledAmbiguity == enemy.mobMainPronounciation) {
-					return calledAmbiguity; // == enemy.mainMobPronounciation
-				}
-				foreach (string ambiguity in enemy.ambiguous) {
-					if (ambiguity == calledAmbiguity) {
-						return enemy.mobMainPronounciation;
-					}
-				}
-			}
-			throw new CustomException("No entry found, data was parsed incorrectly");
 		}
 
 		public Grammar ConstructGrammar(Enemy[] enemies) {

@@ -48,7 +48,16 @@ namespace Metin2SpeechToData {
 			}
 			return null;
 		}
-	
+
+		public uint GetYangValue(string itemName) {
+			foreach (Entry entry in entries) {
+				if (entry.mainPronounciation == itemName) {
+					return entry.yangValue;
+				}
+			}
+			throw new CustomException("Data parsed incorrectly");
+		}
+
 		public void ConstructGrammar() {
 			Choices main = new Choices();
 			foreach (Entry e in entries) {

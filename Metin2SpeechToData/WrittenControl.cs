@@ -22,6 +22,7 @@ namespace Metin2SpeechToData {
 			Console.WriteLine("ret - Return to normal mode");
 			Console.WriteLine("Entered debug mode");
 			stayInDebug = true;
+			//TODO fix this class to work with new changes
 			while (stayInDebug) {
 				bool newCycle = true;
 				string command = Console.ReadLine();
@@ -91,7 +92,7 @@ namespace Metin2SpeechToData {
 			Console.WriteLine("\nSelected - " + selected);
 			DefinitionParser.instance.currentGrammarFile = DefinitionParser.instance.GetDefinitionByName(selected);
 			DefinitionParser.instance.currentMobGrammarFile = DefinitionParser.instance.GetMobDefinitionByName("Mob_" + selected);
-			Program.interaction.MakeANewSpreadsheet(DefinitionParser.instance.currentGrammarFile);
+			Program.interaction.InitAreaSheet(selected);
 		}
 
 

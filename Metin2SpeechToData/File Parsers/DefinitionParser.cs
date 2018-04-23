@@ -18,7 +18,7 @@ namespace Metin2SpeechToData {
 		public DefinitionParserData[] getDefinitions { get; }
 
 		/// <summary>
-		/// Get all mob parsed definitions
+		/// Get all parsed mob definitions
 		/// </summary>
 		public MobParserData[] getMobDefinitions { get; }
 

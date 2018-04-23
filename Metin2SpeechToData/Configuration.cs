@@ -7,7 +7,7 @@ namespace Metin2SpeechToData {
 
 		public FileInfo xlsxFile { get; private set; }
 
-		private const string SHEET_NAME = "Metin2 Drop Speadsheet.xlsx";
+		private const string FILE_NAME = "Metin2 Drop Speadsheet.xlsx";
 
 		public Configuration(string filePath) {
 			if (!File.Exists(filePath)) {
@@ -24,7 +24,7 @@ namespace Metin2SpeechToData {
 			using (StreamWriter sw = File.CreateText(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg")) {
 				bool yes = GetBoolInput("Do you want the .xlsx file in the current directory ?\ny/n");
 				if (yes) {
-					xlsxFile = new FileInfo(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + SHEET_NAME);
+					xlsxFile = new FileInfo(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + FILE_NAME);
 					OfficeOpenXml.ExcelPackage package = new OfficeOpenXml.ExcelPackage(xlsxFile);
 					package.Workbook.Worksheets.Add("Metin2 Drop Analyzer");
 					package.SaveAs(xlsxFile);
@@ -40,7 +40,7 @@ namespace Metin2SpeechToData {
 					if (string.IsNullOrWhiteSpace(folderBrowser.SelectedPath)) {
 						Environment.Exit(0);
 					}
-					xlsxFile = new FileInfo(folderBrowser.SelectedPath + Path.DirectorySeparatorChar + SHEET_NAME);
+					xlsxFile = new FileInfo(folderBrowser.SelectedPath + Path.DirectorySeparatorChar + FILE_NAME);
 					OfficeOpenXml.ExcelPackage package = new OfficeOpenXml.ExcelPackage(xlsxFile);
 					package.Workbook.Worksheets.Add("Metin2 Drop Analyzer");
 					package.SaveAs(xlsxFile);

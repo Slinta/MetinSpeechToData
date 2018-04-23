@@ -3,6 +3,8 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Speech.Recognition;
 using System.IO;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace Metin2SpeechToData {
 	public class SpeechRecognitionHelper {
@@ -10,15 +12,18 @@ namespace Metin2SpeechToData {
 		public enum ModifierWords {
 			NONE,
 			NEW_TARGET,
-			UNDO
+			REMOVE_TARGET,
+			UNDO,
+			TARGET_KILLED
 		};
 
 		/// <summary>
 		/// Modifiers dictionary, used to convert enum valuies to spoken word
 		/// </summary>
 		public static IReadOnlyDictionary<ModifierWords, string> modifierDict = new Dictionary<ModifierWords, string>() {
-			{ ModifierWords.NONE, "None" },
 			{ ModifierWords.NEW_TARGET , "New Target" },
+			{ ModifierWords.TARGET_KILLED, "Killed Target" },
+			{ ModifierWords.REMOVE_TARGET, "Remove Target" },
 			{ ModifierWords.UNDO, "Undo" },
 		};
 
@@ -70,7 +75,6 @@ namespace Metin2SpeechToData {
 			}
 			else if (res == controlCommands.getStopCommand) {
 				Console.WriteLine("Stopping Recognition!");
-				Environment.Exit(0);
 			}
 			else if (res == controlCommands.getPauseCommand) {
 				Console.WriteLine("Pausing Recognition!");
@@ -142,10 +146,20 @@ namespace Metin2SpeechToData {
 			control.Grammars[1].Enabled = false;
 			DefinitionParser.instance.currentGrammarFile = DefinitionParser.instance.GetDefinitionByName(e.Result.Text);
 			DefinitionParser.instance.currentMobGrammarFile = DefinitionParser.instance.GetMobDefinitionByName("Mob_" + e.Result.Text);
-			Program.interaction.MakeANewSpreadsheet(DefinitionParser.instance.currentGrammarFile);
+			Program.interaction.OpenWorksheet(e.Result.Text);
 			if (Program.debug) {
 				Console.WriteLine(main.Grammars.Count);
 			}
+		}
+
+		public void PauseMain() {
+			ManualResetEventSlim signal = new ManualResetEventSlim();
+			EventHandler<SpeechRecognizedEventArgs> action = new EventHandler<SpeechRecognizedEventArgs>((object o, SpeechRecognizedEventArgs e) => { if (e.Result.Text == controlCommands.getStopCommand) { signal.Set(); } });// sender, e => { if (e.Result.Text == controlCommands.getStopCommand) { signal.Set(); } };
+			control.SpeechRecognized += action;
+			signal.Wait();
+			//TODO clean references here ??
+			Console.WriteLine("Waited long enough!");
+			control.SpeechRecognized -= action;
 		}
 	}
 }

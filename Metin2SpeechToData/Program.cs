@@ -21,8 +21,8 @@ namespace Metin2SpeechToData {
 		private static SpeechRecognitionHelper helper;
 
 		private static DefinitionParser parser;
-		private static EnemyHandling enemyHandling;
 
+		public static EnemyHandling enemyHandling;
 		public static SpreadsheetInteraction interaction;
 
 
@@ -30,10 +30,10 @@ namespace Metin2SpeechToData {
 		private static WrittenControl debugControl;
 
 		public static Configuration config;
+
 		[STAThread]
 		static void Main(string[] args) {
 			//TODO: replace Folder dialog with something more user friendly
-
 			// Init
 			config = new Configuration(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
 			interaction = new SpreadsheetInteraction(config.xlsxFile);
@@ -44,6 +44,7 @@ namespace Metin2SpeechToData {
 			Console.WriteLine("Type 'help' for more info on how to use this program");
 
 			while (continueRunning) {
+				//TODO Implement nitification of sort ??
 				string command = Console.ReadLine();
 
 				string[] commandBlocks = command.Split(' ');
@@ -89,6 +90,9 @@ namespace Metin2SpeechToData {
 								helper = new SpeechRecognitionHelper(ref game);
 								enemyHandling = new EnemyHandling();
 								helper.OnRecognitionChange += OnRecognitionChange;
+								helper.PauseMain();
+								//TODO clean up references
+								Console.WriteLine("Returned to Main control!");
 								break;
 							}
 							case "clear": {
@@ -223,6 +227,11 @@ namespace Metin2SpeechToData {
 						case "Undo": {
 							Console.Write("Undoing...");
 							OnModifierWordHear?.Invoke(SpeechRecognitionHelper.ModifierWords.UNDO, "");
+							return;
+						}
+						case "Remove Target": {
+							Console.Write("Switching back to default NONE target");
+							OnModifierWordHear?.Invoke(SpeechRecognitionHelper.ModifierWords.REMOVE_TARGET, "");
 							return;
 						}
 					}
