@@ -107,7 +107,7 @@ namespace Metin2SpeechToData {
 
 		public void AddItemEntry(ExcelWorksheet sheet, DefinitionParserData.Entry entry) {
 			Program.interaction.Save();
-			//TODO implement group sorting for mod lists
+			//TODO implement group sorting for mob lists
 			ExcelCellAddress current = new ExcelCellAddress("A2");
 			int maxDetph = 10;
 

@@ -4,7 +4,6 @@ using System.IO;
 namespace Metin2SpeechToData {
 	public class ControlSpeechCommands {
 
-
 		//All parsed commands that are available to the controling speech recognizer
 		public string getStartCommand { get; private set; }
 		public string getPauseCommand { get; private set; }

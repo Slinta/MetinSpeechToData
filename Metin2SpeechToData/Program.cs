@@ -34,6 +34,8 @@ namespace Metin2SpeechToData {
 		[STAThread]
 		static void Main(string[] args) {
 			//TODO: replace Folder dialog with something more user friendly
+			//TODO: make it possible to use F1-F10 as hotkeys for navigating
+
 			// Init
 			config = new Configuration(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
 			interaction = new SpreadsheetInteraction(config.xlsxFile);
@@ -44,7 +46,7 @@ namespace Metin2SpeechToData {
 			Console.WriteLine("Type 'help' for more info on how to use this program");
 
 			while (continueRunning) {
-				//TODO Implement nitification of sort ??
+				Console.WriteLine("Command:");
 				string command = Console.ReadLine();
 
 				string[] commandBlocks = command.Split(' ');
@@ -90,9 +92,12 @@ namespace Metin2SpeechToData {
 								helper = new SpeechRecognitionHelper(ref game);
 								enemyHandling = new EnemyHandling();
 								helper.OnRecognitionChange += OnRecognitionChange;
-								helper.PauseMain();
+								helper.AcquireControl();
 								//TODO clean up references
 								Console.WriteLine("Returned to Main control!");
+								enemyHandling = null;
+								helper = null;
+
 								break;
 							}
 							case "clear": {

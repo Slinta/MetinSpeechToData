@@ -85,6 +85,9 @@ namespace Metin2SpeechToData {
 			}
 		}
 
+		/// <summary>
+		/// Asks user a true/false 'question' returns true on 'yes' or 'y' else false
+		/// </summary>
 		public static bool GetBoolInput(string question) {
 			Console.WriteLine(question);
 			string line = Console.ReadLine();

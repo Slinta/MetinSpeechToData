@@ -63,6 +63,7 @@ namespace Metin2SpeechToData {
 		}
 		#endregion
 
+		#region FileParsing base
 		private string[] ParseHeader(StreamReader r) {
 			List<string> strings = new List<string>();
 			string line = r.ReadLine();
@@ -99,6 +100,8 @@ namespace Metin2SpeechToData {
 			}
 			return entries.ToArray();
 		}
+		#endregion
+
 
 		/// <summary>
 		/// Get grammar by its name (file name)

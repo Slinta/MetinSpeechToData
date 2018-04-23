@@ -18,7 +18,7 @@ namespace Metin2SpeechToData {
 		};
 
 		/// <summary>
-		/// Modifiers dictionary, used to convert enum valuies to spoken word
+		/// Modifiers dictionary, used to convert enum values to spoken word
 		/// </summary>
 		public static IReadOnlyDictionary<ModifierWords, string> modifierDict = new Dictionary<ModifierWords, string>() {
 			{ ModifierWords.NEW_TARGET , "New Target" },
@@ -29,6 +29,7 @@ namespace Metin2SpeechToData {
 
 		private SpeechRecognitionEngine control;
 		private SpeechRecognitionEngine main;
+
 		public ControlSpeechCommands controlCommands { get; private set; }
 
 		public static ModifierWords currentModifier = ModifierWords.NONE;
@@ -53,9 +54,14 @@ namespace Metin2SpeechToData {
 						  controlCommands.getPauseCommand + " - Pauses main recognition\n" +
 						  controlCommands.getStopCommand + " - Exits App\n" +
 						  controlCommands.getSwitchGrammarCommand + " - Changes grammar (your drop location)\n");
-			control.RecognizeAsync(RecognizeMode.Multiple);
+			if (!Program.debug) {
+				control.RecognizeAsync(RecognizeMode.Multiple);
+			}
 		}
 
+		~SpeechRecognitionHelper() {
+			Console.WriteLine("Destructor of SpeechRecognitionHelper.");
+		}
 
 		private void Control_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {
 			string res = e.Result.Text;
@@ -152,14 +158,29 @@ namespace Metin2SpeechToData {
 			}
 		}
 
-		public void PauseMain() {
+		/// <summary>
+		/// Prevents Console.ReadLine() from Main to consume lines typed for different prompt
+		/// </summary>
+		public void AcquireControl() {
 			ManualResetEventSlim signal = new ManualResetEventSlim();
-			EventHandler<SpeechRecognizedEventArgs> action = new EventHandler<SpeechRecognizedEventArgs>((object o, SpeechRecognizedEventArgs e) => { if (e.Result.Text == controlCommands.getStopCommand) { signal.Set(); } });// sender, e => { if (e.Result.Text == controlCommands.getStopCommand) { signal.Set(); } };
-			control.SpeechRecognized += action;
+			EventHandler<SpeechRecognizedEventArgs> handle = new EventHandler<SpeechRecognizedEventArgs>(
+				(object o, SpeechRecognizedEventArgs e) => {
+					if (e.Result.Text == controlCommands.getStopCommand) {
+						signal.Set();
+					}
+				}
+			);
+			control.SpeechRecognized += handle;
 			signal.Wait();
-			//TODO clean references here ??
-			Console.WriteLine("Waited long enough!");
-			control.SpeechRecognized -= action;
+			//TODO clean references here more ??
+			main.RecognizeAsyncStop();
+			control.RecognizeAsyncStop();
+			main.Dispose();
+			control.Dispose();
+			control.SpeechRecognized -= handle;
+			if (Program.debug) {
+				Console.WriteLine("Waited long enough!");
+			}
 		}
 	}
 }

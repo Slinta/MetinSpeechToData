@@ -49,6 +49,10 @@ namespace Metin2SpeechToData {
 			return null;
 		}
 
+
+		/// <summary>
+		///	Returns parsed yang value for item 'itemName' itemName must be the main pronounciation!
+		/// </summary>
 		public uint GetYangValue(string itemName) {
 			foreach (Entry entry in entries) {
 				if (entry.mainPronounciation == itemName) {

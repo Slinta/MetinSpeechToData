@@ -4,8 +4,8 @@ using OfficeOpenXml;
 namespace Metin2SpeechToData {
 	public class EnemyHandling {
 		public enum EnemyState {
-			NoEnemy,
-			Fighting
+			NO_ENEMY,
+			FIGHTING
 		}
 
 		public EnemyState state;
@@ -30,27 +30,27 @@ namespace Metin2SpeechToData {
 		}
 
 		/// <summary>
-		/// Event fired after a modifier word "New Target" was said
+		/// Event fired after a modifier word was said
 		/// </summary>
-		/// <param name="keyWord">In this case always equal to "NEW_TARGET" // "UNDO"</param>
-		/// <param name="args">In this case always contains the enemy name/ambiguity at [0] // empty string</param>
+		/// <param name="keyWord">"NEW_TARGET" // "UNDO" // "REMOVE_TARGET" // TARGET_KILLED</param>
+		/// <param name="args">Always supply at least string.Empty as args!</param>
 		public void EnemyTargetingModifierRecognized(SpeechRecognitionHelper.ModifierWords keyWord, params string[] args) {
 			if (keyWord == SpeechRecognitionHelper.ModifierWords.NEW_TARGET) {
 				switch (state) {
-					case EnemyState.NoEnemy: {
+					case EnemyState.NO_ENEMY: {
 						//Initial state
 						if (args[0] == "" && getCurrentEnemy == "") {
 							return;
 						}
 						string actualEnemyName = DefinitionParser.instance.currentMobGrammarFile.GetMainPronounciation(args[0]);
-						state = EnemyState.Fighting;
+						state = EnemyState.FIGHTING;
 						Program.interaction.OpenWorksheet(actualEnemyName);
 						getCurrentEnemy = actualEnemyName;
 						Console.WriteLine("Acquired target: " + getCurrentEnemy);
 						break;
 					}
-					case EnemyState.Fighting: {
-						state = EnemyState.NoEnemy;
+					case EnemyState.FIGHTING: {
+						state = EnemyState.NO_ENEMY;
 						Console.WriteLine("Killed " + getCurrentEnemy + ", the death count increased");
 						Program.interaction.AddNumberTo(new ExcelCellAddress(1, 5), 1);
 						getCurrentEnemy = "";
@@ -64,7 +64,7 @@ namespace Metin2SpeechToData {
 			else if (keyWord == SpeechRecognitionHelper.ModifierWords.REMOVE_TARGET) {
 				Program.interaction.OpenWorksheet(DefinitionParser.instance.currentGrammarFile.ID);
 				getCurrentEnemy = "";
-				state = EnemyState.NoEnemy;
+				state = EnemyState.NO_ENEMY;
 			}
 			else if (keyWord == SpeechRecognitionHelper.ModifierWords.TARGET_KILLED) {
 				Program.interaction.OpenWorksheet(DefinitionParser.instance.currentGrammarFile.ID);
@@ -87,6 +87,7 @@ namespace Metin2SpeechToData {
 		/// Increases number count to 'item' in current speadsheet
 		/// </summary>
 		public void ItemDropped(string item, int amount = 1) {
+			//TODO: for text controlled input the address from name is not working due to the grammar not being additive
 			string mainPron = DefinitionParser.instance.currentGrammarFile.GetMainPronounciation(item);
 			if (!string.IsNullOrWhiteSpace(getCurrentEnemy)){
 				mobDrops.UpdateDrops(getCurrentEnemy, mainPron);
@@ -95,7 +96,6 @@ namespace Metin2SpeechToData {
 			Program.interaction.AddNumberTo(address, amount);
 			stack.Push(new ItemInsertion { addr = address, count = amount });
 		}
-
 
 		private struct ItemInsertion {
 			public ExcelCellAddress addr;

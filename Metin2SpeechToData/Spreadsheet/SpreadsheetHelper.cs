@@ -5,6 +5,7 @@ using OfficeOpenXml;
 namespace Metin2SpeechToData {
 	public class SpreadsheetHelper {
 
+		public const string DEFAULT_SHEET = "Metin2 Drop Analyzer";
 		private static SpreadsheetInteraction main;
 
 		public SpreadsheetHelper(SpreadsheetInteraction interaction) {
@@ -15,6 +16,13 @@ namespace Metin2SpeechToData {
 			main = null;
 		}
 
+
+		/// <summary>
+		/// Parses spreadsheet
+		/// </summary>
+		/// <param name="book">Current WorkBook</param>
+		/// <param name="sheetName">Name of the sheet as it appears in Excel</param>
+		/// <param name="type">Spreadsheet type to determine parsing method</param>
 		public static Dicts LoadSpreadsheet(ExcelWorkbook book, string sheetName, SpreadsheetTemplates.SpreadsheetPresetType type) {
 			ExcelWorksheet sheet = book.Worksheets[sheetName];
 			switch (type) {
@@ -90,7 +98,9 @@ namespace Metin2SpeechToData {
 			}
 		}
 
-
+		/// <summary>
+		/// Cathegorizes sheet based on in which file its name is located
+		/// </summary>
 		public SpreadsheetTemplates.SpreadsheetPresetType GetSheetType(string sheetName) {
 			foreach (string locationName in DefinitionParser.instance.getDefinitionNames) {
 				if (locationName == sheetName) {
@@ -106,6 +116,28 @@ namespace Metin2SpeechToData {
 			return SpreadsheetTemplates.SpreadsheetPresetType.MAIN;
 		}
 
+		public static double GetCellWidth(int number, bool addCurrencyOffset) {
+			int count = DigitCount(number);
+			int spaces = count / 3;
+			double width = addCurrencyOffset ? 4 : 2;
+			width += spaces + count;
+			return width;
+		}
+
+		private static int DigitCount(int i) {
+			int count = 1;
+			for (int j = 0; j < int.MaxValue; j++) {
+				int newVal = i / 10;
+				if (newVal >= 1) {
+					count++;
+					i = newVal;
+				}
+				else {
+					break;
+				}
+			}
+			return count;
+		}
 
 		public struct Dicts {
 			public Dictionary<string, ExcelCellAddress> addresses;

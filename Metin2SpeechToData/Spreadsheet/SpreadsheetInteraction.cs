@@ -33,8 +33,12 @@ namespace Metin2SpeechToData {
 			templates.InitializeMainSheet();
 		}
 
+		~SpreadsheetInteraction() {
+			Save();
+		}
+
 		/// <summary>
-		/// Open existing worksheet or add one if it does't exist
+		/// Open existing worksheet or add one and populate it if the sheet does not exist
 		/// </summary>
 		public void OpenWorksheet(string sheetName) {
 			if (content.Worksheets[sheetName] == null) {
@@ -74,14 +78,14 @@ namespace Metin2SpeechToData {
 			if (_currentSheet.Cells[address.Row, address.Column].Value == null) {
 				_currentSheet.SetValue(address.Address, number);
 				Console.WriteLine("Cell[" + address.Address + "] = " + number + " (Was empty)");
-				xlsxFile.Save();
+				Save();
 				return;
 			}
 			//if the cell already has a number add the value
 			else if (int.TryParse(_currentSheet.Cells[address.Row, address.Column].Value.ToString(), out int numberInCell)) {
 				_currentSheet.SetValue(address.Address, number + numberInCell);
 				Console.WriteLine("Cell[" + address.Address + "] = " + (number + numberInCell));
-				xlsxFile.Save();
+				Save();
 				return;
 			}
 			Console.WriteLine("Unable to change cell at:" + address.Address + " containing " + _currentSheet.GetValue(address.Row, address.Column));
@@ -96,10 +100,12 @@ namespace Metin2SpeechToData {
 			}
 			_currentSheet.SetValue(address.Address, value);
 			Console.WriteLine("Cell[" + address.Address + "] = " + value.ToString());
-			xlsxFile.Save();
+			Save();
 		}
 
+
 		private void AutoAdjustColumns() {
+			//TODO make this function sheet independant, move it to helper class ?
 			double currMaxWidth = 0;
 			foreach (Group g in currentGroupsByName.Values) {
 				for (int i = 0; i < g.totalEntries; i++) {
@@ -108,23 +114,22 @@ namespace Metin2SpeechToData {
 						currMaxWidth = _currentSheet.Column(g.elementNameFirstIndex.Column).Width;
 					}
 				}
-
 				_currentSheet.Column(g.elementNameFirstIndex.Column).Width = currMaxWidth;
 				currMaxWidth = 0;
 
 				for (int i = 0; i < g.totalEntries; i++) {
 					int s = _currentSheet.GetValue<int>(g.yangValueFirstIndex.Row + i, g.yangValueFirstIndex.Column);
-					_currentSheet.Column(g.yangValueFirstIndex.Column).Width = SpreadsheetConstants.GetCellWidth(s, false);
+					_currentSheet.Column(g.yangValueFirstIndex.Column).Width = SpreadsheetHelper.GetCellWidth(s, false);
 					if (_currentSheet.Column(g.yangValueFirstIndex.Column).Width > currMaxWidth) {
 						currMaxWidth = _currentSheet.Column(g.yangValueFirstIndex.Column).Width;
 					}
 				}
-
 				_currentSheet.Column(g.yangValueFirstIndex.Column).Width = currMaxWidth;
 				currMaxWidth = 0;
 			}
 		}
 
+		#region Sheet initializers
 		public void InitAreaSheet(string areaName) {
 			_currentSheet = content.Worksheets[areaName];
 			SpreadsheetHelper.Dicts dicts = templates.InitializeAreaSheet(DefinitionParser.instance.currentGrammarFile);
@@ -144,7 +149,11 @@ namespace Metin2SpeechToData {
 			}
 			Save();
 		}
+		#endregion
 
+		/// <summary>
+		/// Dynamically append new entries to the current sheet
+		/// </summary>
 		public void AddItemEntryToCurrentSheet(string itemName) {
 			templates.AddItemEntry(_currentSheet, new DefinitionParserData.Entry {
 				mainPronounciation = itemName,
@@ -154,6 +163,7 @@ namespace Metin2SpeechToData {
 			});
 		}
 
+		[Obsolete("This is just wrapper for nullcheck, with wrong behaviour for debug/nonvalid 'name' Parse correctly and index directly ;)")]
 		public ExcelCellAddress AddressFromName(string name) {
 			if (currentNameToConutAddress.ContainsKey(name)) {
 				return currentNameToConutAddress[name];
@@ -166,11 +176,16 @@ namespace Metin2SpeechToData {
 			}
 		}
 
+		/// <summary>
+		/// Saves current changes to the .xlsx file
+		/// </summary>
 		public void Save() {
 			xlsxFile.Save();
 		}
 
-
+		/// <summary>
+		/// Accessor to currently open sheet, SET: automatically pick sheet addresses and groups
+		/// </summary>
 		public ExcelWorksheet currentSheet {
 			get { return _currentSheet; }
 			private set {
@@ -180,6 +195,9 @@ namespace Metin2SpeechToData {
 			}
 		}
 
+		/// <summary>
+		/// Wrapper to add entry 'address' indexed as sheet name 'itemName' to sheet 'sheetName' 
+		/// </summary>
 		public void AddSheetToAddressEntry(string sheetName, string itemName, ExcelCellAddress address) {
 			sheetToAdresses[sheetName].Add(itemName, address);
 		}

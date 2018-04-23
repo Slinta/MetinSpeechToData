@@ -4,6 +4,7 @@ using System.IO;
 
 namespace Metin2SpeechToData {
 	public class MobAsociatedDrops {
+
 		public const string MOB_DROPS_FILE = "Mob Asociated Drops.definition";
 		ushort changeAcc = 0;
 
@@ -13,7 +14,6 @@ namespace Metin2SpeechToData {
 		public string[] getAllDropsFile { get; private set; }
 
 		public MobAsociatedDrops() {
-
 			try {
 				getAllDropsFile = File.ReadAllLines(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + MOB_DROPS_FILE);
 			}
@@ -65,7 +65,9 @@ namespace Metin2SpeechToData {
 			changeAcc++;
 		}
 
-
+		/// <summary>
+		/// Prompts user to remove item from mob asociations, used when Undoing
+		/// </summary>
 		public bool RemoveItemEntry(string mobName, string itemName) {
 			bool yes = Configuration.GetBoolInput("Remove from current enemy's (" + Program.enemyHandling.getCurrentEnemy + ") item list?");
 			if (yes) {
@@ -101,6 +103,9 @@ namespace Metin2SpeechToData {
 			return false;
 		}
 
+		/// <summary>
+		/// Returns all items this enemy drops, updates dynamically.
+		/// </summary>
 		public string[] GetDropsForMob(string enemyName) {
 			for (int i = 0; i < getAllDropsFile.Length; i++) {
 				if (getAllDropsFile[i].Contains("{")) {
@@ -110,7 +115,7 @@ namespace Metin2SpeechToData {
 					}
 				}
 			}
-			return null;
+			return new string[0];
 		}
 
 		private void SaveChanges() {

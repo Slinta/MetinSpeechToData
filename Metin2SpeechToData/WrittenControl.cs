@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Speech.Recognition;
+using OfficeOpenXml;
 
 namespace Metin2SpeechToData {
 	class WrittenControl {
@@ -39,7 +40,7 @@ namespace Metin2SpeechToData {
 				if (!newCycle) {
 					continue;
 				}
-				if(artificialStart) {
+				if (artificialStart) {
 					Game_SpeechRecognized(command);
 				}
 			}
@@ -55,7 +56,7 @@ namespace Metin2SpeechToData {
 				Environment.Exit(0);
 			}
 			else if (res == controlCommands.getPauseCommand) {
-				Console.WriteLine("This command does nothing");
+				Console.WriteLine("Stopping item name reciever");
 				artificialStart = false;
 			}
 			else if (res == controlCommands.getSwitchGrammarCommand) {
@@ -75,11 +76,11 @@ namespace Metin2SpeechToData {
 				string selected = Console.ReadLine();
 				Switch_WordRecognized(selected);
 			}
-			else if(res == "ret") {
+			else if (res == "ret") {
 				stayInDebug = false;
 				Console.WriteLine("Exitting debug mode!");
 			}
-			else if(res == "clear") {
+			else if (res == "clear") {
 				Console.Clear();
 			}
 			else {
@@ -92,7 +93,7 @@ namespace Metin2SpeechToData {
 			Console.WriteLine("\nSelected - " + selected);
 			DefinitionParser.instance.currentGrammarFile = DefinitionParser.instance.GetDefinitionByName(selected);
 			DefinitionParser.instance.currentMobGrammarFile = DefinitionParser.instance.GetMobDefinitionByName("Mob_" + selected);
-			Program.interaction.InitAreaSheet(selected);
+			Program.interaction.OpenWorksheet(selected);
 		}
 
 
@@ -114,21 +115,22 @@ namespace Metin2SpeechToData {
 							OnModifierWordHear?.Invoke(SpeechRecognitionHelper.ModifierWords.UNDO, "");
 							return;
 						}
+						case "Remove Target": {
+							Console.Write("Switching back to default NONE target");
+							OnModifierWordHear?.Invoke(SpeechRecognitionHelper.ModifierWords.REMOVE_TARGET, "");
+							return;
+						}
 					}
 				}
 			}
+			ExcelWorksheet old = Program.interaction.currentSheet;
 			enemyHandling.ItemDropped(speechKappa);
 			Console.WriteLine(speechKappa + " -- 100% confident.");
 		}
 
 		private void Game_ModifierRecognized(string modifier) {
-			switch (SpeechRecognitionHelper.currentModifier) {
-				case SpeechRecognitionHelper.ModifierWords.NEW_TARGET: {
-					OnModifierWordHear?.Invoke(SpeechRecognitionHelper.currentModifier, modifier);
-					SpeechRecognitionHelper.currentModifier = SpeechRecognitionHelper.ModifierWords.NONE;
-					break;
-				}
-			}
+			OnModifierWordHear?.Invoke(SpeechRecognitionHelper.currentModifier, modifier);
+			SpeechRecognitionHelper.currentModifier = SpeechRecognitionHelper.ModifierWords.NONE;
 		}
 	}
 }

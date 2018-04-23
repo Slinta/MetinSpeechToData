@@ -80,6 +80,7 @@ namespace Metin2SpeechToData {
 			throw new CustomException("No entry found, data was parsed incorrectly");
 		}
 
+		#region Mod drop file parser
 		private string[] GetAsociatedDrops(string mobMainPronounciation) {
 			string path = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Mob Asociated Drops.definition";
 			if (File.Exists(path)) {
@@ -108,6 +109,7 @@ namespace Metin2SpeechToData {
 			}
 			return drops;
 		}
+		#endregion
 
 		private MobClass ParseClass(string s) {
 			s = s.Trim(' ');
