@@ -91,8 +91,10 @@ namespace Metin2SpeechToData {
 
 		private void Switch_WordRecognized(string selected) {
 			Console.WriteLine("\nSelected - " + selected);
+			if (!new System.Text.RegularExpressions.Regex(@"\w+\s(C|c)hest[+-]").IsMatch(selected)) {
+				DefinitionParser.instance.currentMobGrammarFile = DefinitionParser.instance.GetMobDefinitionByName("Mob_" + selected);
+			}
 			DefinitionParser.instance.currentGrammarFile = DefinitionParser.instance.GetDefinitionByName(selected);
-			DefinitionParser.instance.currentMobGrammarFile = DefinitionParser.instance.GetMobDefinitionByName("Mob_" + selected);
 			Program.interaction.OpenWorksheet(selected);
 		}
 

@@ -1,0 +1,35 @@
+﻿Golden Chest+.definition
+Golden Chest+.definition
+Silver Chest-.definition
+Silver Chest-.definition
+Bokjung.definition
+Other.definition
+Area.definition
+
+
+Gold rod 500K/ Half a million, 500000, Rods
+Gold rod 1kk/ Million/ Gold rod 1 million, 1000000, Rods
+Gold rod 2kk/ Two million, 2000000, Rods
+
+Silver Chest, 800000, Chests
+Silver Chest +, 600000, Chests
+Golden Chest/ Gold Chest, 500000, Chests
+Golden Key/ Gold Key, 500000, Chests
+
+Gold Vein, 100000, Veins
+Silver Vein, 100000, Veins
+God tear Vein, 100000, Veins
+Silica Vein, 100000, Veins
+
+Enchanted Parchment/ Enchanted pergamen, 1000000, Goodies
+Empower item/ Zesílit předmět, 750000, Goodies
+Cursed thing/ Uhranutá, 1000000, Goodies
+Experience Ring/ Expák/ Exp Ring, 1000000, Goodies
+Theie's Gloves/ Zoldějky/ Zlodějské Rukavice, 1000000, Goodies
+Orb of Transformation/ Orb/ Kulička/ Kulička proměny, 4000000, Goodies
+Meteor Easy, 100000, Goodies
+Meteor Medium, 200000, Goodies
+ 
+Seed/ Semínko/ Semeno, 1000000, Herbs
+Blue Herb/ Blue Flower, 10000, Herbs
+Mushroom Tue, 10000, Herbs

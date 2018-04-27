@@ -3,7 +3,6 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Speech.Recognition;
 using System.IO;
-using System.Threading.Tasks;
 using System.Threading;
 
 namespace Metin2SpeechToData {
@@ -27,7 +26,7 @@ namespace Metin2SpeechToData {
 			{ ModifierWords.UNDO, "Undo" },
 		};
 
-		private SpeechRecognitionEngine control;
+		protected SpeechRecognitionEngine control;
 		private SpeechRecognitionEngine main;
 
 		public ControlSpeechCommands controlCommands { get; private set; }
@@ -36,8 +35,22 @@ namespace Metin2SpeechToData {
 
 		public event Program.Recognition OnRecognitionChange;
 
+		#region Contrusctor / Destructor
+		public SpeechRecognitionHelper() {
+			main = null;
+			InitializeControl();
+		}
+
 		public SpeechRecognitionHelper(ref SpeechRecognitionEngine engine) {
 			main = engine;
+			InitializeControl();
+		}
+
+		~SpeechRecognitionHelper() {
+			Console.WriteLine("Destructor of SpeechRecognitionHelper.");
+		}
+
+		private void InitializeControl() {
 			control = new SpeechRecognitionEngine();
 			Grammar controlGrammar = LoadControlGrammar(out ControlSpeechCommands c);
 			controlGrammar.Name = "Controler Grammar";
@@ -58,12 +71,9 @@ namespace Metin2SpeechToData {
 				control.RecognizeAsync(RecognizeMode.Multiple);
 			}
 		}
+		#endregion
 
-		~SpeechRecognitionHelper() {
-			Console.WriteLine("Destructor of SpeechRecognitionHelper.");
-		}
-
-		private void Control_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {
+		protected virtual void Control_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {
 			string res = e.Result.Text;
 
 			if (res == controlCommands.getStartCommand) {

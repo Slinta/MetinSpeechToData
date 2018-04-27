@@ -34,6 +34,7 @@ namespace Metin2SpeechToData {
 		}
 
 		~SpreadsheetInteraction() {
+			//TODO make this work somehow, and reduce the amount of saving during the program run cycle
 			Save();
 		}
 
@@ -104,8 +105,8 @@ namespace Metin2SpeechToData {
 		}
 
 
-		private void AutoAdjustColumns() {
-			//TODO make this function sheet independant, move it to helper class ?
+		public void AutoAdjustColumns() {
+			//TODO make this function sheet independant, move it to helper class ? make it private
 			double currMaxWidth = 0;
 			foreach (Group g in currentGroupsByName.Values) {
 				for (int i = 0; i < g.totalEntries; i++) {
@@ -180,6 +181,7 @@ namespace Metin2SpeechToData {
 		/// Saves current changes to the .xlsx file
 		/// </summary>
 		public void Save() {
+			//TODO fix this crashing after quitting
 			xlsxFile.Save();
 		}
 

@@ -12,34 +12,33 @@ namespace Metin2SpeechToData {
 
 		public ControlSpeechCommands(string relativeFilePath) {
 			using (StreamReader sr = File.OpenText(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + relativeFilePath)) {
-				short current = 0;
 				while (!sr.EndOfStream) {
 					string line = sr.ReadLine();
 					if (line.StartsWith("#") || string.IsNullOrWhiteSpace(line)) {
 						continue;
 					}
-					string modified = line.Split(':')[1].Remove(0, 1);
-					switch (current) {
-						case 0: {
+					string[] split = line.Split(':');
+					string modified = split[1].Remove(0, 1);
+					switch (split[0]) {
+						case "START": {
 							getStartCommand = modified;
 							break;
 						}
-						case 1: {
+						case "PAUSE": {
 							getPauseCommand = modified;
 							break;
 						}
-						case 2: {
+						case "STOP": {
 							getStopCommand = modified;
 							break;
 						}
-						case 3: {
+						case "SWITCH": {
 							getSwitchGrammarCommand = modified;
 							break;
 						}
-					}
-					current++;
-					if (current >= 4) {
-						break;
+						default: {
+							throw new CustomException("Corrupted Control.definition file, redownload the application.");
+						}
 					}
 				}
 			}

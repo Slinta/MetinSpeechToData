@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Chests\ChestVoiceManager.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="ControlSpeechCommands.cs" />
     <Compile Include="CustomException.cs" />
@@ -71,6 +72,9 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="RegexParctice.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

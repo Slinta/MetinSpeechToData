@@ -87,7 +87,7 @@ namespace Metin2SpeechToData {
 								break;
 							}
 							case "voice": {
-								parser = new DefinitionParser();
+								parser = new DefinitionParser(new System.Text.RegularExpressions.Regex(".+"));
 								game = new SpeechRecognitionEngine();
 								helper = new SpeechRecognitionHelper(ref game);
 								enemyHandling = new EnemyHandling();
@@ -97,7 +97,16 @@ namespace Metin2SpeechToData {
 								Console.WriteLine("Returned to Main control!");
 								enemyHandling = null;
 								helper = null;
-
+								break;
+							}
+							case "chest": {
+								game = new SpeechRecognitionEngine();
+								helper = new Chests.ChestVoiceManager(ref game);
+								helper.OnRecognitionChange += OnRecognitionChange;
+								helper.AcquireControl();
+								//TODO clean up references
+								Console.WriteLine("Returned to Main control!");
+								helper = null;
 								break;
 							}
 							case "clear": {
@@ -123,12 +132,24 @@ namespace Metin2SpeechToData {
 							case "voice": {
 								if (commandBlocks[1] == "debug") {
 									debug = true;
-									parser = new DefinitionParser();
+									parser = new DefinitionParser(new System.Text.RegularExpressions.Regex(".+"));
 									game = new SpeechRecognitionEngine();
 									Console.WriteLine(game.Grammars.Count);
 									helper = new SpeechRecognitionHelper(ref game);
 									helper.OnRecognitionChange += OnRecognitionChange;
 									enemyHandling = new EnemyHandling();
+									debugControl = new WrittenControl(helper.controlCommands, ref enemyHandling);
+								}
+								break;
+							}
+							case "chest": {
+								if (commandBlocks[1] == "debug") {
+									debug = true;
+									game = new SpeechRecognitionEngine();
+									Console.WriteLine(game.Grammars.Count);
+									helper = new Chests.ChestVoiceManager(ref game);
+									helper.OnRecognitionChange += OnRecognitionChange;
+									enemyHandling = new EnemyHandling(); //necessary for the ref type, not actually used
 									debugControl = new WrittenControl(helper.controlCommands, ref enemyHandling);
 								}
 								break;

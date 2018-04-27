@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Speech.Recognition;
+using System.Text.RegularExpressions;
 
 namespace Metin2SpeechToData {
 	public class DefinitionParser {
@@ -32,30 +33,37 @@ namespace Metin2SpeechToData {
 		public MobParserData currentMobGrammarFile;
 
 		#region Constructor/Destructor
-		public DefinitionParser() {
+		/// <summary>
+		/// Parser for .definition files, constructor parses all .definition files in Definitions folder
+		/// </summary>
+		public DefinitionParser(Regex searchPattern) {
 			DirectoryInfo d = new DirectoryInfo(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Definitions");
-			FileInfo[] filesPresent = d.GetFiles("*.definition",SearchOption.AllDirectories).Where(
-				name => !name.Name.Split('.')[0].StartsWith("Control") &&
-						!name.Name.Split('.')[0].StartsWith("Mob")).ToArray();
+			FileInfo[] filesPresent = d.GetFiles("*.definition", SearchOption.AllDirectories).Where(path => searchPattern.IsMatch(path.Name)).ToArray();
 			if (filesPresent.Length == 0) {
 				throw new CustomException("Your program is missing voice recognition strings! Either redownload, or create your own *.definition text file.");
 			}
-			if(d.GetFiles("Mob_*.definition").Length != 0) {
-				getMobDefinitions = new MobParserData().Parse(d);
-			}
 
-			getDefinitions = new DefinitionParserData[filesPresent.Length];
+			List<int> Mob_indexes = new List<int>();
+			List<DefinitionParserData> definitions = new List<DefinitionParserData>();
 			for (int i = 0; i < filesPresent.Length; i++) {
+				if (filesPresent[i].Name.StartsWith("Mob_")) {
+					Mob_indexes.Add(i);
+					continue;
+				}
 				DefinitionParserData data = new DefinitionParserData();
 				using (StreamReader s = filesPresent[i].OpenText()) {
 					data.ID = filesPresent[i].Name.Split('.')[0];
 					data.groups = ParseHeader(s);
 					data.entries = ParseEntries(s);
 					data.ConstructGrammar();
-					getDefinitions[i] = data;
+					definitions.Add(data);
 				}
 			}
 			instance = this;
+			getDefinitions = definitions.ToArray();
+			if(Mob_indexes.Count != 0) {
+				getMobDefinitions = new MobParserData().Parse(d);
+			}
 		}
 
 		~DefinitionParser() {
