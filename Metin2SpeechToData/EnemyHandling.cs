@@ -79,7 +79,9 @@ namespace Metin2SpeechToData {
 				Program.interaction.AddNumberTo(action.addr, -action.count);
 				string itemName = Program.interaction.currentSheet.Cells[action.addr.Row, action.addr.Column - 2].Value.ToString();
 				Console.WriteLine("Undoing... removed " + action.count + " items from " + Program.interaction.currentSheet.Cells[action.addr.Row, action.addr.Column - 2].Value);
-				mobDrops.RemoveItemEntry(getCurrentEnemy, itemName);
+				if (Program.interaction.currentSheet.Cells[action.addr.Row, action.addr.Column].GetValue<int>() == 0) {
+					mobDrops.RemoveItemEntry(getCurrentEnemy, itemName);
+				}
 			}
 		}
 
@@ -88,11 +90,11 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		public void ItemDropped(string item, int amount = 1) {
 			//TODO: for text controlled input the address from name is not working due to the grammar not being additive
-			string mainPron = DefinitionParser.instance.currentGrammarFile.GetMainPronounciation(item);
+			string mainPronounciation = DefinitionParser.instance.currentGrammarFile.GetMainPronounciation(item);
 			if (!string.IsNullOrWhiteSpace(getCurrentEnemy)){
-				mobDrops.UpdateDrops(getCurrentEnemy, mainPron);
+				mobDrops.UpdateDrops(getCurrentEnemy, mainPronounciation);
 			}
-			ExcelCellAddress address = Program.interaction.AddressFromName(mainPron);
+			ExcelCellAddress address = Program.interaction.GetAddress(mainPronounciation);
 			Program.interaction.AddNumberTo(address, amount);
 			stack.Push(new ItemInsertion { addr = address, count = amount });
 		}

@@ -74,7 +74,6 @@ namespace Metin2SpeechToData.Chests {
 			DefinitionParser.instance.currentGrammarFile = DefinitionParser.instance.GetDefinitionByName(e.Result.Text);
 			DefinitionParser.instance.currentMobGrammarFile = null;
 			Program.interaction.OpenWorksheet(e.Result.Text);
-			Program.interaction.AutoAdjustColumns();
 		}
 	}
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 
@@ -6,7 +7,6 @@ namespace Metin2SpeechToData {
 	public class MobAsociatedDrops {
 
 		public const string MOB_DROPS_FILE = "Mob Asociated Drops.definition";
-		ushort changeAcc = 0;
 
 		/// <summary>
 		/// Get all drops, entries are 'main pronounciation' of items in definition file
@@ -25,11 +25,6 @@ namespace Metin2SpeechToData {
 			}
 		}
 
-		~MobAsociatedDrops() {
-			SaveChanges();
-		}
-
-
 		public void UpdateDrops(string mobName, string itemName) {
 			bool mobEntryExists = false;
 			for (int i = 0; i < getAllDropsFile.Length; i++) {
@@ -41,11 +36,7 @@ namespace Metin2SpeechToData {
 						if (edit) {
 							getAllDropsFile[i + 1] = getAllDropsFile[i + 1] + "," + itemName;
 							Program.interaction.AddItemEntryToCurrentSheet(itemName);
-						}
-						changeAcc++;
-						if (changeAcc >= 10) {
 							SaveChanges();
-							changeAcc = 0;
 						}
 						return;
 					}
@@ -54,6 +45,7 @@ namespace Metin2SpeechToData {
 			if (!mobEntryExists) {
 				AddMobEntry(mobName, itemName);
 				Program.interaction.AddItemEntryToCurrentSheet(itemName);
+				SaveChanges();
 			}
 		}
 
@@ -63,7 +55,6 @@ namespace Metin2SpeechToData {
 			modified.Add("\t" + itemName);
 			modified.Add("}");
 			getAllDropsFile = modified.ToArray();
-			changeAcc++;
 		}
 
 		/// <summary>
@@ -79,18 +70,27 @@ namespace Metin2SpeechToData {
 						for (int j = 0; j < split.Length; j++) {
 							if (split[j] == itemName) {
 								split[j] = "";
-								modified[i + 1] = string.Join(",", split);
+								modified[i + 1] = string.Join(",", split.Where(str => str != ""));
+								getAllDropsFile = modified.ToArray();
+								Console.WriteLine("Entry removed!");
+								SaveChanges();
+								RemoveExcelSheetEntry(itemName);
 								return true;
 							}
 						}
 					}
 				}
+				Console.WriteLine("Entry not found?!");
 				return false;
 			}
 			else {
 				Console.WriteLine("Entry not removed!");
 				return false;
 			}
+		}
+
+		private void RemoveExcelSheetEntry(string itemName) {
+			Program.interaction.RemoveItemEntryFromCurrentSheet(itemName);
 		}
 
 		private bool CheckItemExists(string line, string itemName) {

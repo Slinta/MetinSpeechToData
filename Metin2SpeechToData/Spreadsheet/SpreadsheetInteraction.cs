@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 using OfficeOpenXml;
@@ -18,7 +19,7 @@ namespace Metin2SpeechToData {
 		private Dictionary<string, Dictionary<string, ExcelCellAddress>> sheetToAdresses = new Dictionary<string, Dictionary<string, ExcelCellAddress>>();
 		private Dictionary<string, Dictionary<string, Group>> sheetToGroups = new Dictionary<string, Dictionary<string, Group>>();
 
-
+		#region Constructor / Destructor
 		/// <summary>
 		/// Initializes spreadsheet control with given file
 		/// </summary>
@@ -37,6 +38,7 @@ namespace Metin2SpeechToData {
 			//TODO make this work somehow, and reduce the amount of saving during the program run cycle
 			Save();
 		}
+		#endregion
 
 		/// <summary>
 		/// Open existing worksheet or add one and populate it if the sheet does not exist
@@ -49,12 +51,13 @@ namespace Metin2SpeechToData {
 					case SpreadsheetTemplates.SpreadsheetPresetType.AREA: {
 						InitAreaSheet(sheetName);
 						currentSheet = content.Worksheets[sheetName];
-						AutoAdjustColumns();
+						helper.AutoAdjustColumns(currentGroupsByName.Values);
 						return;
 					}
 					case SpreadsheetTemplates.SpreadsheetPresetType.ENEMY: {
 						InitMobSheet(sheetName);
 						currentSheet = content.Worksheets[sheetName];
+						helper.AutoAdjustColumns(currentGroupsByName.Values);
 						return;
 					}
 				}
@@ -100,34 +103,8 @@ namespace Metin2SpeechToData {
 				throw new CustomException("No sheet open!");
 			}
 			_currentSheet.SetValue(address.Address, value);
-			Console.WriteLine("Cell[" + address.Address + "] = " + value.ToString());
+			Console.WriteLine("Cell[" + address.Address + "] = " + value);
 			Save();
-		}
-
-
-		public void AutoAdjustColumns() {
-			//TODO make this function sheet independant, move it to helper class ? make it private
-			double currMaxWidth = 0;
-			foreach (Group g in currentGroupsByName.Values) {
-				for (int i = 0; i < g.totalEntries; i++) {
-					_currentSheet.Cells[g.elementNameFirstIndex.Row + i, g.elementNameFirstIndex.Column].AutoFitColumns();
-					if (_currentSheet.Column(g.elementNameFirstIndex.Column).Width >= currMaxWidth) {
-						currMaxWidth = _currentSheet.Column(g.elementNameFirstIndex.Column).Width;
-					}
-				}
-				_currentSheet.Column(g.elementNameFirstIndex.Column).Width = currMaxWidth;
-				currMaxWidth = 0;
-
-				for (int i = 0; i < g.totalEntries; i++) {
-					int s = _currentSheet.GetValue<int>(g.yangValueFirstIndex.Row + i, g.yangValueFirstIndex.Column);
-					_currentSheet.Column(g.yangValueFirstIndex.Column).Width = SpreadsheetHelper.GetCellWidth(s, false);
-					if (_currentSheet.Column(g.yangValueFirstIndex.Column).Width > currMaxWidth) {
-						currMaxWidth = _currentSheet.Column(g.yangValueFirstIndex.Column).Width;
-					}
-				}
-				_currentSheet.Column(g.yangValueFirstIndex.Column).Width = currMaxWidth;
-				currMaxWidth = 0;
-			}
 		}
 
 		#region Sheet initializers
@@ -164,16 +141,27 @@ namespace Metin2SpeechToData {
 			});
 		}
 
-		[Obsolete("This is just wrapper for nullcheck, with wrong behaviour for debug/nonvalid 'name' Parse correctly and index directly ;)")]
-		public ExcelCellAddress AddressFromName(string name) {
-			if (currentNameToConutAddress.ContainsKey(name)) {
-				return currentNameToConutAddress[name];
+		/// <summary>
+		/// Dynamically remove new entries from the current sheet
+		/// </summary>
+		public void RemoveItemEntryFromCurrentSheet(string itemName) {
+			templates.RemoveItemEntry(_currentSheet, new DefinitionParserData.Entry {
+				mainPronounciation = itemName,
+				yangValue = DefinitionParser.instance.currentGrammarFile.GetYangValue(itemName),
+				group = null,
+				ambiguous = null
+			});
+		}
+
+		/// <summary>
+		/// Gets the item address belonging to 'itemName' in current sheet
+		/// </summary>
+		public ExcelCellAddress GetAddress(string itemName) {
+			try {
+				return currentNameToConutAddress[itemName];
 			}
-			if (!Program.debug) {
-				throw new CustomException("The word you're looking for isn't in the dictionary due to parsing problems.");
-			}
-			else {
-				return new ExcelCellAddress(100, 100);
+			catch {
+				throw new CustomException("Item not present in currentNameToConutAddress!");
 			}
 		}
 
@@ -202,6 +190,13 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		public void AddSheetToAddressEntry(string sheetName, string itemName, ExcelCellAddress address) {
 			sheetToAdresses[sheetName].Add(itemName, address);
+		}
+
+		/// <summary>
+		/// Wrapper to remove entry 'address' indexed as sheet name 'itemName' to sheet 'sheetName' 
+		/// </summary>
+		public void RemoveSheetToAddressEntry(string sheetName, string itemName) {
+			sheetToAdresses[sheetName].Remove(itemName);
 		}
 
 		public struct Group {

@@ -7,13 +7,39 @@ namespace Metin2SpeechToData {
 
 		public const string DEFAULT_SHEET = "Metin2 Drop Analyzer";
 		private static SpreadsheetInteraction main;
-
 		public SpreadsheetHelper(SpreadsheetInteraction interaction) {
 			main = interaction;
 		}
 
 		~SpreadsheetHelper() {
 			main = null;
+		}
+
+		/// <summary>
+		/// Adjusts collumn width of current sheet
+		/// </summary>
+		public void AutoAdjustColumns(Dictionary<string,SpreadsheetInteraction.Group>.ValueCollection values) {
+			double currMaxWidth = 0;
+			foreach (SpreadsheetInteraction.Group g in values) {
+				for (int i = 0; i < g.totalEntries; i++) {
+					main.currentSheet.Cells[g.elementNameFirstIndex.Row + i, g.elementNameFirstIndex.Column].AutoFitColumns();
+					if (main.currentSheet.Column(g.elementNameFirstIndex.Column).Width >= currMaxWidth) {
+						currMaxWidth = main.currentSheet.Column(g.elementNameFirstIndex.Column).Width;
+					}
+				}
+				main.currentSheet.Column(g.elementNameFirstIndex.Column).Width = currMaxWidth;
+				currMaxWidth = 0;
+
+				for (int i = 0; i < g.totalEntries; i++) {
+					int s = main.currentSheet.GetValue<int>(g.yangValueFirstIndex.Row + i, g.yangValueFirstIndex.Column);
+					main.currentSheet.Column(g.yangValueFirstIndex.Column).Width = GetCellWidth(s, false);
+					if (main.currentSheet.Column(g.yangValueFirstIndex.Column).Width > currMaxWidth) {
+						currMaxWidth = main.currentSheet.Column(g.yangValueFirstIndex.Column).Width;
+					}
+				}
+				main.currentSheet.Column(g.yangValueFirstIndex.Column).Width = currMaxWidth;
+				currMaxWidth = 0;
+			}
 		}
 
 

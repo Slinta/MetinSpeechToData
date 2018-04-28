@@ -104,7 +104,6 @@ namespace Metin2SpeechToData {
 		}
 
 		public void AddItemEntry(ExcelWorksheet sheet, DefinitionParserData.Entry entry) {
-			Program.interaction.Save();
 			//TODO implement group sorting for mob lists
 			ExcelCellAddress current = new ExcelCellAddress("A2");
 			int maxDetph = 10;
@@ -117,8 +116,27 @@ namespace Metin2SpeechToData {
 			}
 			interaction.InsertValue(current, entry.mainPronounciation);
 			interaction.InsertValue(new ExcelCellAddress(current.Row, current.Column + 1), entry.yangValue);
-			interaction.InsertValue(new ExcelCellAddress(current.Row, current.Column + 2), 1);
+			interaction.InsertValue(new ExcelCellAddress(current.Row, current.Column + 2), 0);
 			interaction.AddSheetToAddressEntry(sheet.Name, entry.mainPronounciation, new ExcelCellAddress(current.Row, current.Column + 2));
+		}
+
+		public void RemoveItemEntry(ExcelWorksheet sheet, DefinitionParserData.Entry entry) {
+			//TODO implement group sorting for mob lists
+			ExcelCellAddress current = new ExcelCellAddress("A2");
+			int maxDetph = 10;
+
+			while (sheet.Cells[current.Address].GetValue<string>() != entry.mainPronounciation) {
+				current = new ExcelCellAddress(current.Row + 1, current.Column);
+				if (current.Row >= maxDetph) {
+					current = new ExcelCellAddress(2, current.Column + 4);
+				}
+			}
+			//Found the cell
+			interaction.InsertValue<object>(current, null);
+			interaction.InsertValue<object>(new ExcelCellAddress(current.Row, current.Column + 1), null);
+			interaction.InsertValue<object>(new ExcelCellAddress(current.Row, current.Column + 2), null);
+			interaction.RemoveSheetToAddressEntry(sheet.Name, entry.mainPronounciation);
+			//TODO: Shof the cell upwards to remove gaps
 		}
 	}
 }
