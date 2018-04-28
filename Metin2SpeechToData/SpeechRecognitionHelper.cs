@@ -13,17 +13,22 @@ namespace Metin2SpeechToData {
 			NEW_TARGET,
 			REMOVE_TARGET,
 			UNDO,
-			TARGET_KILLED
+			TARGET_KILLED,
+			CONFIRM,
+			REFUSE
 		};
 
 		/// <summary>
 		/// Modifiers dictionary, used to convert enum values to spoken word
 		/// </summary>
 		public static IReadOnlyDictionary<ModifierWords, string> modifierDict = new Dictionary<ModifierWords, string>() {
+			//TODO Load these string form a file
 			{ ModifierWords.NEW_TARGET , "New Target" },
 			{ ModifierWords.TARGET_KILLED, "Killed Target" },
 			{ ModifierWords.REMOVE_TARGET, "Remove Target" },
 			{ ModifierWords.UNDO, "Undo" },
+			{ ModifierWords.CONFIRM, "Confirm" },
+			{ ModifierWords.REFUSE, "Refuse" },
 		};
 
 		protected SpeechRecognitionEngine control;

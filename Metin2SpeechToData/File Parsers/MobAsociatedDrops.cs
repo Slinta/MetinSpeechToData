@@ -60,14 +60,14 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Prompts user to remove item from mob asociations, used when Undoing
 		/// </summary>
-		public bool RemoveItemEntry(string mobName, string itemName) {
-			bool yes = Configuration.GetBoolInput("Remove from current enemy's (" + Program.enemyHandling.getCurrentEnemy + ") item list?");
+		public bool RemoveItemEntry(string mobName, string itemName, bool yes) {
 			if (yes) {
 				List<string> modified = new List<string>(getAllDropsFile);
 				for (int i = 0; i < modified.Count; i++) {
 					if (modified[i].Contains(mobName)) {
 						string[] split = modified[i + 1].Split(',');
 						for (int j = 0; j < split.Length; j++) {
+							split[j] = split[j].TrimStart();
 							if (split[j] == itemName) {
 								split[j] = "";
 								modified[i + 1] = string.Join(",", split.Where(str => str != ""));

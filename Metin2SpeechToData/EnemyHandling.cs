@@ -11,8 +11,8 @@ namespace Metin2SpeechToData {
 		public EnemyState state;
 		public MobAsociatedDrops mobDrops;
 		private DropOutStack<ItemInsertion> stack = new DropOutStack<ItemInsertion>(5);
-		public string getCurrentEnemy { get; private set; } = "";
-
+		private string currentEnemy = "";
+		private string currentItem = "";
 
 		public EnemyHandling() {
 			if (Program.debug) {
@@ -39,21 +39,21 @@ namespace Metin2SpeechToData {
 				switch (state) {
 					case EnemyState.NO_ENEMY: {
 						//Initial state
-						if (args[0] == "" && getCurrentEnemy == "") {
+						if (args[0] == "" && currentEnemy == "") {
 							return;
 						}
 						string actualEnemyName = DefinitionParser.instance.currentMobGrammarFile.GetMainPronounciation(args[0]);
 						state = EnemyState.FIGHTING;
 						Program.interaction.OpenWorksheet(actualEnemyName);
-						getCurrentEnemy = actualEnemyName;
-						Console.WriteLine("Acquired target: " + getCurrentEnemy);
+						currentEnemy = actualEnemyName;
+						Console.WriteLine("Acquired target: " + currentEnemy);
 						break;
 					}
 					case EnemyState.FIGHTING: {
 						state = EnemyState.NO_ENEMY;
-						Console.WriteLine("Killed " + getCurrentEnemy + ", the death count increased");
+						Console.WriteLine("Killed " + currentEnemy + ", the death count increased");
 						Program.interaction.AddNumberTo(new ExcelCellAddress(1, 5), 1);
-						getCurrentEnemy = "";
+						currentEnemy = "";
 						if (args[0] != "") {
 							EnemyTargetingModifierRecognized(SpeechRecognitionHelper.ModifierWords.NEW_TARGET, args[0]);
 						}
@@ -63,7 +63,7 @@ namespace Metin2SpeechToData {
 			}
 			else if (keyWord == SpeechRecognitionHelper.ModifierWords.REMOVE_TARGET) {
 				Program.interaction.OpenWorksheet(DefinitionParser.instance.currentGrammarFile.ID);
-				getCurrentEnemy = "";
+				currentEnemy = "";
 				state = EnemyState.NO_ENEMY;
 			}
 			else if (keyWord == SpeechRecognitionHelper.ModifierWords.TARGET_KILLED) {
@@ -72,7 +72,7 @@ namespace Metin2SpeechToData {
 			}
 			else if (keyWord == SpeechRecognitionHelper.ModifierWords.UNDO) {
 				ItemInsertion action = stack.Pop();
-				if(action.addr == null) {
+				if (action.addr == null) {
 					Console.WriteLine("Nothing else to undo!");
 					return;
 				}
@@ -80,8 +80,28 @@ namespace Metin2SpeechToData {
 				string itemName = Program.interaction.currentSheet.Cells[action.addr.Row, action.addr.Column - 2].Value.ToString();
 				Console.WriteLine("Undoing... removed " + action.count + " items from " + Program.interaction.currentSheet.Cells[action.addr.Row, action.addr.Column - 2].Value);
 				if (Program.interaction.currentSheet.Cells[action.addr.Row, action.addr.Column].GetValue<int>() == 0) {
-					mobDrops.RemoveItemEntry(getCurrentEnemy, itemName);
+					Console.WriteLine("Remove " + currentItem + " from current enemy's (" + currentEnemy + ") item list?\nConfirm/Refuse");
+					currentItem = itemName;
+					Program.OnModifierWordHear += ConfirmByVoice;
+					Program.OnModifierWordHear -= EnemyTargetingModifierRecognized;
 				}
+			}
+		}
+
+		private void ConfirmByVoice(SpeechRecognitionHelper.ModifierWords word, params string[] args) {
+			//TODO change confirm/refuse to something parsed from file
+			
+			Program.OnModifierWordHear -= ConfirmByVoice;
+			Program.OnModifierWordHear += EnemyTargetingModifierRecognized;
+			if(word == SpeechRecognitionHelper.ModifierWords.REFUSE) {
+				mobDrops.RemoveItemEntry(currentEnemy, currentItem, false);
+			}
+			else if(word == SpeechRecognitionHelper.ModifierWords.CONFIRM){
+				mobDrops.RemoveItemEntry(currentEnemy, currentItem, true);
+			}
+			else {
+				Program.OnModifierWordHear += ConfirmByVoice;
+				Program.OnModifierWordHear -= EnemyTargetingModifierRecognized;
 			}
 		}
 
@@ -91,8 +111,8 @@ namespace Metin2SpeechToData {
 		public void ItemDropped(string item, int amount = 1) {
 			//TODO: for text controlled input the address from name is not working due to the grammar not being additive
 			string mainPronounciation = DefinitionParser.instance.currentGrammarFile.GetMainPronounciation(item);
-			if (!string.IsNullOrWhiteSpace(getCurrentEnemy)){
-				mobDrops.UpdateDrops(getCurrentEnemy, mainPronounciation);
+			if (!string.IsNullOrWhiteSpace(currentEnemy)){
+				mobDrops.UpdateDrops(currentEnemy, mainPronounciation);
 			}
 			ExcelCellAddress address = Program.interaction.GetAddress(mainPronounciation);
 			Program.interaction.AddNumberTo(address, amount);

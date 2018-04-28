@@ -7,7 +7,7 @@ namespace Metin2SpeechToData {
 
 		public FileInfo xlsxFile { get; private set; }
 
-		private const string FILE_NAME = "Metin2 Drop Speadsheet.xlsx";
+		public const string FILE_NAME = "Metin2 Drop Speadsheet.xlsx";
 
 		public Configuration(string filePath) {
 			if (!File.Exists(filePath)) {

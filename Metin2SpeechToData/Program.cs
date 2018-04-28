@@ -116,6 +116,24 @@ namespace Metin2SpeechToData {
 								Console.WriteLine("Type 'help' for more info on how to use this program");
 								break;
 							}
+							case "wipe": {
+								Console.WriteLine("Data wiped");
+								if (File.Exists(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg")) {
+									File.Delete(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
+									Console.Write("config");
+								}
+								if (File.Exists(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + MobAsociatedDrops.MOB_DROPS_FILE)) {
+									File.Delete(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + MobAsociatedDrops.MOB_DROPS_FILE);
+									Console.Write("mobDropsFile");
+								}
+								if (File.Exists(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + Configuration.FILE_NAME)) {
+									File.Delete(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + Configuration.FILE_NAME);
+									Console.Write("spreadsheet");
+								}
+								config = new Configuration(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
+								interaction = new SpreadsheetInteraction(config.xlsxFile);
+								break;
+							}
 							default: {
 								Console.WriteLine("Not a valid command, type 'help' for more info");
 								break;
@@ -261,9 +279,20 @@ namespace Metin2SpeechToData {
 							OnModifierWordHear?.Invoke(SpeechRecognitionHelper.ModifierWords.REMOVE_TARGET, "");
 							return;
 						}
+						case "Confirm": {
+							Console.Write("Confirming");
+							OnModifierWordHear?.Invoke(SpeechRecognitionHelper.ModifierWords.CONFIRM, "");
+							return;
+						}
+						case "Refuse": {
+							Console.Write("Refusing");
+							OnModifierWordHear?.Invoke(SpeechRecognitionHelper.ModifierWords.REFUSE, "");
+							return;
+						}
 					}
 				}
 			}
+			//TODO|: move this up to the new target case
 			if (SpeechRecognitionHelper.currentModifier != SpeechRecognitionHelper.ModifierWords.NONE) {
 				game.SpeechRecognized += Game_ModifierRecognized;
 				game.SpeechRecognized -= Game_SpeechRecognized;
