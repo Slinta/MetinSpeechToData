@@ -55,9 +55,7 @@ namespace Metin2SpeechToData {
 				groups = new Dictionary<string, SpreadsheetInteraction.Group>()
 			};
 
-			interaction.InsertValue(new ExcelCellAddress(1, 1), "Spreadsheet for enemy: " + interaction.currentSheet.Name);
-			interaction.InsertValue(new ExcelCellAddress(1, 4), "Num killed:");
-			interaction.InsertValue(new ExcelCellAddress(1, 5), 0);
+			interaction.InsertValue(new ExcelCellAddress(1, 1), "Spreadsheet for zone: " + interaction.currentSheet.Name);
 
 			int[] rowOfEachGroup = new int[data.groups.Length];
 			int[] columnOfEachGroup = new int[data.groups.Length];

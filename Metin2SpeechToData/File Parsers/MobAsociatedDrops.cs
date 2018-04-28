@@ -53,6 +53,7 @@ namespace Metin2SpeechToData {
 			}
 			if (!mobEntryExists) {
 				AddMobEntry(mobName, itemName);
+				Program.interaction.AddItemEntryToCurrentSheet(itemName);
 			}
 		}
 

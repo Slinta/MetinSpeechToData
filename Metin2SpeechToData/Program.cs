@@ -2,6 +2,7 @@
 using System.IO;
 using System.Speech.Recognition;
 using OfficeOpenXml;
+using System.Windows.Forms;
 
 namespace Metin2SpeechToData {
 	public class Program {
@@ -31,6 +32,7 @@ namespace Metin2SpeechToData {
 
 		public static Configuration config;
 
+
 		[STAThread]
 		static void Main(string[] args) {
 			//TODO: replace Folder dialog with something more user friendly
@@ -48,7 +50,6 @@ namespace Metin2SpeechToData {
 			while (continueRunning) {
 				Console.WriteLine("Command:");
 				string command = Console.ReadLine();
-
 				string[] commandBlocks = command.Split(' ');
 
 				//Switch over length
@@ -272,10 +273,21 @@ namespace Metin2SpeechToData {
 			Console.WriteLine(e.Result.Text + " -- " + e.Result.Confidence);
 		}
 
+		
+
 		private static void Game_ModifierRecognized(object sender, SpeechRecognizedEventArgs e) {
 			switch (SpeechRecognitionHelper.currentModifier) {
 				case SpeechRecognitionHelper.ModifierWords.NEW_TARGET: {
-					OnModifierWordHear?.Invoke(SpeechRecognitionHelper.currentModifier, e.Result.Text);
+					bool recognisedWordComesFromGrammarOne = false;
+					foreach (string theString in SpeechRecognitionHelper.modifierDict.Values) {
+						if(theString == e.Result.Text) {
+							recognisedWordComesFromGrammarOne = true;
+							Console.WriteLine("NewTarget cancelled");
+						}
+					}
+					if (!recognisedWordComesFromGrammarOne) {
+						OnModifierWordHear?.Invoke(SpeechRecognitionHelper.currentModifier, e.Result.Text);
+					}
 					game.Grammars[0].Enabled = true;
 					game.Grammars[2].Enabled = false;
 					SpeechRecognitionHelper.currentModifier = SpeechRecognitionHelper.ModifierWords.NONE;
