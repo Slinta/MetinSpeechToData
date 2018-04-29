@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Chests\ChestSpeechRecognized.cs" />
     <Compile Include="Chests\ChestVoiceManager.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="ControlSpeechCommands.cs" />

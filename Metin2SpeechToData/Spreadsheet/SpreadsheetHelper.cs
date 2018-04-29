@@ -40,6 +40,7 @@ namespace Metin2SpeechToData {
 				main.currentSheet.Column(g.yangValueFirstIndex.Column).Width = currMaxWidth;
 				currMaxWidth = 0;
 			}
+			main.Save();
 		}
 
 

@@ -23,6 +23,13 @@
 		}
 
 		/// <summary>
+		/// Look at the top element
+		/// </summary>
+		public T Peek() {
+			return items[(items.Length + top - 1) % items.Length];
+		}
+
+		/// <summary>
 		/// Pop item off the stack, ater depletion return defaults of 'T'
 		/// </summary>
 		public T Pop() {
