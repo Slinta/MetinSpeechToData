@@ -13,6 +13,8 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		public string[] getAllDropsFile { get; private set; }
 
+		public Dictionary<string,Dictionary<string, int>> numberForGroupForSheet = new Dictionary<string, Dictionary<string, int>>();
+
 		public MobAsociatedDrops() {
 			try {
 				getAllDropsFile = File.ReadAllLines(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + MOB_DROPS_FILE);
@@ -117,6 +119,23 @@ namespace Metin2SpeechToData {
 				}
 			}
 			return new string[0];
+		}
+
+		public int GetGroupNumberForEnemy(string enemy, string group) {
+			if(!numberForGroupForSheet.ContainsKey(enemy)) {
+				//Not set even for an enemy
+				numberForGroupForSheet.Add(enemy, new Dictionary<string, int>() { { group, 0 } });
+				return 0;
+			}
+			else if (!numberForGroupForSheet[enemy].ContainsKey(group)) {
+				//First time seeing that group
+				int newValue = numberForGroupForSheet[enemy].Count;
+				numberForGroupForSheet[enemy].Add(group,newValue);
+				return newValue;
+			}
+			else {
+				return numberForGroupForSheet[enemy][group];
+			}
 		}
 
 		private void SaveChanges() {

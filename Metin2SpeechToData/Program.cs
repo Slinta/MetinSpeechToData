@@ -274,9 +274,9 @@ namespace Metin2SpeechToData {
 							OnModifierWordHear?.Invoke(SpeechRecognitionHelper.ModifierWords.UNDO, "");
 							return;
 						}
-						case "Remove Target": {
+						case "Target Killed": {
 							Console.Write("Switching back to default NONE target");
-							OnModifierWordHear?.Invoke(SpeechRecognitionHelper.ModifierWords.REMOVE_TARGET, "");
+							OnModifierWordHear?.Invoke(SpeechRecognitionHelper.ModifierWords.TARGET_KILLED, "");
 							return;
 						}
 						case "Confirm": {

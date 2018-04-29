@@ -74,5 +74,14 @@ namespace Metin2SpeechToData {
 				Name = ID
 			};
 		}
+
+		public string GetGroup(string itemName) {
+			foreach (Entry entry in entries) {
+				if (entry.mainPronounciation == itemName) {
+					return entry.group;
+				}
+			}
+			throw new CustomException("item doesn't exist in the entries, perhaps the archives are incomplete");
+		}
 	}
 }

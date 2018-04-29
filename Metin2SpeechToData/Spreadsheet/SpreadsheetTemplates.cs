@@ -105,9 +105,9 @@ namespace Metin2SpeechToData {
 
 		public void AddItemEntry(ExcelWorksheet sheet, DefinitionParserData.Entry entry) {
 			//TODO implement group sorting for mob lists
-			ExcelCellAddress current = new ExcelCellAddress("A2");
+			ExcelCellAddress current = new ExcelCellAddress(2, 1 + Program.enemyHandling.mobDrops.GetGroupNumberForEnemy(sheet.Name,entry.group) * 4);
 			int maxDetph = 10;
-
+			
 			while(sheet.Cells[current.Address].Value != null) {
 				current = new ExcelCellAddress(current.Row + 1, current.Column);
 				if(current.Row >= maxDetph) {

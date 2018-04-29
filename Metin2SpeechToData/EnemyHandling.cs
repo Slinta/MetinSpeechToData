@@ -47,6 +47,7 @@ namespace Metin2SpeechToData {
 						Program.interaction.OpenWorksheet(actualEnemyName);
 						currentEnemy = actualEnemyName;
 						Console.WriteLine("Acquired target: " + currentEnemy);
+						stack.Clear();
 						break;
 					}
 					case EnemyState.FIGHTING: {
@@ -54,17 +55,13 @@ namespace Metin2SpeechToData {
 						Console.WriteLine("Killed " + currentEnemy + ", the death count increased");
 						Program.interaction.AddNumberTo(new ExcelCellAddress(1, 5), 1);
 						currentEnemy = "";
+						stack.Clear();
 						if (args[0] != "") {
 							EnemyTargetingModifierRecognized(SpeechRecognitionHelper.ModifierWords.NEW_TARGET, args[0]);
 						}
 						break;
 					}
 				}
-			}
-			else if (keyWord == SpeechRecognitionHelper.ModifierWords.REMOVE_TARGET) {
-				Program.interaction.OpenWorksheet(DefinitionParser.instance.currentGrammarFile.ID);
-				currentEnemy = "";
-				state = EnemyState.NO_ENEMY;
 			}
 			else if (keyWord == SpeechRecognitionHelper.ModifierWords.TARGET_KILLED) {
 				Program.interaction.OpenWorksheet(DefinitionParser.instance.currentGrammarFile.ID);

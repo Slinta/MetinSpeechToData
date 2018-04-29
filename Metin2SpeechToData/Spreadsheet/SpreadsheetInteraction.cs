@@ -136,7 +136,7 @@ namespace Metin2SpeechToData {
 			templates.AddItemEntry(_currentSheet, new DefinitionParserData.Entry {
 				mainPronounciation = itemName,
 				yangValue = DefinitionParser.instance.currentGrammarFile.GetYangValue(itemName),
-				group = null,
+				group = DefinitionParser.instance.currentGrammarFile.GetGroup(itemName),
 				ambiguous = null
 			});
 		}
@@ -148,7 +148,7 @@ namespace Metin2SpeechToData {
 			templates.RemoveItemEntry(_currentSheet, new DefinitionParserData.Entry {
 				mainPronounciation = itemName,
 				yangValue = DefinitionParser.instance.currentGrammarFile.GetYangValue(itemName),
-				group = null,
+				group = DefinitionParser.instance.currentGrammarFile.GetGroup(itemName),
 				ambiguous = null
 			});
 		}

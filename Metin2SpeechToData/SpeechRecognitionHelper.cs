@@ -11,7 +11,6 @@ namespace Metin2SpeechToData {
 		public enum ModifierWords {
 			NONE,
 			NEW_TARGET,
-			REMOVE_TARGET,
 			UNDO,
 			TARGET_KILLED,
 			CONFIRM,
@@ -24,8 +23,7 @@ namespace Metin2SpeechToData {
 		public static IReadOnlyDictionary<ModifierWords, string> modifierDict = new Dictionary<ModifierWords, string>() {
 			//TODO Load these string form a file
 			{ ModifierWords.NEW_TARGET , "New Target" },
-			{ ModifierWords.TARGET_KILLED, "Killed Target" },
-			{ ModifierWords.REMOVE_TARGET, "Remove Target" },
+			{ ModifierWords.TARGET_KILLED, "Target Killed" },
 			{ ModifierWords.UNDO, "Undo" },
 			{ ModifierWords.CONFIRM, "Confirm" },
 			{ ModifierWords.REFUSE, "Refuse" },
