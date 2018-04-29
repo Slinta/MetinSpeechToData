@@ -86,8 +86,8 @@ namespace Metin2SpeechToData {
 			return strings.ToArray();
 		}
 
-		private DefinitionParserData.Entry[] ParseEntries(StreamReader r) {
-			List<DefinitionParserData.Entry> entries = new List<DefinitionParserData.Entry>();
+		private DefinitionParserData.Item[] ParseEntries(StreamReader r) {
+			List<DefinitionParserData.Item> entries = new List<DefinitionParserData.Item>();
 			while (!r.EndOfStream) {
 				string line = r.ReadLine();
 				if (string.IsNullOrWhiteSpace(line)) {
@@ -99,7 +99,7 @@ namespace Metin2SpeechToData {
 				for (int i = 0; i < same.Length; i++) {
 					same[i] = same[i].TrimStart(' ');
 				}
-				entries.Add(new DefinitionParserData.Entry {
+				entries.Add(new DefinitionParserData.Item {
 					mainPronounciation = same[0],
 					group = split[2].TrimStart(' '),
 					yangValue = uint.Parse(split[1].TrimStart(' ')),

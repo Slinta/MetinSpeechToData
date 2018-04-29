@@ -132,20 +132,15 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Dynamically append new entries to the current sheet
 		/// </summary>
-		public void AddItemEntryToCurrentSheet(string itemName) {
-			templates.AddItemEntry(_currentSheet, new DefinitionParserData.Entry {
-				mainPronounciation = itemName,
-				yangValue = DefinitionParser.instance.currentGrammarFile.GetYangValue(itemName),
-				group = DefinitionParser.instance.currentGrammarFile.GetGroup(itemName),
-				ambiguous = null
-			});
+		public void AddItemEntryToCurrentSheet(DefinitionParserData.Item item) {
+			templates.AddItemEntry(_currentSheet, item);
 		}
 
 		/// <summary>
 		/// Dynamically remove new entries from the current sheet
 		/// </summary>
 		public void RemoveItemEntryFromCurrentSheet(string itemName) {
-			templates.RemoveItemEntry(_currentSheet, new DefinitionParserData.Entry {
+			templates.RemoveItemEntry(_currentSheet, new DefinitionParserData.Item {
 				mainPronounciation = itemName,
 				yangValue = DefinitionParser.instance.currentGrammarFile.GetYangValue(itemName),
 				group = DefinitionParser.instance.currentGrammarFile.GetGroup(itemName),

@@ -79,7 +79,7 @@ namespace Metin2SpeechToData {
 						};
 						d.groups.Add(group, g);
 					}
-					foreach (DefinitionParserData.Entry entry in data.entries) {
+					foreach (DefinitionParserData.Item entry in data.entries) {
 						SpreadsheetInteraction.Group g = d.groups[entry.group];
 						g.totalEntries++;
 						d.groups[entry.group] = g;

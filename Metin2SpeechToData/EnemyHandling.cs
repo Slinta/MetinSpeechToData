@@ -68,14 +68,16 @@ namespace Metin2SpeechToData {
 				EnemyTargetingModifierRecognized(SpeechRecognitionHelper.ModifierWords.NEW_TARGET, "");
 			}
 			else if (keyWord == SpeechRecognitionHelper.ModifierWords.UNDO) {
-				ItemInsertion action = stack.Pop();
+				ItemInsertion action = stack.Peek();
 				if (action.addr == null) {
 					Console.WriteLine("Nothing else to undo!");
 					return;
 				}
+				Console.WriteLine("Undoing... would remove " + action.count + " items from " + Program.interaction.currentSheet.Cells[action.addr.Row, action.addr.Column - 2].Value);
+				//TODO Implement undo properly
+				return;
 				Program.interaction.AddNumberTo(action.addr, -action.count);
 				string itemName = Program.interaction.currentSheet.Cells[action.addr.Row, action.addr.Column - 2].Value.ToString();
-				Console.WriteLine("Undoing... removed " + action.count + " items from " + Program.interaction.currentSheet.Cells[action.addr.Row, action.addr.Column - 2].Value);
 				if (Program.interaction.currentSheet.Cells[action.addr.Row, action.addr.Column].GetValue<int>() == 0) {
 					Console.WriteLine("Remove " + currentItem + " from current enemy's (" + currentEnemy + ") item list?\nConfirm/Refuse");
 					currentItem = itemName;
@@ -109,7 +111,7 @@ namespace Metin2SpeechToData {
 			//TODO: for text controlled input the address from name is not working due to the grammar not being additive
 			string mainPronounciation = DefinitionParser.instance.currentGrammarFile.GetMainPronounciation(item);
 			if (!string.IsNullOrWhiteSpace(currentEnemy)){
-				mobDrops.UpdateDrops(currentEnemy, mainPronounciation);
+				mobDrops.UpdateDrops(currentEnemy, DefinitionParser.instance.currentGrammarFile.GetItemEntry(mainPronounciation));
 			}
 			ExcelCellAddress address = Program.interaction.GetAddress(mainPronounciation);
 			Program.interaction.AddNumberTo(address, amount);

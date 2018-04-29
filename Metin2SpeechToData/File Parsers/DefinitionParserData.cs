@@ -15,14 +15,14 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// All items that are described in the file
 		/// </summary>
-		public Entry[] entries;
+		public Item[] entries;
 
 		/// <summary>
 		/// Grammar created from all the item names and ambiguities
 		/// </summary>
 		public Grammar grammar;
 
-		public struct Entry {
+		public struct Item {
 			public string mainPronounciation;
 			public string[] ambiguous;
 			public uint yangValue;
@@ -33,7 +33,7 @@ namespace Metin2SpeechToData {
 		/// Gets main item pronounciation by comparing ambiguities
 		/// </summary>
 		public string GetMainPronounciation(string calledAmbiguity) {
-			foreach (Entry entry in entries) {
+			foreach (Item entry in entries) {
 				if (entry.mainPronounciation == calledAmbiguity) {
 					return calledAmbiguity;
 				}
@@ -54,7 +54,7 @@ namespace Metin2SpeechToData {
 		///	Returns parsed yang value for item 'itemName' itemName must be the main pronounciation!
 		/// </summary>
 		public uint GetYangValue(string itemName) {
-			foreach (Entry entry in entries) {
+			foreach (Item entry in entries) {
 				if (entry.mainPronounciation == itemName) {
 					return entry.yangValue;
 				}
@@ -64,7 +64,7 @@ namespace Metin2SpeechToData {
 
 		public void ConstructGrammar() {
 			Choices main = new Choices();
-			foreach (Entry e in entries) {
+			foreach (Item e in entries) {
 				main.Add(e.mainPronounciation);
 				foreach (string s in e.ambiguous) {
 					main.Add(s);
@@ -76,12 +76,21 @@ namespace Metin2SpeechToData {
 		}
 
 		public string GetGroup(string itemName) {
-			foreach (Entry entry in entries) {
+			foreach (Item entry in entries) {
 				if (entry.mainPronounciation == itemName) {
 					return entry.group;
 				}
 			}
 			throw new CustomException("item doesn't exist in the entries, perhaps the archives are incomplete");
+		}
+
+		public Item GetItemEntry(string itemName) {
+			foreach (Item item in entries) {
+				if(item.mainPronounciation == itemName) {
+					return item;
+				}
+			}
+			throw new CustomException("Main pronounciation " + itemName + " not found in entries");
 		}
 	}
 }

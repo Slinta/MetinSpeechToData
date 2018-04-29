@@ -78,7 +78,7 @@ namespace Metin2SpeechToData {
 				};
 				d.groups.Add(group, g);
 			}
-			foreach (DefinitionParserData.Entry entry in data.entries) {
+			foreach (DefinitionParserData.Item entry in data.entries) {
 				SpreadsheetInteraction.Group g = d.groups[entry.group];
 				g.totalEntries++;
 				d.groups[entry.group] = g;
@@ -103,7 +103,7 @@ namespace Metin2SpeechToData {
 			return d;
 		}
 
-		public void AddItemEntry(ExcelWorksheet sheet, DefinitionParserData.Entry entry) {
+		public void AddItemEntry(ExcelWorksheet sheet, DefinitionParserData.Item entry) {
 			//TODO implement group sorting for mob lists
 			ExcelCellAddress current = new ExcelCellAddress(2, 1 + Program.enemyHandling.mobDrops.GetGroupNumberForEnemy(sheet.Name,entry.group) * 4);
 			int maxDetph = 10;
@@ -120,7 +120,7 @@ namespace Metin2SpeechToData {
 			interaction.AddSheetToAddressEntry(sheet.Name, entry.mainPronounciation, new ExcelCellAddress(current.Row, current.Column + 2));
 		}
 
-		public void RemoveItemEntry(ExcelWorksheet sheet, DefinitionParserData.Entry entry) {
+		public void RemoveItemEntry(ExcelWorksheet sheet, DefinitionParserData.Item entry) {
 			//TODO implement group sorting for mob lists
 			ExcelCellAddress current = new ExcelCellAddress("A2");
 			int maxDetph = 10;
