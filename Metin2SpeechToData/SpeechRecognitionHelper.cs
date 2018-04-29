@@ -186,9 +186,7 @@ namespace Metin2SpeechToData {
 			control.SpeechRecognized += handle;
 			signal.Wait();
 			//TODO clean references here more ??
-			main.RecognizeAsyncStop();
 			control.RecognizeAsyncStop();
-			main.Dispose();
 			control.Dispose();
 			control.SpeechRecognized -= handle;
 			if (Program.debug) {

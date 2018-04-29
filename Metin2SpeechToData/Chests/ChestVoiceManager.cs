@@ -1,23 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Speech.Recognition;
 
 namespace Metin2SpeechToData.Chests {
 	class ChestVoiceManager : SpeechRecognitionHelper {
 
-		private SpeechRecognitionEngine main;
 		private SpeechRecognitionEngine game;
 		private DefinitionParser parser;
-		
+		private ChestSpeechRecognized recognition;
+
 		#region Contrsuctor / Destructor
 		public ChestVoiceManager(ref SpeechRecognitionEngine engine) {
 			game = engine;
-			main = new SpeechRecognitionEngine();
 			parser = new DefinitionParser(new System.Text.RegularExpressions.Regex(@"\w+\s(C|c)hest[+-]\.definition"));
+			recognition = new ChestSpeechRecognized(this);
 		}
 
 		~ChestVoiceManager() {
-			main.Dispose();
+			control.Dispose();
 		}
 		#endregion
 
@@ -25,21 +25,27 @@ namespace Metin2SpeechToData.Chests {
 			string res = e.Result.Text;
 			if (res == controlCommands.getStartCommand) {
 				Console.Write("Chests opening mode initialized. Current type: ");
-				if (main.Grammars.Count == 0) {
+				if (game.Grammars.Count == 0) {
 					Console.WriteLine("NOT SET!");
 					Console.WriteLine("Set the chest type first with " + controlCommands.getSwitchGrammarCommand);
 					return;
 				}
 				else {
-					Console.WriteLine(main.Grammars[0].Name);
-					main.Grammars[0].Enabled = true;
+					Console.WriteLine(game.Grammars[0].Name);
+					game.Grammars[0].Enabled = true;
 				}
+				recognition.Subscribe(game);
+				game.SetInputToDefaultAudioDevice();
+				game.RecognizeAsync(RecognizeMode.Multiple);
+				Console.WriteLine("REcognizing!");
 			}
 			else if (res == controlCommands.getStopCommand) {
 				Console.WriteLine("Stopping Recognition!");
+				game.RecognizeAsyncStop();
 			}
 			else if (res == controlCommands.getPauseCommand) {
 				Console.WriteLine("Pausing Recognition!");
+				game.RecognizeAsyncStop();
 			}
 			else if (res == controlCommands.getSwitchGrammarCommand) {
 				Choices definitions = new Choices();
@@ -65,9 +71,11 @@ namespace Metin2SpeechToData.Chests {
 
 		private void Switch_WordRecognized(object sender, SpeechRecognizedEventArgs e) {
 			Console.WriteLine("\nSelected - " + e.Result.Text);
-			main.UnloadAllGrammars();
-			main.LoadGrammar(DefinitionParser.instance.GetGrammar(e.Result.Text));
-			main.Grammars[0].Enabled = true;
+			game.UnloadAllGrammars();
+			game.LoadGrammar(DefinitionParser.instance.GetGrammar(e.Result.Text));
+			game.LoadGrammar(new Grammar(new Choices(modifierDict.Values.ToArray())));
+			game.Grammars[0].Enabled = true;
+			game.Grammars[1].Enabled = true;
 			control.SpeechRecognized -= Switch_WordRecognized;
 			control.Grammars[0].Enabled = true;
 			control.SpeechRecognized += Control_SpeechRecognized;
