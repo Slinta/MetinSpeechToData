@@ -67,6 +67,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SpeechRecognitionHelper.cs" />
+    <Compile Include="SpeechRecognizedArgs.cs" />
     <Compile Include="Spreadsheet\SpreadsheetHelper.cs" />
     <Compile Include="Spreadsheet\SpreadsheetInteraction.cs" />
     <Compile Include="Spreadsheet\SpreadsheetTemplates.cs" />

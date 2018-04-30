@@ -63,25 +63,29 @@ namespace Metin2SpeechToData {
 
 			control.LoadGrammar(controlGrammar);
 			control.SetInputToDefaultAudioDevice();
-			control.SpeechRecognized += Control_SpeechRecognized;
+			control.SpeechRecognized += Control_SpeechRecognized_Wrapper;
 			if (Program.debug) {
 				Console.WriteLine("Control grammar loaded...");
 			}
 			Console.Write("Available commands:\n" +
-						  Program.controlCommands.getStartCommand + " - Start recognition\n" +
-						  Program.controlCommands.getPauseCommand + " - Pauses main recognition\n" +
-						  Program.controlCommands.getStopCommand + " - Exits App\n" +
-						  Program.controlCommands.getSwitchGrammarCommand + " - Changes grammar (your drop location)\n");
+						  Program.controlCommands.getStartCommand + " - Start recognition(F1)\n" +
+						  Program.controlCommands.getPauseCommand + " - Pauses main recognition(F2)\n" +
+						  Program.controlCommands.getSwitchGrammarCommand + " - Changes grammar (your drop location)(F3)\n" +
+						  Program.controlCommands.getStopCommand + " - Exits App(F4)\n");
+			Program.mapper.AssignToHotkey("F1", Control_SpeechRecognized, new SpeecRecognizedArgs(Program.controlCommands.getStartCommand, 100));
+
 			if (!Program.debug) {
 				control.RecognizeAsync(RecognizeMode.Multiple);
 			}
 		}
 		#endregion
 
-		protected virtual void Control_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {
-			string res = e.Result.Text;
+		protected void Control_SpeechRecognized_Wrapper(object sender, SpeechRecognizedEventArgs e) {
+			Control_SpeechRecognized(sender, new SpeecRecognizedArgs(e.Result.Text, e.Result.Confidence));
+		}
+		protected virtual void Control_SpeechRecognized(object sender, SpeecRecognizedArgs e) {
 
-			if (res == Program.controlCommands.getStartCommand) {
+			if (e.text == Program.controlCommands.getStartCommand) {
 				Console.Write("Starting Recognition. Current grammar: ");
 				if (main.Grammars.Count == 0) {
 					Console.WriteLine("NOT INITIALIZED!");
@@ -94,15 +98,15 @@ namespace Metin2SpeechToData {
 					OnRecognitionChange(Program.RecognitionState.DROP_LOGGER_RUNNING);
 				}
 			}
-			else if (res == Program.controlCommands.getStopCommand) {
+			else if (e.text == Program.controlCommands.getStopCommand) {
 				Console.WriteLine("Stopping Recognition!");
 			}
-			else if (res == Program.controlCommands.getPauseCommand) {
+			else if (e.text == Program.controlCommands.getPauseCommand) {
 				Console.WriteLine("Pausing Recognition!");
 				OnRecognitionChange(Program.RecognitionState.CONTROL_RUNNING);
 
 			}
-			else if (res == Program.controlCommands.getSwitchGrammarCommand) {
+			else if (e.text == Program.controlCommands.getSwitchGrammarCommand) {
 				Choices definitions = new Choices();
 				Console.Write("Switching Grammar, available: ");
 				string[] available = DefinitionParser.instance.getDefinitionNames;
@@ -119,8 +123,8 @@ namespace Metin2SpeechToData {
 					control.LoadGrammar(new Grammar(definitions));
 				}
 				control.Grammars[0].Enabled = false;
-				control.SpeechRecognized -= Control_SpeechRecognized;
-				control.SpeechRecognized += Switch_WordRecognized;
+				control.SpeechRecognized -= Control_SpeechRecognized_Wrapper;
+				control.SpeechRecognized += Switch_WordRecognized_Wrapper;
 				OnRecognitionChange(Program.RecognitionState.SWITCHING);
 			}
 			else {
@@ -128,22 +132,25 @@ namespace Metin2SpeechToData {
 			}
 		}
 
-		private void Switch_WordRecognized(object sender, SpeechRecognizedEventArgs e) {
-			Console.WriteLine("\nSelected - " + e.Result.Text);
+		private void Switch_WordRecognized_Wrapper(object sender, SpeechRecognizedEventArgs e) {
+			Switch_WordRecognized(sender, new SpeecRecognizedArgs(e.Result.Text, e.Result.Confidence));
+		}
+		private void Switch_WordRecognized(object sender, SpeecRecognizedArgs e) {
+			Console.WriteLine("\nSelected - " + e.text);
 			main.UnloadAllGrammars();
-			main.LoadGrammar(DefinitionParser.instance.GetGrammar(e.Result.Text));
+			main.LoadGrammar(DefinitionParser.instance.GetGrammar(e.text));
 			main.LoadGrammar(new Grammar(new Choices(modifierDict.Values.ToArray())));
-			main.LoadGrammar(DefinitionParser.instance.GetMobGrammar("Mob_" + e.Result.Text));
+			main.LoadGrammar(DefinitionParser.instance.GetMobGrammar("Mob_" + e.text));
 			main.Grammars[0].Enabled = true;
 			main.Grammars[1].Enabled = true;
 			main.Grammars[2].Enabled = false;
-			control.SpeechRecognized -= Switch_WordRecognized;
+			control.SpeechRecognized -= Switch_WordRecognized_Wrapper;
 			control.Grammars[0].Enabled = true;
-			control.SpeechRecognized += Control_SpeechRecognized;
+			control.SpeechRecognized += Control_SpeechRecognized_Wrapper;
 			control.Grammars[1].Enabled = false;
-			DefinitionParser.instance.currentGrammarFile = DefinitionParser.instance.GetDefinitionByName(e.Result.Text);
-			DefinitionParser.instance.currentMobGrammarFile = DefinitionParser.instance.GetMobDefinitionByName("Mob_" + e.Result.Text);
-			Program.interaction.OpenWorksheet(e.Result.Text);
+			DefinitionParser.instance.currentGrammarFile = DefinitionParser.instance.GetDefinitionByName(e.text);
+			DefinitionParser.instance.currentMobGrammarFile = DefinitionParser.instance.GetMobDefinitionByName("Mob_" + e.text);
+			Program.interaction.OpenWorksheet(e.text);
 			if (Program.debug) {
 				Console.WriteLine(main.Grammars.Count);
 			}

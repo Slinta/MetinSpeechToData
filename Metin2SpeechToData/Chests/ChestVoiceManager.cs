@@ -21,9 +21,8 @@ namespace Metin2SpeechToData.Chests {
 		}
 		#endregion
 
-		protected override void Control_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {
-			string res = e.Result.Text;
-			if (res == Program.controlCommands.getStartCommand) {
+		protected override void Control_SpeechRecognized(object sender, SpeecRecognizedArgs e) {
+			if (e.text == Program.controlCommands.getStartCommand) {
 				Console.Write("Chests opening mode initialized. Current type: ");
 				if (game.Grammars.Count == 0) {
 					Console.WriteLine("NOT SET!");
@@ -37,17 +36,17 @@ namespace Metin2SpeechToData.Chests {
 				recognition.Subscribe(game);
 				game.SetInputToDefaultAudioDevice();
 				game.RecognizeAsync(RecognizeMode.Multiple);
-				Console.WriteLine("REcognizing!");
+				Console.WriteLine("Recognizing!");
 			}
-			else if (res == Program.controlCommands.getStopCommand) {
+			else if (e.text == Program.controlCommands.getStopCommand) {
 				Console.WriteLine("Stopping Recognition!");
 				game.RecognizeAsyncStop();
 			}
-			else if (res == Program.controlCommands.getPauseCommand) {
+			else if (e.text == Program.controlCommands.getPauseCommand) {
 				Console.WriteLine("Pausing Recognition!");
 				game.RecognizeAsyncStop();
 			}
-			else if (res == Program.controlCommands.getSwitchGrammarCommand) {
+			else if (e.text == Program.controlCommands.getSwitchGrammarCommand) {
 				Choices definitions = new Choices();
 				Console.Write("Switching chest type, available: ");
 				string[] available = DefinitionParser.instance.getDefinitionNames;
@@ -64,24 +63,27 @@ namespace Metin2SpeechToData.Chests {
 					control.LoadGrammar(new Grammar(definitions));
 				}
 				control.Grammars[0].Enabled = false;
-				control.SpeechRecognized -= Control_SpeechRecognized;
-				control.SpeechRecognized += Switch_WordRecognized;
+				control.SpeechRecognized -= Control_SpeechRecognized_Wrapper;
+				control.SpeechRecognized += Switch_WordRecognized_Wrapper;
 			}
 		}
 
-		private void Switch_WordRecognized(object sender, SpeechRecognizedEventArgs e) {
-			Console.WriteLine("\nSelected - " + e.Result.Text);
+		private void Switch_WordRecognized_Wrapper(object sender, SpeechRecognizedEventArgs e) {
+			Switch_WordRecognized(sender, new SpeecRecognizedArgs(e.Result.Text, e.Result.Confidence));
+		}
+		private void Switch_WordRecognized(object sender, SpeecRecognizedArgs e) {
+			Console.WriteLine("\nSelected - " + e.text);
 			game.UnloadAllGrammars();
-			game.LoadGrammar(DefinitionParser.instance.GetGrammar(e.Result.Text));
+			game.LoadGrammar(DefinitionParser.instance.GetGrammar(e.text));
 			game.LoadGrammar(new Grammar(new Choices(modifierDict.Values.ToArray())));
 			game.Grammars[0].Enabled = true;
 			game.Grammars[1].Enabled = true;
-			control.SpeechRecognized -= Switch_WordRecognized;
+			control.SpeechRecognized -= Switch_WordRecognized_Wrapper;
 			control.Grammars[0].Enabled = true;
-			control.SpeechRecognized += Control_SpeechRecognized;
-			DefinitionParser.instance.currentGrammarFile = DefinitionParser.instance.GetDefinitionByName(e.Result.Text);
+			control.SpeechRecognized += Control_SpeechRecognized_Wrapper;
+			DefinitionParser.instance.currentGrammarFile = DefinitionParser.instance.GetDefinitionByName(e.text);
 			DefinitionParser.instance.currentMobGrammarFile = null;
-			Program.interaction.OpenWorksheet(e.Result.Text);
+			Program.interaction.OpenWorksheet(e.text);
 		}
 	}
 }
