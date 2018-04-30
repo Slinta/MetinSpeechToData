@@ -115,135 +115,71 @@ namespace Metin2SpeechToData {
 
 	public class HotKeyMapper {
 
-		private readonly Dictionary<int, string> keycodeCommands = new Dictionary<int, string> {
-			{ 8, "wipe" },
-		};
+		private Dictionary<Keys, ActionStash<>> voiceHotkeys = new Dictionary<Keys, ActionStash>();
+		private Dictionary<Keys, FunctionStash> controlHotkeys = new Dictionary<Keys, FunctionStash>();
 
-		private Action<object, SpeecRecognizedArgs> f1_action; private SpeecRecognizedArgs f1_args;
-		private Action<object, SpeecRecognizedArgs> f2_action; private SpeecRecognizedArgs f2_args;
-		private Action<object, SpeecRecognizedArgs> f3_action; private SpeecRecognizedArgs f3_args;
-		private Action<object, SpeecRecognizedArgs> f4_action; private SpeecRecognizedArgs f4_args;
-		private Action<object, SpeecRecognizedArgs> f5_action; private SpeecRecognizedArgs f5_args;
-		private Action<object, SpeecRecognizedArgs> f6_action; private SpeecRecognizedArgs f6_args;
-		private Action<object, SpeecRecognizedArgs> f7_action; private SpeecRecognizedArgs f7_args;
-		private Action<object, SpeecRecognizedArgs> f8_action; private SpeecRecognizedArgs f8_args;
-		private Func<IntPtr, UInt32, int, int, bool> wipe_function; private PostMessageArgs wipe_args;
+		private Action<SpeechRecognizedArgs> f1_action; private SpeechRecognizedArgs f1_args;
 
-		public HotKeyMapper() {
-			HotKeyManager.RegisterHotKey(Keys.F1, KeyModifiers.None);
-			HotKeyManager.RegisterHotKey(Keys.F2, KeyModifiers.None);
-			HotKeyManager.RegisterHotKey(Keys.F3, KeyModifiers.None);
-			HotKeyManager.RegisterHotKey(Keys.F4, KeyModifiers.None);
-			HotKeyManager.RegisterHotKey(Keys.F5, KeyModifiers.None);
-			HotKeyManager.RegisterHotKey(Keys.F6, KeyModifiers.None);
-			HotKeyManager.RegisterHotKey(Keys.F7, KeyModifiers.None);
-			HotKeyManager.RegisterHotKey(Keys.F8, KeyModifiers.None);
-			HotKeyManager.RegisterHotKey(Keys.F8, KeyModifiers.Control | KeyModifiers.Alt);
+		public HotKeyMapper(Keys key, KeyModifiers modifier = KeyModifiers.None) {
+			HotKeyManager.RegisterHotKey(key, modifier);
 			HotKeyManager.HotKeyPressed += new EventHandler<HotKeyEventArgs>(HotKeyManager_HotKeyPressed);
-
-			Console.WriteLine("Initialized F1-F8 Key mapping!");
+			Console.WriteLine("Initialized Key mapping!");
 		}
 
-		public void AssignToHotkey(string hotkey, Action<object, SpeecRecognizedArgs> action, SpeecRecognizedArgs arguments) {
-			switch (hotkey) {
-				case "F1": {
-					f1_action = action;
-					f1_args = arguments;
-					return;
-				}
-				case "F2": {
-					f2_action = action;
-					f2_args = arguments;
-					return;
-				}
-				case "F3": {
-					f3_action = action;
-					f3_args = arguments;
-					return;
-				}
-				case "F4": {
-					f4_action = action;
-					f4_args = arguments;
-					return;
-				}
-				case "F5": {
-					f5_action = action;
-					f5_args = arguments;
-					return;
-				}
-				case "F6": {
-					f6_action = action;
-					f6_args = arguments;
-					return;
-				}
-				case "F7": {
-					f7_action = action;
-					f7_args = arguments;
-					return;
-				}
-				case "F8": {
-					f8_action = action;
-					f8_args = arguments;
-					return;
-				}
-				default:
-				throw new CustomException("This hotkey is invalid, use f1 to f8");
+		#region Add Hotkeys
+		public void AssignToHotkey(Keys selectedKey, Action<SpeechRecognizedArgs> action, SpeechRecognizedArgs arguments) {
+			if (voiceHotkeys.ContainsKey(selectedKey)) {
+				throw new CustomException(selectedKey + " already mapped to " + voiceHotkeys[selectedKey] + "!");
 			}
+			voiceHotkeys.Add(selectedKey, new ActionStash() { _action = action, _data = arguments, _keyModifiers = new KeyModifiers[0] });
 		}
 
-		public void AssignToHotkey(string hotkey, Func<IntPtr, UInt32, int, int, bool> function, PostMessageArgs arguments) {
-			switch (hotkey) {
-				case "F8_Alt_Ctrl": {
-					wipe_function = function;
-					wipe_args = arguments;
-					return;
-				}
+		public void AssignToHotkey(Keys selectedKey, KeyModifiers modifier, Action<SpeechRecognizedArgs> action, SpeechRecognizedArgs arguments) {
+			if (voiceHotkeys.ContainsKey(selectedKey)) {
+				throw new CustomException(selectedKey + " already mapped to " + voiceHotkeys[selectedKey] + "!");
 			}
+			voiceHotkeys.Add(selectedKey, new ActionStash() { _action = action, _data = arguments, _keyModifiers = new KeyModifiers[1] { modifier } });
+		}
+
+		public void AssignToHotkey(Keys selectedKey, KeyModifiers modifier1, KeyModifiers modifier2, Action<SpeechRecognizedArgs> action, SpeechRecognizedArgs arguments) {
+			if (voiceHotkeys.ContainsKey(selectedKey)) {
+				throw new CustomException(selectedKey + " already mapped to " + voiceHotkeys[selectedKey] + "!");
+			}
+			voiceHotkeys.Add(selectedKey, new ActionStash() { _action = action, _data = arguments, _keyModifiers = new KeyModifiers[2] { modifier1, modifier2 } });
+		}
+		#endregion
+
+		public void AssignToHotkey(Keys hotkey, string command) {
+			controlHotkeys.Add(hotkey, new ActionStash() { _action = AbortReadLine, _data = command, _keyModifiers = new KeyModifiers[0] });
+		}
+
+		private void AbortReadLine(string command) {
+			Program.currCommand = command;
+			Thread.Sleep(250);
+			PostMessage(Process.GetCurrentProcess().MainWindowHandle, WM_KEYDOWN, VK_RETURN, 0);
 		}
 
 		public void Free() {
 			f1_action = null;
-			f2_action = null;
-			f3_action = null;
-			f4_action = null;
-			f5_action = null;
-			f6_action = null;
-			f7_action = null;
-			f8_action = null;
 		}
 
-		public void Free(string hotkey) {
+
+		public void FreeAll() {
+			voiceHotkeys.Clear();
+			controlHotkeys.Clear();
+		}
+
+		public void Free(Keys hotkey) {
+			if (voiceHotkeys.ContainsKey(hotkey)) {
+
+			}
+			if (controlHotkeys.ContainsKey(hotkey)) {
+
+			}
+
 			switch (hotkey) {
 				case "F1": {
 					f1_action = null;
-					return;
-				}
-				case "F2": {
-					f2_action = null;
-					return;
-				}
-				case "F3": {
-					f3_action = null;
-					return;
-				}
-				case "F4": {
-					f4_action = null;
-					return;
-				}
-				case "F5": {
-					f5_action = null;
-					return;
-				}
-				case "F6": {
-					f6_action = null;
-					return;
-				}
-				case "F7": {
-					f7_action = null;
-					return;
-				}
-				case "F8": {
-					f8_action = null;
 					return;
 				}
 				default:
@@ -255,38 +191,11 @@ namespace Metin2SpeechToData {
 			try {
 				switch (e.Key) {
 					case Keys.F1: {
-						f1_action.Invoke(this, f1_args);
-						return;
-					}
-					case Keys.F2: {
-						f2_action.Invoke(this, f2_args);
-						return;
-					}
-					case Keys.F3: {
-						f3_action.Invoke(this, f3_args);
-						return;
-					}
-					case Keys.F4: {
-						f4_action.Invoke(this, f4_args);
-						return;
-					}
-					case Keys.F5: {
-						f5_action.Invoke(this, f5_args);
-						return;
-					}
-					case Keys.F6: {
-						f6_action.Invoke(this, f6_args);
-						return;
-					}
-					case Keys.F7: {
-						f7_action.Invoke(this, f7_args);
+						f1_action.Invoke(f1_args);
 						return;
 					}
 					case Keys.F8: {
-						if (e.Modifiers == KeyModifiers.None) {
-							f8_action.Invoke(this, f8_args);
-						}
-						else if (e.Modifiers == (KeyModifiers.Alt | KeyModifiers.Control)) {
+						if (e.Modifiers == (KeyModifiers.Alt | KeyModifiers.Control)) {
 							Program.currCommand = keycodeCommands[wipe_args.arg1];
 							Thread.Sleep(250);
 							wipe_function.Invoke(wipe_args.ptr, wipe_args.message, 0x0D, wipe_args.arg2);
@@ -299,5 +208,16 @@ namespace Metin2SpeechToData {
 				Console.WriteLine("Hotkey for " + e.Key + " is not assigned");
 			}
 		}
+
+		private struct ActionStash<T> {
+			public KeyModifiers[] _keyModifiers;
+			public Action<T> _action;
+			public SpeechRecognizedArgs _data;
+		}
+
+		[DllImport("User32.Dll", EntryPoint = "PostMessageA")]
+		private static extern bool PostMessage(IntPtr hWnd, uint msg, int wParam, int lParam);
+		const int VK_RETURN = 0x0D;
+		const int WM_KEYDOWN = 0x100;
 	}
 }

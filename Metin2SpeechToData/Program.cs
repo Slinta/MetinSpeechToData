@@ -282,9 +282,9 @@ namespace Metin2SpeechToData {
 		}
 
 		private static void Game_SpeechRecognized_Wrapper(object sender, SpeechRecognizedEventArgs e) {
-			Game_SpeechRecognized(sender, new SpeecRecognizedArgs(e.Result.Text, e.Result.Confidence));
+			Game_SpeechRecognized(sender, new SpeechRecognizedArgs(e.Result.Text, e.Result.Confidence));
 		}
-		private static void Game_SpeechRecognized(object sender, SpeecRecognizedArgs e) {
+		private static void Game_SpeechRecognized(object sender, SpeechRecognizedArgs e) {
 			//TODO bind specific items to hotkeys
 			if (SpeechRecognitionHelper.reverseModifierDict.ContainsKey(e.text)) {
 				SpeechRecognitionHelper.ModifierWords current = SpeechRecognitionHelper.reverseModifierDict[e.text];
@@ -319,9 +319,9 @@ namespace Metin2SpeechToData {
 		}
 
 		private static void Game_ModifierRecognized_Wrapper(object sender, SpeechRecognizedEventArgs e) {
-			Game_ModifierRecognized(sender, new SpeecRecognizedArgs(e.Result.Text, e.Result.Confidence));
+			Game_ModifierRecognized(sender, new SpeechRecognizedArgs(e.Result.Text, e.Result.Confidence));
 		}
-		private static void Game_ModifierRecognized(object sender, SpeecRecognizedArgs e) {
+		private static void Game_ModifierRecognized(object sender, SpeechRecognizedArgs e) {
 			switch (SpeechRecognitionHelper.currentModifier) {
 				case SpeechRecognitionHelper.ModifierWords.NEW_TARGET: {
 					bool recognisedWordComesFromGrammarOne = false;
@@ -343,11 +343,6 @@ namespace Metin2SpeechToData {
 			game.SpeechRecognized -= Game_ModifierRecognized_Wrapper;
 			game.SpeechRecognized += Game_SpeechRecognized_Wrapper;
 		}
-
-		[DllImport("User32.Dll", EntryPoint = "PostMessageA")]
-		private static extern bool PostMessage(IntPtr hWnd, uint msg, int wParam, int lParam);
-		const int VK_RETURN = 0x0D;
-		const int WM_KEYDOWN = 0x100;
 	}
 }
 

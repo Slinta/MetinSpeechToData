@@ -21,7 +21,7 @@ namespace Metin2SpeechToData.Chests {
 		}
 		#endregion
 
-		protected override void Control_SpeechRecognized(object sender, SpeecRecognizedArgs e) {
+		protected override void Control_SpeechRecognized(object sender, SpeechRecognizedArgs e) {
 			if (e.text == Program.controlCommands.getStartCommand) {
 				Console.Write("Chests opening mode initialized. Current type: ");
 				if (game.Grammars.Count == 0) {
@@ -69,9 +69,9 @@ namespace Metin2SpeechToData.Chests {
 		}
 
 		private void Switch_WordRecognized_Wrapper(object sender, SpeechRecognizedEventArgs e) {
-			Switch_WordRecognized(sender, new SpeecRecognizedArgs(e.Result.Text, e.Result.Confidence));
+			Switch_WordRecognized(sender, new SpeechRecognizedArgs(e.Result.Text, e.Result.Confidence));
 		}
-		private void Switch_WordRecognized(object sender, SpeecRecognizedArgs e) {
+		private void Switch_WordRecognized(object sender, SpeechRecognizedArgs e) {
 			Console.WriteLine("\nSelected - " + e.text);
 			game.UnloadAllGrammars();
 			game.LoadGrammar(DefinitionParser.instance.GetGrammar(e.text));

@@ -72,7 +72,7 @@ namespace Metin2SpeechToData {
 						  Program.controlCommands.getPauseCommand + " - Pauses main recognition(F2)\n" +
 						  Program.controlCommands.getSwitchGrammarCommand + " - Changes grammar (your drop location)(F3)\n" +
 						  Program.controlCommands.getStopCommand + " - Exits App(F4)\n");
-			Program.mapper.AssignToHotkey("F1", Control_SpeechRecognized, new SpeecRecognizedArgs(Program.controlCommands.getStartCommand, 100));
+			Program.mapper.AssignToHotkey("F1", Control_SpeechRecognized, new SpeechRecognizedArgs(Program.controlCommands.getStartCommand, 100));
 
 			if (!Program.debug) {
 				control.RecognizeAsync(RecognizeMode.Multiple);
@@ -81,9 +81,9 @@ namespace Metin2SpeechToData {
 		#endregion
 
 		protected void Control_SpeechRecognized_Wrapper(object sender, SpeechRecognizedEventArgs e) {
-			Control_SpeechRecognized(sender, new SpeecRecognizedArgs(e.Result.Text, e.Result.Confidence));
+			Control_SpeechRecognized(sender, new SpeechRecognizedArgs(e.Result.Text, e.Result.Confidence));
 		}
-		protected virtual void Control_SpeechRecognized(object sender, SpeecRecognizedArgs e) {
+		protected virtual void Control_SpeechRecognized(object sender, SpeechRecognizedArgs e) {
 
 			if (e.text == Program.controlCommands.getStartCommand) {
 				Console.Write("Starting Recognition. Current grammar: ");
@@ -133,9 +133,9 @@ namespace Metin2SpeechToData {
 		}
 
 		private void Switch_WordRecognized_Wrapper(object sender, SpeechRecognizedEventArgs e) {
-			Switch_WordRecognized(sender, new SpeecRecognizedArgs(e.Result.Text, e.Result.Confidence));
+			Switch_WordRecognized(sender, new SpeechRecognizedArgs(e.Result.Text, e.Result.Confidence));
 		}
-		private void Switch_WordRecognized(object sender, SpeecRecognizedArgs e) {
+		private void Switch_WordRecognized(object sender, SpeechRecognizedArgs e) {
 			Console.WriteLine("\nSelected - " + e.text);
 			main.UnloadAllGrammars();
 			main.LoadGrammar(DefinitionParser.instance.GetGrammar(e.text));
