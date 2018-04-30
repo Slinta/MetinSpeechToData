@@ -73,6 +73,9 @@ namespace Metin2SpeechToData {
 						  Program.controlCommands.getSwitchGrammarCommand + " - Changes grammar (your drop location)(F3)\n" +
 						  Program.controlCommands.getStopCommand + " - Exits App(F4)\n");
 			Program.mapper.AssignToHotkey("F1", Control_SpeechRecognized, new SpeecRecognizedArgs(Program.controlCommands.getStartCommand, 100));
+			Program.mapper.AssignToHotkey("F2", Control_SpeechRecognized, new SpeecRecognizedArgs(Program.controlCommands.getPauseCommand, 100));
+			Program.mapper.AssignToHotkey("F3", Control_SpeechRecognized, new SpeecRecognizedArgs(Program.controlCommands.getSwitchGrammarCommand, 100));
+			Program.mapper.AssignToHotkey("F4", Control_SpeechRecognized, new SpeecRecognizedArgs(Program.controlCommands.getStopCommand, 100));
 
 			if (!Program.debug) {
 				control.RecognizeAsync(RecognizeMode.Multiple);
@@ -122,6 +125,7 @@ namespace Metin2SpeechToData {
 				if (control.Grammars.Count == 1) {
 					control.LoadGrammar(new Grammar(definitions));
 				}
+				//Program.mapper.AssignToHotkey("F5", Switch_WordRecognized, new SpeecRecognizedArgs(available[0], 100));
 				control.Grammars[0].Enabled = false;
 				control.SpeechRecognized -= Control_SpeechRecognized_Wrapper;
 				control.SpeechRecognized += Switch_WordRecognized_Wrapper;
@@ -139,7 +143,7 @@ namespace Metin2SpeechToData {
 			Console.WriteLine("\nSelected - " + e.text);
 			main.UnloadAllGrammars();
 			main.LoadGrammar(DefinitionParser.instance.GetGrammar(e.text));
-			main.LoadGrammar(new Grammar(new Choices(modifierDict.Values.ToArray())));
+			main.LoadGrammar(new Grammar(new Choices(modifierDict.Values.ToArray())) { Name = "Modifiers" });
 			main.LoadGrammar(DefinitionParser.instance.GetMobGrammar("Mob_" + e.text));
 			main.Grammars[0].Enabled = true;
 			main.Grammars[1].Enabled = true;
@@ -177,6 +181,15 @@ namespace Metin2SpeechToData {
 			if (Program.debug) {
 				Console.WriteLine("Waited long enough!");
 			}
+		}
+
+		public void SetGrammarState(string grammarName, bool on) {
+			for (int i = 0; i < main.Grammars.Count; i++) {
+				if (main.Grammars[i].Name == grammarName) {
+					main.Grammars[i].Enabled = on;
+				}
+			}
+			throw new CustomException("No such grammar name");
 		}
 	}
 }

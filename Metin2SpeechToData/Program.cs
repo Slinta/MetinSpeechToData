@@ -20,7 +20,7 @@ namespace Metin2SpeechToData {
 		public static event ModifierTrigger OnModifierWordHear;
 
 		private static SpeechRecognitionEngine game;
-		private static SpeechRecognitionHelper helper;
+		public static SpeechRecognitionHelper helper;
 
 		private static DefinitionParser parser;
 
@@ -42,7 +42,6 @@ namespace Metin2SpeechToData {
 		static void Main(string[] args) {
 			//TODO: replace Folder dialog with something more user friendly
 			//TODO: make it possible to use F1-F10 as hotkeys for navigating
-
 			// Init
 			mapper = new HotKeyMapper();
 			config = new Configuration(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
@@ -253,6 +252,7 @@ namespace Metin2SpeechToData {
 						break;
 					}
 				}
+				currCommand = "";
 			}
 		}
 
@@ -301,7 +301,9 @@ namespace Metin2SpeechToData {
 					}
 					case SpeechRecognitionHelper.ModifierWords.UNDO: {
 						Console.Write("Undoing...");
+						Confirmation.SelectivelyDisableEnableGrammars(ref game, true);
 						OnModifierWordHear?.Invoke(SpeechRecognitionHelper.ModifierWords.UNDO, "");
+						Confirmation.SelectivelyDisableEnableGrammars(ref game, false);
 						return;
 					}
 					case SpeechRecognitionHelper.ModifierWords.TARGET_KILLED: {
