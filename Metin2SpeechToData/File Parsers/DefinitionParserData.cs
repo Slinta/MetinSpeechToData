@@ -3,7 +3,7 @@
 namespace Metin2SpeechToData {
 	public class DefinitionParserData {
 		/// <summary>
-		/// Name of this deinition --> file name that was used to parse this data
+		/// Name of this definition --> file name that was used to parse this data
 		/// </summary>
 		public string ID;
 

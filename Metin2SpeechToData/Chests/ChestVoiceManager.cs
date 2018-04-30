@@ -21,7 +21,7 @@ namespace Metin2SpeechToData.Chests {
 		}
 		#endregion
 
-		protected override void Control_SpeechRecognized(object sender, SpeechRecognizedArgs e) {
+		protected override void Control_SpeechRecognized(SpeechRecognizedArgs e) {
 			if (e.text == Program.controlCommands.getStartCommand) {
 				Console.Write("Chests opening mode initialized. Current type: ");
 				if (game.Grammars.Count == 0) {

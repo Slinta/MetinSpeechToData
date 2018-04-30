@@ -13,11 +13,11 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		public string[] getAllDropsFile { get; private set; }
 
-		public Dictionary<string, Dictionary<string, int>> numberForGroupForSheet = new Dictionary<string, Dictionary<string, int>>();
-
 		public MobAsociatedDrops() {
 			try {
 				getAllDropsFile = File.ReadAllLines(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + MOB_DROPS_FILE);
+				InitialiseDictionary();
+
 			}
 			catch {
 				using (StreamWriter sw = File.CreateText(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + MOB_DROPS_FILE)) {
@@ -27,16 +27,11 @@ namespace Metin2SpeechToData {
 			}
 		}
 
+		void InitialiseDictionary() {
+			
+		}
+
 		public void UpdateDrops(string mobName, DefinitionParserData.Item item) {
-			if (!numberForGroupForSheet.ContainsKey(mobName)) {
-				//First spotting of the enemy
-				numberForGroupForSheet.Add(mobName, new Dictionary<string, int>() { { item.group, 0 } });
-			}
-			else if (!numberForGroupForSheet[mobName].ContainsKey(item.group)) {
-				//First time seeing that group
-				int newValue = numberForGroupForSheet[mobName].Count;
-				numberForGroupForSheet[mobName].Add(item.group, newValue);
-			}
 			bool mobEntryExists = false;
 			List<string> list;
 			for (int i = 0; i < getAllDropsFile.Length; i++) {
@@ -49,8 +44,8 @@ namespace Metin2SpeechToData {
 							list.Insert(i + 1, "\t-" + item.group + ":");
 
 							list[i + 1] = list[i + 1] + item.mainPronounciation;
-							Program.interaction.AddItemEntryToCurrentSheet(item);
 							getAllDropsFile = list.ToArray();
+							Program.interaction.AddItemEntryToCurrentSheet(item);
 							SaveChanges();
 							return;
 						}
@@ -88,14 +83,21 @@ namespace Metin2SpeechToData {
 		public bool RemoveItemEntry(string mobName, string itemName, bool yes) {
 			DefinitionParserData.Item item = DefinitionParser.instance.currentGrammarFile.GetItemEntry(itemName);
 			if (yes) {
+				List<string> AllDropsFileList = new List<string>(getAllDropsFile);
 				for (int i = 0; i < getAllDropsFile.Length; i++) {
 					if (getAllDropsFile[i].Contains(mobName)) {
 						string targetGroup = DefinitionParser.instance.currentGrammarFile.GetGroup(itemName);
 						int itemLineIndex = GetGroupLine(i + 1, targetGroup);
 						string[] split = getAllDropsFile[itemLineIndex].Split(':')[1].Split(',');
-						split[split.Length - 1] = "";
-						getAllDropsFile[itemLineIndex] = "\t-" + targetGroup + ":" + string.Join(",", split.Where(str => str != ""));
-						Console.WriteLine("Entry removed!");
+						if (split.Length != 1) {
+							split[split.Length - 1] = "";
+							getAllDropsFile[itemLineIndex] = "\t-" + targetGroup + ":" + string.Join(",", split.Where(str => str != ""));
+							Console.WriteLine("Entry removed!");
+						}
+						else {
+							AllDropsFileList.RemoveAt(itemLineIndex);
+							getAllDropsFile = AllDropsFileList.ToArray();
+						}
 						SaveChanges();
 						RemoveExcelSheetEntry(itemName);
 						return true;
@@ -195,7 +197,15 @@ namespace Metin2SpeechToData {
 		}
 
 		public int GetGroupNumberForEnemy(string enemy, string group) {
-			return numberForGroupForSheet[enemy][group];
+			int[] linesOfEnemy = GetLinesOfEnemy(enemy);
+			int i = linesOfEnemy.Length - 2;
+			foreach (int line in linesOfEnemy) {
+				if (getAllDropsFile[line].Contains(group)) {
+					return i;
+				}
+				i--;
+			}
+			throw new CustomException("Such enemy has no such group");
 		}
 
 		private void SaveChanges() {

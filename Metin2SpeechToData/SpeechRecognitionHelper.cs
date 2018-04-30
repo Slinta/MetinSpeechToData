@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Speech.Recognition;
-using System.IO;
+using System.Windows.Forms;
 using System.Threading;
 
 namespace Metin2SpeechToData {
@@ -67,12 +67,17 @@ namespace Metin2SpeechToData {
 			if (Program.debug) {
 				Console.WriteLine("Control grammar loaded...");
 			}
+			Program.mapper.FreeControl();
+
 			Console.Write("Available commands:\n" +
 						  Program.controlCommands.getStartCommand + " - Start recognition(F1)\n" +
 						  Program.controlCommands.getPauseCommand + " - Pauses main recognition(F2)\n" +
 						  Program.controlCommands.getSwitchGrammarCommand + " - Changes grammar (your drop location)(F3)\n" +
 						  Program.controlCommands.getStopCommand + " - Exits App(F4)\n");
-			Program.mapper.AssignToHotkey("F1", Control_SpeechRecognized, new SpeechRecognizedArgs(Program.controlCommands.getStartCommand, 100));
+			Program.mapper.AssignToHotkey(Keys.F1, Control_SpeechRecognized, new SpeechRecognizedArgs(Program.controlCommands.getStartCommand, 100));
+			Program.mapper.AssignToHotkey(Keys.F2, Control_SpeechRecognized, new SpeechRecognizedArgs(Program.controlCommands.getPauseCommand, 100));
+			Program.mapper.AssignToHotkey(Keys.F3, Control_SpeechRecognized, new SpeechRecognizedArgs(Program.controlCommands.getSwitchGrammarCommand, 100));
+			Program.mapper.AssignToHotkey(Keys.F4, Control_SpeechRecognized, new SpeechRecognizedArgs(Program.controlCommands.getStopCommand, 100));
 
 			if (!Program.debug) {
 				control.RecognizeAsync(RecognizeMode.Multiple);
@@ -81,9 +86,9 @@ namespace Metin2SpeechToData {
 		#endregion
 
 		protected void Control_SpeechRecognized_Wrapper(object sender, SpeechRecognizedEventArgs e) {
-			Control_SpeechRecognized(sender, new SpeechRecognizedArgs(e.Result.Text, e.Result.Confidence));
+			Control_SpeechRecognized(new SpeechRecognizedArgs(e.Result.Text, e.Result.Confidence));
 		}
-		protected virtual void Control_SpeechRecognized(object sender, SpeechRecognizedArgs e) {
+		protected virtual void Control_SpeechRecognized(SpeechRecognizedArgs e) {
 
 			if (e.text == Program.controlCommands.getStartCommand) {
 				Console.Write("Starting Recognition. Current grammar: ");
@@ -96,6 +101,10 @@ namespace Metin2SpeechToData {
 					Console.WriteLine(main.Grammars[0].Name);
 					main.Grammars[0].Enabled = true;
 					OnRecognitionChange(Program.RecognitionState.DROP_LOGGER_RUNNING);
+					Program.mapper.SetInactive(Keys.F1, true);
+					Program.mapper.SetInactive(Keys.F2, true);
+					Program.mapper.SetInactive(Keys.F3, true);
+					Program.mapper.SetInactive(Keys.F4, true);
 				}
 			}
 			else if (e.text == Program.controlCommands.getStopCommand) {
@@ -112,11 +121,12 @@ namespace Metin2SpeechToData {
 				string[] available = DefinitionParser.instance.getDefinitionNames;
 				for (int i = 0; i < available.Length; i++) {
 					definitions.Add(available[i]);
+					Program.mapper.AssignToHotkey((Keys.D1 + i), Switch_WordRecognized, new SpeechRecognizedArgs(available[i], 100));
 					if (i == available.Length - 1) {
-						Console.Write(available[i]);
+						Console.Write("(" + (i + 1) + ")" + available[i]);
 					}
 					else {
-						Console.Write(available[i] + ", ");
+						Console.Write("(" + (i + 1) + ")" + available[i] + ", ");
 					}
 				}
 				if (control.Grammars.Count == 1) {
@@ -133,10 +143,13 @@ namespace Metin2SpeechToData {
 		}
 
 		private void Switch_WordRecognized_Wrapper(object sender, SpeechRecognizedEventArgs e) {
-			Switch_WordRecognized(sender, new SpeechRecognizedArgs(e.Result.Text, e.Result.Confidence));
+			Switch_WordRecognized(new SpeechRecognizedArgs(e.Result.Text, e.Result.Confidence));
 		}
-		private void Switch_WordRecognized(object sender, SpeechRecognizedArgs e) {
+		private void Switch_WordRecognized(SpeechRecognizedArgs e) {
 			Console.WriteLine("\nSelected - " + e.text);
+			for (int i = (int)Keys.D1; i < (int)Keys.D9; i++) {
+				Program.mapper.Free((Keys)i);
+			}
 			main.UnloadAllGrammars();
 			main.LoadGrammar(DefinitionParser.instance.GetGrammar(e.text));
 			main.LoadGrammar(new Grammar(new Choices(modifierDict.Values.ToArray())));

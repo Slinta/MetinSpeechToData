@@ -2,8 +2,6 @@
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.IO;
-using System.Text;
 using System.Diagnostics;
 using System.Collections.Generic;
 
@@ -115,109 +113,214 @@ namespace Metin2SpeechToData {
 
 	public class HotKeyMapper {
 
-		private Dictionary<Keys, ActionStash<>> voiceHotkeys = new Dictionary<Keys, ActionStash>();
-		private Dictionary<Keys, FunctionStash> controlHotkeys = new Dictionary<Keys, FunctionStash>();
+		[DllImport("User32.Dll", EntryPoint = "PostMessageA")]
+		private static extern bool PostMessage(IntPtr hWnd, uint msg, int wParam, int lParam);
 
-		private Action<SpeechRecognizedArgs> f1_action; private SpeechRecognizedArgs f1_args;
 
-		public HotKeyMapper(Keys key, KeyModifiers modifier = KeyModifiers.None) {
-			HotKeyManager.RegisterHotKey(key, modifier);
+		private Dictionary<Keys, ActionStashSpeechArgs> voiceHotkeys = new Dictionary<Keys, ActionStashSpeechArgs>();
+		private Dictionary<Keys, ActionStashString> controlHotkeys = new Dictionary<Keys, ActionStashString>();
+
+		public HotKeyMapper() {
 			HotKeyManager.HotKeyPressed += new EventHandler<HotKeyEventArgs>(HotKeyManager_HotKeyPressed);
 			Console.WriteLine("Initialized Key mapping!");
 		}
 
 		#region Add Hotkeys
+		/// <summary>
+		/// Assign hotkey 'selectedKey' to call function 'action' with 'arguments'
+		/// </summary>
 		public void AssignToHotkey(Keys selectedKey, Action<SpeechRecognizedArgs> action, SpeechRecognizedArgs arguments) {
 			if (voiceHotkeys.ContainsKey(selectedKey)) {
 				throw new CustomException(selectedKey + " already mapped to " + voiceHotkeys[selectedKey] + "!");
 			}
-			voiceHotkeys.Add(selectedKey, new ActionStash() { _action = action, _data = arguments, _keyModifiers = new KeyModifiers[0] });
+			voiceHotkeys.Add(selectedKey, new ActionStashSpeechArgs() {
+				_action = action,
+				_data = arguments,
+				_keyModifier = KeyModifiers.None,
+				_ungerID = HotKeyManager.RegisterHotKey(selectedKey, KeyModifiers.None)}
+			);
 		}
-
+		/// <summary>
+		/// Assign hotkey 'selectedKey' + a 'modifier' key to call function 'action' with 'arguments'
+		/// </summary>
 		public void AssignToHotkey(Keys selectedKey, KeyModifiers modifier, Action<SpeechRecognizedArgs> action, SpeechRecognizedArgs arguments) {
 			if (voiceHotkeys.ContainsKey(selectedKey)) {
 				throw new CustomException(selectedKey + " already mapped to " + voiceHotkeys[selectedKey] + "!");
 			}
-			voiceHotkeys.Add(selectedKey, new ActionStash() { _action = action, _data = arguments, _keyModifiers = new KeyModifiers[1] { modifier } });
+			voiceHotkeys.Add(selectedKey, new ActionStashSpeechArgs() {
+				_action = action,
+				_data = arguments,
+				_keyModifier = modifier,
+				_ungerID = HotKeyManager.RegisterHotKey(selectedKey, modifier)}
+			);
 		}
-
+		/// <summary>
+		/// Assign hotkey 'selectedKey' + 'modifier' keys to call function 'action' with 'arguments'
+		/// </summary>
 		public void AssignToHotkey(Keys selectedKey, KeyModifiers modifier1, KeyModifiers modifier2, Action<SpeechRecognizedArgs> action, SpeechRecognizedArgs arguments) {
 			if (voiceHotkeys.ContainsKey(selectedKey)) {
 				throw new CustomException(selectedKey + " already mapped to " + voiceHotkeys[selectedKey] + "!");
 			}
-			voiceHotkeys.Add(selectedKey, new ActionStash() { _action = action, _data = arguments, _keyModifiers = new KeyModifiers[2] { modifier1, modifier2 } });
+			voiceHotkeys.Add(selectedKey, new ActionStashSpeechArgs() {
+				_action = action,
+				_data = arguments,
+				_keyModifier = modifier1 | modifier2,
+				_ungerID = HotKeyManager.RegisterHotKey(selectedKey, modifier1 | modifier2)}
+			);
+		}
+		/// <summary>
+		/// Assign hotkey 'selectedKey' to call function 'action' with 'arguments'
+		/// </summary>
+		public void AssignToHotkey(Keys hotkey, string command) {
+			if (controlHotkeys.ContainsKey(hotkey)) {
+				return;
+				throw new CustomException(hotkey + " already mapped to " + controlHotkeys[hotkey] + "!");
+			}
+			controlHotkeys.Add(hotkey, new ActionStashString() {
+				_action = AbortReadLine,
+				_data = command,
+				_keyModifier = KeyModifiers.None,
+				_ungerID = HotKeyManager.RegisterHotKey(hotkey, KeyModifiers.None)
+			}
+			);
+		}
+		/// <summary>
+		/// Assign hotkey 'selectedKey' + a 'modifier' key to call function 'action' with 'arguments'
+		/// </summary>
+		public void AssignToHotkey(Keys hotkey, KeyModifiers modifier, string command) {
+			if (controlHotkeys.ContainsKey(hotkey)) {
+				return;
+				throw new CustomException(hotkey + " already mapped to " + controlHotkeys[hotkey] + "!");
+			}
+			controlHotkeys.Add(hotkey, new ActionStashString() {
+				_action = AbortReadLine,
+				_data = command,
+				_keyModifier = modifier,
+				_ungerID = HotKeyManager.RegisterHotKey(hotkey, modifier)
+			}
+			);
+		}
+		/// <summary>
+		/// Assign hotkey 'selectedKey' + 'modifier' keys to call function 'action' with 'arguments'
+		/// </summary>
+		public void AssignToHotkey(Keys hotkey, KeyModifiers modifier1, KeyModifiers modifier2, string command) {
+			if (controlHotkeys.ContainsKey(hotkey)) {
+				return;
+				throw new CustomException(hotkey + " already mapped to " + controlHotkeys[hotkey] + "!");
+			}
+			controlHotkeys.Add(hotkey, new ActionStashString() {
+				_action = AbortReadLine,
+				_data = command,
+				_keyModifier = modifier1 | modifier2,
+				_ungerID = HotKeyManager.RegisterHotKey(hotkey, modifier1 | modifier2)
+			}
+			);
+		}
+
+		#endregion
+
+
+		#region Free dictionaries
+		/// <summary>
+		/// Removes all stored hotkeys
+		/// </summary>
+		public void FreeAll() {
+			FreeControl();
+			FreeGame();
+		}
+
+		/// <summary>
+		/// Removes all control hotkeys
+		/// </summary>
+		public void FreeControl() {
+			foreach (KeyValuePair<Keys,ActionStashString> item in controlHotkeys) {
+				HotKeyManager.UnregisterHotKey(item.Value._ungerID);
+			}
+			controlHotkeys.Clear();
+		}
+		/// <summary>
+		/// Removes all game hotkeys
+		/// </summary>
+		public void FreeGame() {
+			foreach (KeyValuePair<Keys, ActionStashSpeechArgs> item in voiceHotkeys) {
+				HotKeyManager.UnregisterHotKey(item.Value._ungerID);
+			}
+			voiceHotkeys.Clear();
+		}
+
+		/// <summary>
+		/// Selectively remove a hotkey
+		/// </summary>
+		public void Free(Keys hotkey) {
+			if (voiceHotkeys.ContainsKey(hotkey)) {
+				voiceHotkeys.Remove(hotkey);
+			}
+			else if (controlHotkeys.ContainsKey(hotkey)) {
+				controlHotkeys.Remove(hotkey);
+			}
+			else {
+				Console.WriteLine(hotkey + " not found in any list!");
+			}
 		}
 		#endregion
 
-		public void AssignToHotkey(Keys hotkey, string command) {
-			controlHotkeys.Add(hotkey, new ActionStash() { _action = AbortReadLine, _data = command, _keyModifiers = new KeyModifiers[0] });
+		public void SetInactive(Keys key, bool state) {
+			if (controlHotkeys.ContainsKey(key)) {
+				ActionStashString stash = controlHotkeys[key];
+				stash._isInactive = state;
+				controlHotkeys[key] = stash;
+			}
+			if (voiceHotkeys.ContainsKey(key)) {
+				ActionStashSpeechArgs stash = voiceHotkeys[key];
+				stash._isInactive = state;
+				voiceHotkeys[key] = stash;
+			}
 		}
 
 		private void AbortReadLine(string command) {
 			Program.currCommand = command;
 			Thread.Sleep(250);
-			PostMessage(Process.GetCurrentProcess().MainWindowHandle, WM_KEYDOWN, VK_RETURN, 0);
-		}
-
-		public void Free() {
-			f1_action = null;
-		}
-
-
-		public void FreeAll() {
-			voiceHotkeys.Clear();
-			controlHotkeys.Clear();
-		}
-
-		public void Free(Keys hotkey) {
-			if (voiceHotkeys.ContainsKey(hotkey)) {
-
-			}
-			if (controlHotkeys.ContainsKey(hotkey)) {
-
-			}
-
-			switch (hotkey) {
-				case "F1": {
-					f1_action = null;
-					return;
-				}
-				default:
-				throw new CustomException("Hotkey " + hotkey + " not defined");
-			}
+			PostMessage(Process.GetCurrentProcess().MainWindowHandle, 0x100, 0x0D, 0);
 		}
 
 		private void HotKeyManager_HotKeyPressed(object sender, HotKeyEventArgs e) {
-			try {
-				switch (e.Key) {
-					case Keys.F1: {
-						f1_action.Invoke(f1_args);
-						return;
-					}
-					case Keys.F8: {
-						if (e.Modifiers == (KeyModifiers.Alt | KeyModifiers.Control)) {
-							Program.currCommand = keycodeCommands[wipe_args.arg1];
-							Thread.Sleep(250);
-							wipe_function.Invoke(wipe_args.ptr, wipe_args.message, 0x0D, wipe_args.arg2);
-						}
-						return;
-					}
+			if (controlHotkeys.ContainsKey(e.Key)) {
+				ActionStashString stash = controlHotkeys[e.Key];
+				if (stash._keyModifier == e.Modifiers && !stash._isInactive) {
+					stash._action.Invoke(stash._data);
+				}
+				else if (stash._isInactive) {
+					Console.WriteLine("This command in currenly inaccessible");
 				}
 			}
-			catch {
+			else if (voiceHotkeys.ContainsKey(e.Key)) {
+				ActionStashSpeechArgs stash = voiceHotkeys[e.Key];
+				if (stash._keyModifier == e.Modifiers && !stash._isInactive) {
+					stash._action.Invoke(stash._data);
+				}
+				else if (stash._isInactive) {
+					Console.WriteLine("This command in currenly inaccessible");
+				}
+			}
+			else {
 				Console.WriteLine("Hotkey for " + e.Key + " is not assigned");
 			}
 		}
 
-		private struct ActionStash<T> {
-			public KeyModifiers[] _keyModifiers;
-			public Action<T> _action;
+		private struct ActionStashSpeechArgs {
+			public KeyModifiers _keyModifier;
+			public Action<SpeechRecognizedArgs> _action;
 			public SpeechRecognizedArgs _data;
+			public int _ungerID;
+			public bool _isInactive;
 		}
 
-		[DllImport("User32.Dll", EntryPoint = "PostMessageA")]
-		private static extern bool PostMessage(IntPtr hWnd, uint msg, int wParam, int lParam);
-		const int VK_RETURN = 0x0D;
-		const int WM_KEYDOWN = 0x100;
+		private struct ActionStashString {
+			public KeyModifiers _keyModifier;
+			public Action<string> _action;
+			public string _data;
+			public int _ungerID;
+			public bool _isInactive;
+		}
 	}
 }

@@ -1,8 +1,7 @@
 ﻿using System;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Speech.Recognition;
-using System.Threading;
+using System.Windows.Forms;
 using OfficeOpenXml;
 
 namespace Metin2SpeechToData {
@@ -20,7 +19,7 @@ namespace Metin2SpeechToData {
 		public static event ModifierTrigger OnModifierWordHear;
 
 		private static SpeechRecognitionEngine game;
-		private static SpeechRecognitionHelper helper;
+		public static SpeechRecognitionHelper helper;
 
 		private static DefinitionParser parser;
 
@@ -44,16 +43,26 @@ namespace Metin2SpeechToData {
 			//TODO: make it possible to use F1-F10 as hotkeys for navigating
 
 			// Init
-			mapper = new HotKeyMapper();
 			config = new Configuration(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
 			interaction = new SpreadsheetInteraction(config.xlsxFile);
 			controlCommands = new ControlSpeechCommands("Control.definition");
 			Confirmation.Initialize();
+
+			mapper = new HotKeyMapper();
+			mapper.AssignToHotkey(Keys.F1, "voice");
+			mapper.AssignToHotkey(Keys.F2, "chest");
+			mapper.AssignToHotkey(Keys.F3, "help");
+			mapper.AssignToHotkey(Keys.F4, "quit");
+			mapper.AssignToHotkey(Keys.F8, KeyModifiers.Control, KeyModifiers.Alt, "wipe");
+
 			bool continueRunning = true;
+
 			//
 
 			Console.WriteLine("Welcome to Metin2 siNDiCATE Drop logger");
 			Console.WriteLine("Type 'help' for more info on how to use this program");
+
+
 
 			while (continueRunning) {
 				Console.WriteLine("Command:" +
@@ -62,10 +71,9 @@ namespace Metin2SpeechToData {
 					"\n-(F3) Help" +
 					"\n-(F4) Quit" +
 					"\n-(Alt + Control + F8) Wipe");
-				mapper.AssignToHotkey("F8_Alt_Ctrl", PostMessage, new PostMessageArgs(System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle,WM_KEYDOWN,8,0));
 
 				string command = Console.ReadLine();
-				if(currCommand != "") {
+				if (currCommand != "") {
 					command = currCommand;
 				}
 
@@ -136,18 +144,18 @@ namespace Metin2SpeechToData {
 								break;
 							}
 							case "wipe": {
-								Console.WriteLine("Data wiped");
+								Console.WriteLine("Wiping data...");
 								if (File.Exists(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg")) {
 									File.Delete(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
-									Console.Write("config");
+									Console.WriteLine("config.cfg");
 								}
 								if (File.Exists(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + MobAsociatedDrops.MOB_DROPS_FILE)) {
 									File.Delete(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + MobAsociatedDrops.MOB_DROPS_FILE);
-									Console.Write("mobDropsFile");
+									Console.WriteLine(MobAsociatedDrops.MOB_DROPS_FILE);
 								}
 								if (File.Exists(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + Configuration.FILE_NAME)) {
 									File.Delete(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + Configuration.FILE_NAME);
-									Console.Write("spreadsheet");
+									Console.WriteLine(Configuration.FILE_NAME);
 								}
 								config = new Configuration(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
 								interaction = new SpreadsheetInteraction(config.xlsxFile);
@@ -176,7 +184,7 @@ namespace Metin2SpeechToData {
 									helper = new SpeechRecognitionHelper(ref game);
 									helper.OnRecognitionChange += OnRecognitionChange;
 									enemyHandling = new EnemyHandling();
-									debugControl = new WrittenControl(Program.controlCommands, ref enemyHandling);
+									debugControl = new WrittenControl(controlCommands, ref enemyHandling);
 								}
 								break;
 							}
@@ -253,6 +261,8 @@ namespace Metin2SpeechToData {
 						break;
 					}
 				}
+				currCommand = "";
+				mapper.FreeGame();
 			}
 		}
 
@@ -301,7 +311,9 @@ namespace Metin2SpeechToData {
 					}
 					case SpeechRecognitionHelper.ModifierWords.UNDO: {
 						Console.Write("Undoing...");
+						Confirmation.SelectivelyDisableEnableGrammars(ref game, true);
 						OnModifierWordHear?.Invoke(SpeechRecognitionHelper.ModifierWords.UNDO, "");
+						Confirmation.SelectivelyDisableEnableGrammars(ref game, false);
 						return;
 					}
 					case SpeechRecognitionHelper.ModifierWords.TARGET_KILLED: {
