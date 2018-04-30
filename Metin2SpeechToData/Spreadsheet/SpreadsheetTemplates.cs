@@ -29,17 +29,23 @@ namespace Metin2SpeechToData {
 			interaction.InsertValue(new ExcelCellAddress(1, 4), "Num killed:");
 			interaction.InsertValue(new ExcelCellAddress(1, 5), 0);
 
-			string[] itemEntries = Program.enemyHandling.mobDrops.GetDropsForMob(mobName);
+			Dictionary<string,string[]> itemEntries = Program.enemyHandling.mobDrops.GetDropsForMob(mobName);
 
 			ExcelCellAddress startAddr = new ExcelCellAddress("A2");
-			for (int i = 0; i < itemEntries.Length; i++) {
-				ExcelCellAddress itemName = new ExcelCellAddress(startAddr.Row + i, startAddr.Column);
-				ExcelCellAddress yangVal = new ExcelCellAddress(startAddr.Row + i, startAddr.Column + 1);
-				ExcelCellAddress totalDroped = new ExcelCellAddress(startAddr.Row + i, startAddr.Column + 2);
-				interaction.InsertValue(itemName, itemEntries[i]);
-				d.addresses.Add(itemEntries[i], totalDroped);
-				interaction.InsertValue(yangVal, DefinitionParser.instance.currentGrammarFile.GetYangValue(itemEntries[i]));
-				interaction.InsertValue(totalDroped, 0);
+			foreach (string key in itemEntries.Keys) {
+				interaction.currentSheet.Cells[startAddr.Address].Value = key;
+
+				for (int i = 0; i < itemEntries[key].Length; i++) {
+					int _offset = i + 1;
+					ExcelCellAddress itemName = new ExcelCellAddress(startAddr.Row + _offset, startAddr.Column);
+					ExcelCellAddress yangVal = new ExcelCellAddress(startAddr.Row + _offset, startAddr.Column + 1);
+					ExcelCellAddress totalDroped = new ExcelCellAddress(startAddr.Row + _offset, startAddr.Column + 2);
+					interaction.InsertValue(itemName, itemEntries[key][i]);
+					d.addresses.Add(itemEntries[key][i], totalDroped);
+					interaction.InsertValue(yangVal, DefinitionParser.instance.currentGrammarFile.GetYangValue(itemEntries[key][i]));
+					interaction.InsertValue(totalDroped, 0);
+				}
+				startAddr = new ExcelCellAddress(2, startAddr.Column + 4);
 			}
 			interaction.Save();
 			return d;
@@ -136,7 +142,6 @@ namespace Metin2SpeechToData {
 			interaction.InsertValue<object>(new ExcelCellAddress(current.Row, current.Column + 1), null);
 			interaction.InsertValue<object>(new ExcelCellAddress(current.Row, current.Column + 2), null);
 			interaction.RemoveSheetToAddressEntry(sheet.Name, entry.mainPronounciation);
-			//TODO: Shof the cell upwards to remove gaps
 		}
 	}
 }

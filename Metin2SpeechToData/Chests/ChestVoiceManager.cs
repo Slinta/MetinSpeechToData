@@ -23,11 +23,11 @@ namespace Metin2SpeechToData.Chests {
 
 		protected override void Control_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {
 			string res = e.Result.Text;
-			if (res == controlCommands.getStartCommand) {
+			if (res == Program.controlCommands.getStartCommand) {
 				Console.Write("Chests opening mode initialized. Current type: ");
 				if (game.Grammars.Count == 0) {
 					Console.WriteLine("NOT SET!");
-					Console.WriteLine("Set the chest type first with " + controlCommands.getSwitchGrammarCommand);
+					Console.WriteLine("Set the chest type first with " + Program.controlCommands.getSwitchGrammarCommand);
 					return;
 				}
 				else {
@@ -39,15 +39,15 @@ namespace Metin2SpeechToData.Chests {
 				game.RecognizeAsync(RecognizeMode.Multiple);
 				Console.WriteLine("REcognizing!");
 			}
-			else if (res == controlCommands.getStopCommand) {
+			else if (res == Program.controlCommands.getStopCommand) {
 				Console.WriteLine("Stopping Recognition!");
 				game.RecognizeAsyncStop();
 			}
-			else if (res == controlCommands.getPauseCommand) {
+			else if (res == Program.controlCommands.getPauseCommand) {
 				Console.WriteLine("Pausing Recognition!");
 				game.RecognizeAsyncStop();
 			}
-			else if (res == controlCommands.getSwitchGrammarCommand) {
+			else if (res == Program.controlCommands.getSwitchGrammarCommand) {
 				Choices definitions = new Choices();
 				Console.Write("Switching chest type, available: ");
 				string[] available = DefinitionParser.instance.getDefinitionNames;

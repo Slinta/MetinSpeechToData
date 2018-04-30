@@ -114,12 +114,11 @@ namespace Metin2SpeechToData {
 			Program.interaction.RemoveItemEntryFromCurrentSheet(itemName);
 		}
 
+
 		private bool CheckItemExists(string line, string itemName) {
 			line = line.Split(':')[1];
 			string[] split = line.Split(',');
 			for (int i = 0; i < split.Length; i++) {
-				//TODO this could be removed ?
-				split[i] = split[i].Trim('\n', ' ', '\t');
 				if (split[i] == itemName) {
 					return true;
 				}
@@ -127,8 +126,9 @@ namespace Metin2SpeechToData {
 			return false;
 		}
 
+
 		private bool GroupEntryExists(int mobLine, string group) {
-			foreach (int line in GetLinesOfOneMob(mobLine)) {
+			foreach (int line in GetLinesOfEnemy(mobLine)) {
 				string s = getAllDropsFile[line].TrimStart().Trim('-').Split(':')[0];
 				if (s == group) {
 					return true;
@@ -136,22 +136,25 @@ namespace Metin2SpeechToData {
 			}
 			return false;
 		}
+
+
 		/// <summary>
-		/// Returns all items this enemy drops, updates dynamically.
+		/// Returns all items this enemy drops, indexed by group name, updates dynamically.
 		/// </summary>
-		public string[] GetDropsForMob(string enemyName) {
-			for (int i = 0; i < getAllDropsFile.Length; i++) {
-				if (getAllDropsFile[i].Contains("{")) {
-					string mob = getAllDropsFile[i].Split('{')[0];
-					if (mob == enemyName) {
-						return getAllDropsFile[i + 1].Trim('\t', '\n', ' ').Split(',');
-					}
+		public Dictionary<string, string[]> GetDropsForMob(string enemyName) {
+			Dictionary<string, string[]> ret = new Dictionary<string, string[]>();
+			int[] lineIndexes = GetLinesOfEnemy(enemyName);
+			foreach (int index in lineIndexes) {
+				string currLine = getAllDropsFile[index];
+				if (currLine.StartsWith("-")) {
+					string[] split = currLine.Split(':');
+					ret.Add(split[0].Trim('\t', '-'), split[1].Split(','));
 				}
 			}
-			return new string[0];
+			return ret;
 		}
 
-		private int[] GetLinesOfOneMob(int mobLineFirst) {
+		private int[] GetLinesOfEnemy(int mobLineFirst) {
 			List<int> lines = new List<int>() { mobLineFirst };
 			string current = getAllDropsFile[mobLineFirst];
 			while (!current.Contains('}')) {
@@ -162,14 +165,32 @@ namespace Metin2SpeechToData {
 			return lines.ToArray();
 		}
 
+		private int[] GetLinesOfEnemy(string enemyName) {
+			List<int> lines = new List<int>();
+			if(getAllDropsFile.Length == 0) {
+				return lines.ToArray();
+			}
+
+			int _index = 0;
+			string currLine = getAllDropsFile[_index];
+			while (currLine.Split(':').Contains(enemyName)) {
+				currLine = getAllDropsFile[_index++];
+			}
+			//Fond the start of our enemy
+			lines.Add(++_index);
+			while (!currLine.Contains('}')) {
+				lines.Add(++_index);
+				currLine = getAllDropsFile[_index];
+			}
+			return lines.ToArray();
+		}
+
 		private int GetGroupLine(int enemyLine, string group) {
-			foreach (int line in GetLinesOfOneMob(enemyLine)) {
+			foreach (int line in GetLinesOfEnemy(enemyLine)) {
 				if (getAllDropsFile[line].Split(':')[0].TrimStart().TrimStart('-') == group) {
 					return line;
 				}
 			}
-
-
 			throw new CustomException("parameters not present in file");
 		}
 

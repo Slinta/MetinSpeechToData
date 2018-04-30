@@ -73,34 +73,22 @@ namespace Metin2SpeechToData {
 					Console.WriteLine("Nothing else to undo!");
 					return;
 				}
-				Console.WriteLine("Undoing... would remove " + action.count + " items from " + Program.interaction.currentSheet.Cells[action.addr.Row, action.addr.Column - 2].Value);
-				//TODO Implement undo properly
-				return;
-				Program.interaction.AddNumberTo(action.addr, -action.count);
-				string itemName = Program.interaction.currentSheet.Cells[action.addr.Row, action.addr.Column - 2].Value.ToString();
-				if (Program.interaction.currentSheet.Cells[action.addr.Row, action.addr.Column].GetValue<int>() == 0) {
-					Console.WriteLine("Remove " + currentItem + " from current enemy's (" + currentEnemy + ") item list?\nConfirm/Refuse");
-					currentItem = itemName;
-					Program.OnModifierWordHear += ConfirmByVoice;
-					Program.OnModifierWordHear -= EnemyTargetingModifierRecognized;
-				}
-			}
-		}
+				Console.WriteLine("Would remove " + action.count + " items from " + Program.interaction.currentSheet.Cells[action.addr.Row, action.addr.Column - 2].Value);
 
-		private void ConfirmByVoice(SpeechRecognitionHelper.ModifierWords word, params string[] args) {
-			//TODO change confirm/refuse to something parsed from file
-			
-			Program.OnModifierWordHear -= ConfirmByVoice;
-			Program.OnModifierWordHear += EnemyTargetingModifierRecognized;
-			if(word == SpeechRecognitionHelper.ModifierWords.REFUSE) {
-				mobDrops.RemoveItemEntry(currentEnemy, currentItem, false);
-			}
-			else if(word == SpeechRecognitionHelper.ModifierWords.CONFIRM){
-				mobDrops.RemoveItemEntry(currentEnemy, currentItem, true);
-			}
-			else {
-				Program.OnModifierWordHear += ConfirmByVoice;
-				Program.OnModifierWordHear -= EnemyTargetingModifierRecognized;
+				bool resultUndo = Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'?");
+				if (resultUndo) {
+					action = stack.Pop();
+					Program.interaction.AddNumberTo(action.addr, -action.count);
+					string itemName = Program.interaction.currentSheet.Cells[action.addr.Row, action.addr.Column - 2].Value.ToString();
+					if (Program.interaction.currentSheet.Cells[action.addr.Row, action.addr.Column].GetValue<int>() == 0) {
+						Console.WriteLine("Remove " + currentItem + " from current enemy's (" + currentEnemy + ") item list?");
+						bool resultRemoveFromFile = Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'?");
+						if (resultRemoveFromFile) {
+							currentItem = itemName;
+							mobDrops.RemoveItemEntry(currentEnemy, currentItem, true);
+						}
+					}
+				}
 			}
 		}
 

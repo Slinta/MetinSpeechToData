@@ -10,7 +10,18 @@ namespace Metin2SpeechToData {
 		public string getStopCommand { get; private set; }
 		public string getSwitchGrammarCommand { get; private set; }
 
+		public string getConfirmationCommand { get; private set; }
+		public string getRefusalCommand { get; private set; }
+
+		public string getNewTargetCommand { get; private set; }
+		public string getTargetKilledCommand { get; private set; }
+		public string getUndoCommand { get; private set; }
+
 		public ControlSpeechCommands(string relativeFilePath) {
+			if (!File.Exists(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + relativeFilePath)) {
+				throw new CustomException("Could not locate 'Control.definition' file! You have to redownload this application");
+			}
+
 			using (StreamReader sr = File.OpenText(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + relativeFilePath)) {
 				while (!sr.EndOfStream) {
 					string line = sr.ReadLine();
@@ -34,6 +45,26 @@ namespace Metin2SpeechToData {
 						}
 						case "SWITCH": {
 							getSwitchGrammarCommand = modified;
+							break;
+						}
+						case "CONFIRM": {
+							getConfirmationCommand = modified;
+							break;
+						}
+						case "REFUSE": {
+							getRefusalCommand = modified;
+							break;
+						}
+						case "NEW_TARGET": {
+							getNewTargetCommand = modified;
+							break;
+						}
+						case "TARGET_KILLED": {
+							getTargetKilledCommand = modified;
+							break;
+						}
+						case "UNDO": {
+							getUndoCommand = modified;
 							break;
 						}
 						default: {

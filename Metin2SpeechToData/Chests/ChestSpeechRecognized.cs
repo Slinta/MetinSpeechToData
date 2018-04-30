@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using System.Speech.Recognition;
 using OfficeOpenXml;
 using System.Threading;
@@ -11,8 +10,6 @@ namespace Metin2SpeechToData.Chests {
 		private ChestVoiceManager manager;
 		private DropOutStack<ItemInsertion> stack;
 		private ManualResetEventSlim evnt;
-
-		private bool undoTriggered = false;
 
 		public ChestSpeechRecognized(ChestVoiceManager manager) {
 			this.manager = manager;
@@ -29,7 +26,6 @@ namespace Metin2SpeechToData.Chests {
 		}
 
 
-
 		public void Subscribe(SpeechRecognitionEngine game) {
 			this.game = game;
 			game.SpeechRecognized += Game_SpeechRecognized;
@@ -41,40 +37,31 @@ namespace Metin2SpeechToData.Chests {
 
 
 		private void Game_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {
-			foreach (string s in SpeechRecognitionHelper.modifierDict.Values) {
-				if (s == e.Result.Text) {
-					switch (s) {
-						case "Undo": {
-							ItemInsertion peeked = stack.Peek();
-							if(peeked.addr == null) {
-								Console.WriteLine("Nothing else to undo...");
-								return;
-							}
-							Console.WriteLine("Undoing... " + Program.interaction.currentSheet.Cells[peeked.addr.Row, peeked.addr.Column - 2].GetValue<string>() + " with " + peeked.count + " items");
-							Console.WriteLine("'Confirm'/'Refuse'");
-							undoTriggered = true;
+			if (SpeechRecognitionHelper.reverseModifierDict.ContainsKey(e.Result.Text)) {
+				SpeechRecognitionHelper.ModifierWords current = SpeechRecognitionHelper.reverseModifierDict[e.Result.Text];
+				switch (current) {
+					case SpeechRecognitionHelper.ModifierWords.UNDO: {
+						ItemInsertion peeked = stack.Peek();
+						if (peeked.addr == null) {
+							Console.WriteLine("Nothing else to undo...");
 							return;
 						}
-						case "Confirm": {
-							if (undoTriggered) {
-								Console.Write("Confirming");
-								undoTriggered = false;
-								ItemInsertion poped = stack.Pop();
-								Program.interaction.AddNumberTo(poped.addr, -poped.count);
-							}
-							return;
+						Console.WriteLine("Undoing... " + Program.interaction.currentSheet.Cells[peeked.addr.Row, peeked.addr.Column - 2].GetValue<string>() + " with " + peeked.count + " items");
+						if (Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'")) {
+							Console.Write("Confirming");
+							ItemInsertion poped = stack.Pop();
+							Program.interaction.AddNumberTo(poped.addr, -poped.count);
 						}
-						case "Refuse": {
-							if (undoTriggered) {
-								Console.Write("Refusing");
-								undoTriggered = false;
-							}
-							return;
+						else {
+							Console.Write("Refusing");
 						}
-						default: {
-							return;
-						}
+						return;
 					}
+					default: {
+						Console.WriteLine("No idea what to do with " + e.Result.Text);
+						return;
+					}
+
 				}
 			}
 			Console.WriteLine(e.Result.Text + " -- " + e.Result.Confidence);
