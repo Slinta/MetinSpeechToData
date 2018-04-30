@@ -175,11 +175,17 @@ namespace Metin2SpeechToData {
 
 			int _index = 0;
 			string currLine = getAllDropsFile[_index];
-			while (currLine.Split(':').Contains(enemyName)) {
-				currLine = getAllDropsFile[_index++];
+			while (!currLine.Contains(enemyName)) {
+				_index++;
+				if (_index == getAllDropsFile.Length) {
+					return lines.ToArray();
+				}
+				currLine = getAllDropsFile[_index];
+				
 			}
 			//Fond the start of our enemy
-			lines.Add(++_index);
+			lines.Add(_index);
+
 			while (!currLine.Contains('}')) {
 				lines.Add(++_index);
 				currLine = getAllDropsFile[_index];
