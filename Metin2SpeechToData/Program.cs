@@ -18,6 +18,8 @@ namespace Metin2SpeechToData {
 
 		public static event ModifierTrigger OnModifierWordHear;
 
+		public static bool debug = false;
+
 		private static SpeechRecognitionEngine game;
 		public static SpeechRecognitionHelper helper;
 
@@ -25,10 +27,6 @@ namespace Metin2SpeechToData {
 
 		public static EnemyHandling enemyHandling;
 		public static SpreadsheetInteraction interaction;
-
-
-		public static bool debug = false;
-		private static WrittenControl debugControl;
 
 		public static Configuration config;
 		public static ControlSpeechCommands controlCommands;
@@ -39,9 +37,6 @@ namespace Metin2SpeechToData {
 
 		[STAThread]
 		static void Main(string[] args) {
-			//TODO: replace Folder dialog with something more user friendly
-			//TODO: make it possible to use F1-F10 as hotkeys for navigating
-
 			// Init
 			config = new Configuration(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
 			interaction = new SpreadsheetInteraction(config.xlsxFile);
@@ -53,7 +48,7 @@ namespace Metin2SpeechToData {
 			mapper.AssignToHotkey(Keys.F2, "chest");
 			mapper.AssignToHotkey(Keys.F3, "help");
 			mapper.AssignToHotkey(Keys.F4, "quit");
-			mapper.AssignToHotkey(Keys.F8, KeyModifiers.Control, KeyModifiers.Alt, "wipe");
+			mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
 
 			bool continueRunning = true;
 
@@ -65,12 +60,12 @@ namespace Metin2SpeechToData {
 
 
 			while (continueRunning) {
-				Console.WriteLine("Command:" +
+				Console.WriteLine("Commands:" +
 					"\n-(F1) Voice recognition" +
 					"\n-(F2) Chests" +
 					"\n-(F3) Help" +
 					"\n-(F4) Quit" +
-					"\n-(Alt + Control + F8) Wipe");
+					"\n-(Shift + F8) Wipe");
 
 				string command = Console.ReadLine();
 				if (currCommand != "") {
@@ -98,10 +93,12 @@ namespace Metin2SpeechToData {
 								break;
 							}
 							case "help": {
+								//TODO Update help print
 								Console.WriteLine("Existing commands:");
 								Console.WriteLine("quit / exit --> Close the application\n");
 								Console.WriteLine("clear --> Clears the console\n");
 								Console.WriteLine("voice / voice debug --> Enables voice control without/with debug prints\n");
+								Console.WriteLine("chest --> Opens speech recognition for chest drops (Gold/Silver[+-])\n");
 								Console.WriteLine("sheet 'sheet name' --> Swithches current working sheet to 'sheet name'" +
 												  "\n'sheet name' = sheet name, sheet MUST already exist!\n");
 								Console.WriteLine("sheet add 'name' --> adds a sheet with name 'name'\n");
@@ -115,16 +112,17 @@ namespace Metin2SpeechToData {
 								break;
 							}
 							case "voice": {
-								parser = new DefinitionParser(new System.Text.RegularExpressions.Regex(".+"));
+								parser = new DefinitionParser(new System.Text.RegularExpressions.Regex(@"(Mob_)?\w+\.definition"));
 								game = new SpeechRecognitionEngine();
 								helper = new SpeechRecognitionHelper(ref game);
 								enemyHandling = new EnemyHandling();
 								helper.OnRecognitionChange += OnRecognitionChange;
 								helper.AcquireControl();
-								//TODO clean up references
 								Console.WriteLine("Returned to Main control!");
 								enemyHandling = null;
 								helper = null;
+								game.SpeechRecognized -= Game_ModifierRecognized_Wrapper;
+								game.SpeechRecognized -= Game_SpeechRecognized_Wrapper;
 								break;
 							}
 							case "chest": {
@@ -132,7 +130,6 @@ namespace Metin2SpeechToData {
 								helper = new Chests.ChestVoiceManager(ref game);
 								helper.OnRecognitionChange += OnRecognitionChange;
 								helper.AcquireControl();
-								//TODO clean up references
 								Console.WriteLine("Returned to Main control!");
 								helper = null;
 								break;
@@ -178,25 +175,21 @@ namespace Metin2SpeechToData {
 							case "voice": {
 								if (commandBlocks[1] == "debug") {
 									debug = true;
+									Console.WriteLine("Entering debug mode");
 									parser = new DefinitionParser(new System.Text.RegularExpressions.Regex(".+"));
 									game = new SpeechRecognitionEngine();
-									Console.WriteLine(game.Grammars.Count);
 									helper = new SpeechRecognitionHelper(ref game);
-									helper.OnRecognitionChange += OnRecognitionChange;
 									enemyHandling = new EnemyHandling();
-									debugControl = new WrittenControl(controlCommands, ref enemyHandling);
-								}
-								break;
-							}
-							case "chest": {
-								if (commandBlocks[1] == "debug") {
-									debug = true;
-									game = new SpeechRecognitionEngine();
-									Console.WriteLine(game.Grammars.Count);
-									helper = new Chests.ChestVoiceManager(ref game);
 									helper.OnRecognitionChange += OnRecognitionChange;
-									enemyHandling = new EnemyHandling(); //necessary for the ref type, not actually used
-									debugControl = new WrittenControl(controlCommands, ref enemyHandling);
+									Console.WriteLine(game.Grammars.Count);
+
+									helper.AcquireControl();
+
+									Console.WriteLine("Returned to Main control!");
+									enemyHandling = null;
+									helper = null;
+									game.SpeechRecognized -= Game_ModifierRecognized_Wrapper;
+									game.SpeechRecognized -= Game_SpeechRecognized_Wrapper;
 								}
 								break;
 							}

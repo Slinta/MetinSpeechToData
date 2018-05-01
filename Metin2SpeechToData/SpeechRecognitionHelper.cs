@@ -170,7 +170,7 @@ namespace Metin2SpeechToData {
 		}
 
 		/// <summary>
-		/// Prevents Console.ReadLine() from Main to consume lines typed for different prompt
+		/// Prevents Console.ReadLine() from Main from consuming lines meant for different prompt
 		/// </summary>
 		public void AcquireControl() {
 			ManualResetEventSlim signal = new ManualResetEventSlim();
@@ -187,6 +187,8 @@ namespace Metin2SpeechToData {
 			control.RecognizeAsyncStop();
 			control.Dispose();
 			control.SpeechRecognized -= handle;
+			control.SpeechRecognized -= Control_SpeechRecognized_Wrapper;
+			
 			if (Program.debug) {
 				Console.WriteLine("Waited long enough!");
 			}

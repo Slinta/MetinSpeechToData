@@ -17,7 +17,10 @@ namespace Metin2SpeechToData.Chests {
 		}
 
 		~ChestVoiceManager() {
+			parser = null;
+			game.SpeechRecognized -= Control_SpeechRecognized_Wrapper;
 			control.Dispose();
+			game.Dispose();
 		}
 		#endregion
 

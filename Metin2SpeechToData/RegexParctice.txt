@@ -2,7 +2,9 @@
 Golden Chest+.definition
 Silver Chest-.definition
 Silver Chest-.definition
+Silver Chest.definition
 Bokjung.definition
+Mob_Bokjung.definition
 Other.definition
 Area.definition
 

@@ -251,7 +251,7 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Selectively remove a hotkey
 		/// </summary>
-		public void Free(Keys hotkey) {
+		public void Free(Keys hotkey, bool debug = false) {
 			if (voiceHotkeys.ContainsKey(hotkey)) {
 				voiceHotkeys.Remove(hotkey);
 			}
@@ -259,7 +259,7 @@ namespace Metin2SpeechToData {
 				controlHotkeys.Remove(hotkey);
 			}
 			else {
-				Console.WriteLine(hotkey + " not found in any list!");
+				if (debug) { Console.WriteLine(hotkey + " not found in any list!"); }
 			}
 		}
 		#endregion

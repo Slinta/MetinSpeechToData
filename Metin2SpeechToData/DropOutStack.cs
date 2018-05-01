@@ -39,6 +39,9 @@
 			return output;
 		}
 
+		/// <summary>
+		/// Set all elements of the stack to their default value
+		/// </summary>
 		public void Clear() {
 			for (int i = 0; i < items.Length; i++) {
 				items[i] = default(T);

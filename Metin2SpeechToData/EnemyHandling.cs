@@ -15,17 +15,11 @@ namespace Metin2SpeechToData {
 		private string currentItem = "";
 
 		public EnemyHandling() {
-			if (Program.debug) {
-				WrittenControl.OnModifierWordHear += EnemyTargetingModifierRecognized;
-			}
 			Program.OnModifierWordHear += EnemyTargetingModifierRecognized;
 			mobDrops = new MobAsociatedDrops();
 		}
 
 		~EnemyHandling() {
-			if (Program.debug) {
-				WrittenControl.OnModifierWordHear -= EnemyTargetingModifierRecognized;
-			}
 			Program.OnModifierWordHear -= EnemyTargetingModifierRecognized;
 		}
 
@@ -96,7 +90,6 @@ namespace Metin2SpeechToData {
 		/// Increases number count to 'item' in current speadsheet
 		/// </summary>
 		public void ItemDropped(string item, int amount = 1) {
-			//TODO: for text controlled input the address from name is not working due to the grammar not being additive
 			string mainPronounciation = DefinitionParser.instance.currentGrammarFile.GetMainPronounciation(item);
 			if (!string.IsNullOrWhiteSpace(currentEnemy)){
 				mobDrops.UpdateDrops(currentEnemy, DefinitionParser.instance.currentGrammarFile.GetItemEntry(mainPronounciation));

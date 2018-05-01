@@ -6,7 +6,9 @@ namespace Metin2SpeechToData {
 	public class SpreadsheetHelper {
 
 		public const string DEFAULT_SHEET = "Metin2 Drop Analyzer";
-		private static SpreadsheetInteraction main;
+		private SpreadsheetInteraction main;
+
+
 		public SpreadsheetHelper(SpreadsheetInteraction interaction) {
 			main = interaction;
 		}
@@ -18,7 +20,7 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Adjusts collumn width of current sheet
 		/// </summary>
-		public void AutoAdjustColumns(Dictionary<string,SpreadsheetInteraction.Group>.ValueCollection values) {
+		public void AutoAdjustColumns(Dictionary<string, SpreadsheetInteraction.Group>.ValueCollection values) {
 			double currMaxWidth = 0;
 			foreach (SpreadsheetInteraction.Group g in values) {
 				for (int i = 0; i < g.totalEntries; i++) {
@@ -107,9 +109,9 @@ namespace Metin2SpeechToData {
 
 					bool EOF = false;
 					while (!EOF) {
-						if(sheet.Cells[current.Row, current.Column].Value == null) {
+						if (sheet.Cells[current.Row, current.Column].Value == null) {
 							current = new ExcelCellAddress(2, current.Column + 4);
-							if(sheet.Cells[current.Address].Value == null) {
+							if (sheet.Cells[current.Address].Value == null) {
 								EOF = true;
 								continue;
 							}
@@ -143,7 +145,7 @@ namespace Metin2SpeechToData {
 			return SpreadsheetTemplates.SpreadsheetPresetType.MAIN;
 		}
 
-		public static double GetCellWidth(int number, bool addCurrencyOffset) {
+		private double GetCellWidth(int number, bool addCurrencyOffset) {
 			int count = DigitCount(number);
 			int spaces = count / 3;
 			double width = addCurrencyOffset ? 4 : 2;
@@ -151,20 +153,76 @@ namespace Metin2SpeechToData {
 			return width;
 		}
 
-		private static int DigitCount(int i) {
-			int count = 1;
-			for (int j = 0; j < int.MaxValue; j++) {
-				int newVal = i / 10;
-				if (newVal >= 1) {
-					count++;
-					i = newVal;
-				}
-				else {
-					break;
-				}
-			}
-			return count;
+		private int DigitCount(int i) {
+			return i.ToString().Length;
 		}
+
+		#region Formula functions
+		/// <summary>
+		/// Sums cells in 'range' and puts result into 'result'
+		/// </summary>
+		public void Sum(ExcelCellAddress result, ExcelRange range) {
+			main.currentSheet.Cells[result.Address].Formula = "SUM(" + range.Start.Address + ':' + range.End.Address + ")";
+		}
+
+		/// <summary>
+		/// Sums cells in scattered range 'addresses' and puts result into 'result'
+		/// </summary>
+		public void Sum(ExcelCellAddress result, ExcelCellAddress[] addresses) {
+			string s = "";
+			foreach (ExcelCellAddress addr in addresses) {
+				s = string.Join(",", s, addr.Address);
+			}
+			s = s.TrimStart(',');
+			main.currentSheet.Cells[result.Address].Formula = "SUM(" + s + ")";
+		}
+
+		/// <summary>
+		/// Averages cells in 'range' and puts result into 'result'
+		/// </summary>
+		public void Average(ExcelCellAddress result, ExcelRange range) {
+			main.currentSheet.Cells[result.Address].Formula = "AVERAGE(" + range + ")";
+		}
+
+		/// <summary>
+		/// Averages cells in scattered range 'addresses' and puts result into 'result'
+		/// </summary>
+		public void Average(ExcelCellAddress result, ExcelCellAddress[] addresses) {
+			string s = "";
+			foreach (ExcelCellAddress addr in addresses) {
+				s = string.Join(",", s, addr.Address);
+			}
+			s = s.TrimStart(',');
+			main.currentSheet.Cells[result.Address].Formula = "AVERAGE(" + s + ")";
+		}
+
+		/// <summary>
+		/// Preforms a Sum of 'numerator' and divides it by a value in 'denominator' puts the result into 'result'
+		/// </summary>
+		public void DivideBy(ExcelCellAddress result, ExcelRange numerator, ExcelCellAddress denominator) {
+			main.currentSheet.Cells[result.Address].Formula = "SUM(" + numerator.Start.Address + ':' + numerator.End.Address +  ")/" + denominator.Address;
+		}
+
+		/// <summary>
+		/// Gets continuous range between two addressess
+		/// </summary>
+		public ExcelRange GetRangeContinuous(ExcelCellAddress addr1, ExcelCellAddress addr2) {
+			main.currentSheet.Select(addr1.Address + ":" + addr2.Address);
+			ExcelRange range = main.currentSheet.SelectedRange;
+			main.currentSheet.Select("A1");
+			return range;
+		}
+
+		/// <summary>
+		/// Gets continuous range between two addressess as strings
+		/// </summary>
+		public ExcelRange GetRangeContinuous(string addr1, string addr2) {
+			main.currentSheet.Select(addr1 + ":" + addr2);
+			ExcelRange range = main.currentSheet.SelectedRange;
+			main.currentSheet.Select("A1");
+			return range;
+		}
+		#endregion
 
 		public struct Dicts {
 			public Dictionary<string, ExcelCellAddress> addresses;

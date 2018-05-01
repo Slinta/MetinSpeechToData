@@ -25,6 +25,11 @@ namespace Metin2SpeechToData.Chests {
 			numbers.LoadGrammar(new Grammar(new Choices(strs)));
 		}
 
+		~ChestSpeechRecognized() {
+			numbers.SpeechRecognized -= Numbers_SpeechRecognized;
+			game.SpeechRecognized -= Game_SpeechRecognized;
+			numbers.Dispose();
+		}
 
 		public void Subscribe(SpeechRecognitionEngine game) {
 			this.game = game;
@@ -34,7 +39,6 @@ namespace Metin2SpeechToData.Chests {
 		public void Unsubscribe(SpeechRecognitionEngine game) {
 			game.SpeechRecognized -= Game_SpeechRecognized;
 		}
-
 
 		private void Game_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {
 			if (SpeechRecognitionHelper.reverseModifierDict.ContainsKey(e.Result.Text)) {

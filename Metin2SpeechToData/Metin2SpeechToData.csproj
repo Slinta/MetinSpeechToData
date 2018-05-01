@@ -71,7 +71,6 @@
     <Compile Include="Spreadsheet\SpreadsheetHelper.cs" />
     <Compile Include="Spreadsheet\SpreadsheetInteraction.cs" />
     <Compile Include="Spreadsheet\SpreadsheetTemplates.cs" />
-    <Compile Include="WrittenControl.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
