@@ -115,6 +115,13 @@ namespace Metin2SpeechToData {
 		}
 		#endregion
 
+		/// <summary>
+		/// If exist, loads hotkeys for selected area
+		/// </summary>
+		/// <param name="area"></param>
+		public void LoadHotkeys(string area) {
+			hotkeyParser = new HotkeyPresetParser(area);
+		}
 
 		/// <summary>
 		/// Get grammar by its name (file name)

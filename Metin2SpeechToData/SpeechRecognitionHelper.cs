@@ -109,6 +109,7 @@ namespace Metin2SpeechToData {
 					Program.mapper.SetInactive(Keys.F3, true);
 					Program.mapper.SetInactive(Keys.F4, true);
 					Console.Clear();
+
 				}
 			}
 			else if (e.text == Program.controlCommands.getStopCommand) {
@@ -170,7 +171,7 @@ namespace Metin2SpeechToData {
 			Program.interaction.OpenWorksheet(e.text);
 			Console.Clear();
 			Console.WriteLine("Grammar initialized!");
-			Console.WriteLine("TODO: make this say that you have hotkey presets. and ask to load them");
+			DefinitionParser.instance.LoadHotkeys(e.text);
 			Console.WriteLine("(F1) or '" + Program.controlCommands.getStartCommand + "' to start");
 			if (Program.debug) {
 				Console.WriteLine(main.Grammars.Count);
@@ -191,11 +192,11 @@ namespace Metin2SpeechToData {
 			);
 			control.SpeechRecognized += handle;
 			signal.Wait();
-			//TODO clean references here more ??
 			control.RecognizeAsyncStop();
 			control.Dispose();
 			control.SpeechRecognized -= handle;
 			control.SpeechRecognized -= Control_SpeechRecognized_Wrapper;
+			control.SpeechRecognized -= Switch_WordRecognized_Wrapper;
 
 			if (Program.debug) {
 				Console.WriteLine("Waited long enough!");

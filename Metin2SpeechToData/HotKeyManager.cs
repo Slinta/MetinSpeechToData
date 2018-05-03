@@ -288,6 +288,11 @@ namespace Metin2SpeechToData {
 			PostMessage(Process.GetCurrentProcess().MainWindowHandle, 0x100, 0x0D, 0);
 		}
 
+		public void EnemyHandlingItemDroppedWrapper(SpeechRecognizedArgs args) {
+			Console.WriteLine("Activated hotkey for item " + args.text + "!");
+			Program.enemyHandling.ItemDropped(args.text, 1);
+		}
+
 		private void HotKeyManager_HotKeyPressed(object sender, HotKeyEventArgs e) {
 			if (controlHotkeys.ContainsKey(e.Key)) {
 				ActionStashString stash = controlHotkeys[e.Key];
