@@ -80,5 +80,12 @@ namespace Metin2SpeechToData {
 				}
 			}
 		}
+
+		public string[] MenuCommands() {
+			return new string[4] { getStartCommand,
+				getPauseCommand,
+				getStopCommand,
+				getSwitchGrammarCommand };
+		}
 	}
 }

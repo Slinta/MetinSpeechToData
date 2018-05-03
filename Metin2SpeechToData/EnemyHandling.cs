@@ -19,7 +19,7 @@ namespace Metin2SpeechToData {
 			mobDrops = new MobAsociatedDrops();
 		}
 
-		~EnemyHandling() {
+		public void CleanUp() {
 			Program.OnModifierWordHear -= EnemyTargetingModifierRecognized;
 		}
 

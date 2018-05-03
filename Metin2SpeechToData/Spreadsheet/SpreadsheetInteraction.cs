@@ -32,20 +32,6 @@ namespace Metin2SpeechToData {
 
 			templates = new SpreadsheetTemplates(this);
 			templates.InitializeMainSheet();
-
-			//TODO finish implementing these and start fillin main sheet with some data
-			ExcelRange range = helper.GetRangeContinuous(new ExcelCellAddress("B1"), new ExcelCellAddress("D3"));
-			helper.Sum(new ExcelCellAddress("A1"), range);
-			ExcelCellAddress addr1 = new ExcelCellAddress("B3");
-			ExcelCellAddress addr2 = new ExcelCellAddress("C5");
-			ExcelCellAddress addr3 = new ExcelCellAddress("D7");
-			InsertValue(addr1, 50);
-			InsertValue(addr2, 10);
-			InsertValue(addr3, 60);
-			helper.Average(new ExcelCellAddress("A2"), new ExcelCellAddress[3] { addr1, addr2, addr3 });
-			ExcelRange gg = helper.GetRangeContinuous("A1", "A2");
-			helper.DivideBy(new ExcelCellAddress("A3"), gg, addr1);
-			Save();
 		}
 
 		~SpreadsheetInteraction() {
@@ -210,7 +196,12 @@ namespace Metin2SpeechToData {
 		/// Saves current changes to the .xlsx file
 		/// </summary>
 		public void Save() {
-			xlsxFile.Save();
+			try { 
+				xlsxFile.Save();
+			}
+			catch {
+				Console.WriteLine("Could not update. Ignoring.");
+			}
 		}
 
 		/// <summary>
