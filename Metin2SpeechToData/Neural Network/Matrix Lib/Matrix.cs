@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Metin2SpeechToData.Neural_Network {
 	class Matrix {
@@ -20,7 +17,10 @@ namespace Metin2SpeechToData.Neural_Network {
 			_height = height;
 		}
 
-		public void InitRandomUnit() {
+		/// <summary>
+		/// Randomly fills this matrix with values from 0 inclusive to 1.0 exlusive
+		/// </summary>
+		public void InitRandomOneNormalized() {
 			Random r = new Random();
 			for (int i = 0; i < _width; i++) {
 				for (int j = 0; j < _height; j++) {
@@ -29,6 +29,9 @@ namespace Metin2SpeechToData.Neural_Network {
 			}
 		}
 
+		/// <summary>
+		/// Makes a unit matrix out of this
+		/// </summary>
 		public void UnitMatrix() {
 			for (int i = 0; i < _width; i++) {
 				for (int j = 0; j < _height; j++) {
@@ -42,6 +45,7 @@ namespace Metin2SpeechToData.Neural_Network {
 			}
 		}
 
+
 		public static Matrix operator +(Matrix a, Matrix b) {
 			if (a._height != b._height || a._width != b._width) {
 				throw new Exception("Attempting to sum two matrices with mismatched sizes.");
@@ -54,6 +58,7 @@ namespace Metin2SpeechToData.Neural_Network {
 			return a;
 		}
 
+
 		public static Matrix operator *(Matrix a, Matrix b) {
 			//If A is an m - by - n matrix and B is an n - by - p matrix,
 			// then their matrix product AB is the m - by - p matrix whose entries are given by dot product
@@ -62,17 +67,13 @@ namespace Metin2SpeechToData.Neural_Network {
 
 			for (int i = 0; i < a._width; i++) {
 				for (int j = 0; j < b._height; j++) {
-					x._matrix[i, j] =
-						 /*	Multiply and sum all elements in a.matrix[i,0-j-1] * bT.matrix[0-i-1,j]
-						  * 
-						  */
-						 GetDotProduct(a, b, i, j);
+					x._matrix[i, j] = MatrixMultiplication(a, b, i, j);
 				}
 			}
 			return x;
 		}
 
-		private static double GetDotProduct(Matrix a, Matrix b, int row, int col) {
+		private static double MatrixMultiplication(Matrix a, Matrix b, int row, int col) {
 			double value = 0;
 			for (int j = 0; j < b._height; j++) {
 				value += (a._matrix[row, j] * b._matrix[j, col]);
@@ -80,11 +81,9 @@ namespace Metin2SpeechToData.Neural_Network {
 			return value;
 		}
 
-		private static double AddLineToColumn(double[] row, double[] col) {
-			throw new NotImplementedException();
-		}
-
-
+		/// <summary>
+		/// Get new transposed matrix from the old one, new instance is returned.
+		/// </summary>
 		public static Matrix Transpose(Matrix m) {
 			Matrix x = new Matrix(m._height, m._width);
 
@@ -96,6 +95,9 @@ namespace Metin2SpeechToData.Neural_Network {
 			return x;
 		}
 
+		/// <summary>
+		/// Pront matrix data in a readable format
+		/// </summary>
 		public static void Print(Matrix m) {
 			for (int i = 0; i < m._width; i++) {
 				for (int j = 0; j < m._height; j++) {
@@ -106,6 +108,20 @@ namespace Metin2SpeechToData.Neural_Network {
 			Console.WriteLine();
 		}
 
+		/// <summary>
+		/// Modify each value of the matrix with this function
+		/// </summary>
+		public void Map(Func<double, double> mapperFunction) {
+			for (int i = 0; i < _width; i++) {
+				for (int j = 0; j < _height; j++) {
+					_matrix[i, j] = mapperFunction(_matrix[i, j]);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Raw matrix 2D array
+		/// </summary>
 		public double[,] raw {
 			get { return _matrix; }
 		}
