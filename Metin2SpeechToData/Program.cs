@@ -3,6 +3,7 @@ using System.IO;
 using System.Speech.Recognition;
 using System.Windows.Forms;
 using OfficeOpenXml;
+using Metin2SpeechToData.Neural_Network;
 
 namespace Metin2SpeechToData {
 	public class Program {
@@ -38,6 +39,21 @@ namespace Metin2SpeechToData {
 		[STAThread]
 		static void Main(string[] args) {
 			// Init
+			Matrix m = new Matrix(3, 3);
+			m.UnitMatrix();
+			m.raw[0, 1] = 1;
+			m.raw[0, 2] = 1;
+			m.raw[1, 2] = 1;
+			Matrix.Print(m);
+			Matrix n = new Matrix(3, 3);
+			n.UnitMatrix();
+			n.raw[0, 1] = 1;
+			n.raw[0, 2] = 1;
+			n.raw[1, 2] = 1;
+			Matrix.Print(n);
+			Matrix multiplied = m * n;
+			Matrix.Print(multiplied);
+	
 			config = new Configuration(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
 			interaction = new SpreadsheetInteraction(config.xlsxFile);
 			controlCommands = new ControlSpeechCommands("Control.definition");
