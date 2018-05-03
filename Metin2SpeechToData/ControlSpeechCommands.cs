@@ -17,6 +17,8 @@ namespace Metin2SpeechToData {
 		public string getTargetKilledCommand { get; private set; }
 		public string getUndoCommand { get; private set; }
 
+		public string getHotkeyAssignCommand { get; private set; }
+
 		public ControlSpeechCommands(string relativeFilePath) {
 			if (!File.Exists(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + relativeFilePath)) {
 				throw new CustomException("Could not locate 'Control.definition' file! You have to redownload this application");
@@ -65,6 +67,10 @@ namespace Metin2SpeechToData {
 						}
 						case "UNDO": {
 							getUndoCommand = modified;
+							break;
+						}
+						case "HOTKEY_ASSIGN": {
+							getHotkeyAssignCommand = modified;
 							break;
 						}
 						default: {

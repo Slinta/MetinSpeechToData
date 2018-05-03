@@ -51,13 +51,10 @@ namespace Metin2SpeechToData {
 			mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
 
 			bool continueRunning = true;
-
 			//
 
 			Console.WriteLine("Welcome to Metin2 siNDiCATE Drop logger");
 			Console.WriteLine("Type 'help' for more info on how to use this program");
-
-
 
 			while (continueRunning) {
 				Console.WriteLine("Commands:" +

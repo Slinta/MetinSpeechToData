@@ -32,6 +32,11 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		public MobParserData currentMobGrammarFile;
 
+		/// <summary>
+		/// Hotkey parser to assign saved hotkeys for items
+		/// </summary>
+		private HotkeyPresetParser hotkeyParser;
+
 		#region Constructor/Destructor
 		/// <summary>
 		/// Parser for .definition files, constructor parses all .definition files in Definitions folder

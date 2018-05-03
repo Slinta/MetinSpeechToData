@@ -13,6 +13,7 @@ namespace Metin2SpeechToData {
 			NEW_TARGET,
 			UNDO,
 			TARGET_KILLED,
+			ASSIGN_HOTKEY_TO_ITEM
 		};
 
 		/// <summary>
@@ -22,11 +23,13 @@ namespace Metin2SpeechToData {
 			{ ModifierWords.NEW_TARGET , Program.controlCommands.getNewTargetCommand },
 			{ ModifierWords.TARGET_KILLED, Program.controlCommands.getTargetKilledCommand },
 			{ ModifierWords.UNDO, Program.controlCommands.getUndoCommand },
+			{ ModifierWords.ASSIGN_HOTKEY_TO_ITEM, Program.controlCommands.getHotkeyAssignCommand }
 		};
 		public static IReadOnlyDictionary<string, ModifierWords> reverseModifierDict = new Dictionary<string, ModifierWords>() {
 			{ Program.controlCommands.getNewTargetCommand , ModifierWords.NEW_TARGET },
 			{ Program.controlCommands.getTargetKilledCommand, ModifierWords.TARGET_KILLED },
 			{ Program.controlCommands.getUndoCommand, ModifierWords.UNDO },
+			{ Program.controlCommands.getHotkeyAssignCommand, ModifierWords.ASSIGN_HOTKEY_TO_ITEM },
 		};
 
 		protected SpeechRecognitionEngine control;
@@ -105,6 +108,7 @@ namespace Metin2SpeechToData {
 					Program.mapper.SetInactive(Keys.F2, true);
 					Program.mapper.SetInactive(Keys.F3, true);
 					Program.mapper.SetInactive(Keys.F4, true);
+					Console.Clear();
 				}
 			}
 			else if (e.text == Program.controlCommands.getStopCommand) {
@@ -164,6 +168,10 @@ namespace Metin2SpeechToData {
 			DefinitionParser.instance.currentGrammarFile = DefinitionParser.instance.GetDefinitionByName(e.text);
 			DefinitionParser.instance.currentMobGrammarFile = DefinitionParser.instance.GetMobDefinitionByName("Mob_" + e.text);
 			Program.interaction.OpenWorksheet(e.text);
+			Console.Clear();
+			Console.WriteLine("Grammar initialized!");
+			Console.WriteLine("TODO: make this say that you have hotkey presets. and ask to load them");
+			Console.WriteLine("(F1) or '" + Program.controlCommands.getStartCommand + "' to start");
 			if (Program.debug) {
 				Console.WriteLine(main.Grammars.Count);
 			}
@@ -188,7 +196,7 @@ namespace Metin2SpeechToData {
 			control.Dispose();
 			control.SpeechRecognized -= handle;
 			control.SpeechRecognized -= Control_SpeechRecognized_Wrapper;
-			
+
 			if (Program.debug) {
 				Console.WriteLine("Waited long enough!");
 			}

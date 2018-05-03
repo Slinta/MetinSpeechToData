@@ -264,6 +264,11 @@ namespace Metin2SpeechToData {
 		}
 		#endregion
 
+		public void RemapHotkey(Keys key, Action<SpeechRecognizedArgs> action, SpeechRecognizedArgs arguments) {
+			//TODO free from control ? or voice and readd as the new thing
+
+		}
+
 		public void SetInactive(Keys key, bool state) {
 			if (controlHotkeys.ContainsKey(key)) {
 				ActionStashString stash = controlHotkeys[key];

@@ -194,7 +194,6 @@ namespace Metin2SpeechToData {
 			sheetToAdresses[_currentSheet.Name].Remove(entry.mainPronounciation);
 		}
 
-
 		/// <summary>
 		/// Gets the item address belonging to 'itemName' in current sheet
 		/// </summary>
