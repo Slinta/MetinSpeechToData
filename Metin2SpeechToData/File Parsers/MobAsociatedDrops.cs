@@ -99,7 +99,7 @@ namespace Metin2SpeechToData {
 							getAllDropsFile = AllDropsFileList.ToArray();
 						}
 						SaveChanges();
-						RemoveExcelSheetEntry(itemName);
+						Program.interaction.RemoveItemEntryFromCurrentSheet(item);
 						return true;
 					}
 				}
@@ -111,11 +111,6 @@ namespace Metin2SpeechToData {
 				return false;
 			}
 		}
-
-		private void RemoveExcelSheetEntry(string itemName) {
-			Program.interaction.RemoveItemEntryFromCurrentSheet(itemName);
-		}
-
 
 		private bool CheckItemExists(string line, string itemName) {
 			line = line.Split(':')[1];

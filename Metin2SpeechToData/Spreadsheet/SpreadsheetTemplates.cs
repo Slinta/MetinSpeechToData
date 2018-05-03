@@ -104,50 +104,9 @@ namespace Metin2SpeechToData {
 
 				interaction.currentSheet.Cells[yangVal.Address].Style.Numberformat.Format = "###,###,###,###,###";
 				d.addresses.Add(entry.mainPronounciation, collected);
-				interaction.Save();
 			}
+			interaction.Save();
 			return d;
-		}
-
-		public void AddItemEntry(ExcelWorksheet sheet, DefinitionParserData.Item entry) {
-			
-			ExcelCellAddress current = new ExcelCellAddress(2, 1 + Program.enemyHandling.mobDrops.GetGroupNumberForEnemy(sheet.Name,entry.group) * 4);
-			int maxDetph = 10;
-			
-			if(sheet.Cells[current.Row, current.Column, current.Row, current.Column + 2].Merge == false) {
-				sheet.Cells[current.Row, current.Column, current.Row, current.Column + 2].Merge = true;
-			}
-			sheet.Cells[current.Row, current.Column, current.Row, current.Column + 2].Value = entry.group;
-			sheet.Cells[current.Row, current.Column, current.Row, current.Column + 2].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
-			
-			while(sheet.Cells[current.Address].Value != null) {
-				current = new ExcelCellAddress(current.Row + 1, current.Column);
-				if(current.Row >= maxDetph) {
-					current = new ExcelCellAddress(2, current.Column + 4);
-				}
-			}
-			interaction.InsertValue(current, entry.mainPronounciation);
-			interaction.InsertValue(new ExcelCellAddress(current.Row, current.Column + 1), entry.yangValue);
-			interaction.InsertValue(new ExcelCellAddress(current.Row, current.Column + 2), 0);
-			interaction.AddSheetToAddressEntry(sheet.Name, entry.mainPronounciation, new ExcelCellAddress(current.Row, current.Column + 2));
-		}
-
-		public void RemoveItemEntry(ExcelWorksheet sheet, DefinitionParserData.Item entry) {
-			
-			ExcelCellAddress current = new ExcelCellAddress("A2");
-			int maxDetph = 10;
-
-			while (sheet.Cells[current.Address].GetValue<string>() != entry.mainPronounciation) {
-				current = new ExcelCellAddress(current.Row + 1, current.Column);
-				if (current.Row >= maxDetph) {
-					current = new ExcelCellAddress(2, current.Column + 4);
-				}
-			}
-			//Found the cell
-			interaction.InsertValue<object>(current, null);
-			interaction.InsertValue<object>(new ExcelCellAddress(current.Row, current.Column + 1), null);
-			interaction.InsertValue<object>(new ExcelCellAddress(current.Row, current.Column + 2), null);
-			interaction.RemoveSheetToAddressEntry(sheet.Name, entry.mainPronounciation);
 		}
 	}
 }

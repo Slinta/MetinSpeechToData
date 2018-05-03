@@ -95,7 +95,6 @@ namespace Metin2SpeechToData {
 
 						d.addresses.Add(entry.mainPronounciation, collected);
 					}
-					Program.interaction.Save();
 					return d;
 				}
 				case SpreadsheetTemplates.SpreadsheetPresetType.ENEMY: {

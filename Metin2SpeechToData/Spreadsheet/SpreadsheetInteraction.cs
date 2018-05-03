@@ -142,24 +142,58 @@ namespace Metin2SpeechToData {
 		}
 		#endregion
 
+
 		/// <summary>
 		/// Dynamically append new entries to the current sheet
 		/// </summary>
-		public void AddItemEntryToCurrentSheet(DefinitionParserData.Item item) {
-			templates.AddItemEntry(_currentSheet, item);
+		public void AddItemEntryToCurrentSheet(DefinitionParserData.Item entry) {
+
+			ExcelCellAddress current = new ExcelCellAddress(2, 1 + Program.enemyHandling.mobDrops.GetGroupNumberForEnemy(_currentSheet.Name, entry.group) * 4);
+			int maxDetph = 10;
+
+			//Add the group if it does't exist
+			if (_currentSheet.Cells[current.Row, current.Column, current.Row, current.Column + 2].Merge == false) {
+				_currentSheet.Cells[current.Row, current.Column, current.Row, current.Column + 2].Merge = true;
+			}
+			_currentSheet.Cells[current.Row, current.Column, current.Row, current.Column + 2].Value = entry.group;
+			_currentSheet.Cells[current.Row, current.Column, current.Row, current.Column + 2].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+
+			//Find free spot in the group
+			while (_currentSheet.Cells[current.Address].Value != null) {
+				current = new ExcelCellAddress(current.Row + 1, current.Column);
+				if (current.Row >= maxDetph) {
+					current = new ExcelCellAddress(2, current.Column + 4);
+				}
+			}
+
+			//Insert
+			InsertValue(current, entry.mainPronounciation);
+			InsertValue(new ExcelCellAddress(current.Row, current.Column + 1), entry.yangValue);
+			InsertValue(new ExcelCellAddress(current.Row, current.Column + 2), 0);
+			sheetToAdresses[_currentSheet.Name].Add(entry.mainPronounciation, new ExcelCellAddress(current.Row, current.Column +2));
+			Save();
 		}
 
 		/// <summary>
 		/// Dynamically remove new entries from the current sheet
 		/// </summary>
-		public void RemoveItemEntryFromCurrentSheet(string itemName) {
-			templates.RemoveItemEntry(_currentSheet, new DefinitionParserData.Item {
-				mainPronounciation = itemName,
-				yangValue = DefinitionParser.instance.currentGrammarFile.GetYangValue(itemName),
-				group = DefinitionParser.instance.currentGrammarFile.GetGroup(itemName),
-				ambiguous = null
-			});
+		public void RemoveItemEntryFromCurrentSheet(DefinitionParserData.Item entry) {
+			ExcelCellAddress current = new ExcelCellAddress("A2");
+			int maxDetph = 10;
+
+			while (_currentSheet.Cells[current.Address].GetValue<string>() != entry.mainPronounciation) {
+				current = new ExcelCellAddress(current.Row + 1, current.Column);
+				if (current.Row >= maxDetph) {
+					current = new ExcelCellAddress(2, current.Column + 4);
+				}
+			}
+			//Found the cell
+			InsertValue<object>(current, null);
+			InsertValue<object>(new ExcelCellAddress(current.Row, current.Column + 1), null);
+			InsertValue<object>(new ExcelCellAddress(current.Row, current.Column + 2), null);
+			sheetToAdresses[_currentSheet.Name].Remove(entry.mainPronounciation);
 		}
+
 
 		/// <summary>
 		/// Gets the item address belonging to 'itemName' in current sheet
@@ -190,20 +224,6 @@ namespace Metin2SpeechToData {
 				currentGroupsByName = sheetToGroups[value.Name];
 				_currentSheet = value;
 			}
-		}
-
-		/// <summary>
-		/// Wrapper to add entry 'address' indexed as sheet name 'itemName' to sheet 'sheetName' 
-		/// </summary>
-		public void AddSheetToAddressEntry(string sheetName, string itemName, ExcelCellAddress address) {
-			sheetToAdresses[sheetName].Add(itemName, address);
-		}
-
-		/// <summary>
-		/// Wrapper to remove entry 'address' indexed as sheet name 'itemName' to sheet 'sheetName' 
-		/// </summary>
-		public void RemoveSheetToAddressEntry(string sheetName, string itemName) {
-			sheetToAdresses[sheetName].Remove(itemName);
 		}
 
 		public struct Group {
