@@ -251,11 +251,19 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Selectively remove a hotkey
 		/// </summary>
-		public void Free(Keys hotkey, bool debug = false) {
+		public void Free(Keys hotkey, bool unsubscribe, bool debug = false ) {
 			if (voiceHotkeys.ContainsKey(hotkey)) {
+				if (unsubscribe) {
+					HotKeyManager.UnregisterHotKey(voiceHotkeys[hotkey]._ungerID);
+				}
+				
 				voiceHotkeys.Remove(hotkey);
 			}
 			else if (controlHotkeys.ContainsKey(hotkey)) {
+				if (unsubscribe) {
+					HotKeyManager.UnregisterHotKey(controlHotkeys[hotkey]._ungerID);
+				}
+				
 				controlHotkeys.Remove(hotkey);
 			}
 			else {

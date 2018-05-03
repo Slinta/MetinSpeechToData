@@ -119,6 +119,13 @@ namespace Metin2SpeechToData {
 								helper.OnRecognitionChange += OnRecognitionChange;
 								helper.AcquireControl();
 								Console.WriteLine("Returned to Main control!");
+								mapper.AssignToHotkey(Keys.F1, "voice");
+								mapper.AssignToHotkey(Keys.F2, "chest");
+								mapper.AssignToHotkey(Keys.F3, "help");
+								mapper.AssignToHotkey(Keys.F4, "quit");
+								mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
+								helper.CleanUp();
+								enemyHandling.CleanUp();
 								enemyHandling = null;
 								helper = null;
 								game.SpeechRecognized -= Game_ModifierRecognized_Wrapper;

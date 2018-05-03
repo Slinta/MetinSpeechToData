@@ -20,6 +20,15 @@ namespace Metin2SpeechToData {
 		}
 
 		~EnemyHandling() {
+			Console.WriteLine("Destructed called");
+			Console.WriteLine("Destructed called");
+			Console.WriteLine("Destructed called");
+			Console.WriteLine("Destructed called");
+			Console.WriteLine("Destructed called");
+			Program.OnModifierWordHear -= EnemyTargetingModifierRecognized;
+		}
+
+		public void CleanUp() {
 			Program.OnModifierWordHear -= EnemyTargetingModifierRecognized;
 		}
 
