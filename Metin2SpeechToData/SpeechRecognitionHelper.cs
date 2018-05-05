@@ -55,7 +55,8 @@ namespace Metin2SpeechToData {
 			currentModifier = ModifierWords.NONE;
 			control.SpeechRecognized -= Control_SpeechRecognized_Wrapper;
 			control.SpeechRecognized -= Switch_WordRecognized_Wrapper;
-
+			main = null;
+			control = null;
 		}
 
 		private void InitializeControl() {
@@ -111,7 +112,7 @@ namespace Metin2SpeechToData {
 					Program.mapper.FreeAll();
 					currentModifier = ModifierWords.NONE;
 
-					LoadNewControlGrammar(MenuGrammarWithout(new string[1] { Program.controlCommands.getStartCommand }));
+					LoadNewControlGrammar(MenuGrammarWithout(new string[3] { Program.controlCommands.getStartCommand, Program.controlCommands.getSwitchGrammarCommand, Program.controlCommands.getStopCommand }));
 				}
 			}
 			else if (e.text == Program.controlCommands.getStopCommand) {
@@ -119,7 +120,7 @@ namespace Metin2SpeechToData {
 			}
 			else if (e.text == Program.controlCommands.getPauseCommand) {
 				Console.WriteLine("Pausing Recognition!");
-				LoadNewControlGrammar(MenuGrammarWithout(new string[0]));
+				LoadNewControlGrammar(MenuGrammarWithout(new string[1] { Program.controlCommands.getPauseCommand }));
 				OnRecognitionChange(Program.RecognitionState.CONTROL_RUNNING);
 
 			}
@@ -172,7 +173,8 @@ namespace Metin2SpeechToData {
 			control.SpeechRecognized -= Switch_WordRecognized_Wrapper;
 			control.Grammars[0].Enabled = true;
 			control.SpeechRecognized += Control_SpeechRecognized_Wrapper;
-			control.Grammars[1].Enabled = false;
+			control.UnloadGrammar(control.Grammars[1]);
+			//control.Grammars[1].Enabled = false;
 			DefinitionParser.instance.currentGrammarFile = DefinitionParser.instance.GetDefinitionByName(e.text);
 			DefinitionParser.instance.currentMobGrammarFile = DefinitionParser.instance.GetMobDefinitionByName("Mob_" + e.text);
 			Program.interaction.OpenWorksheet(e.text);

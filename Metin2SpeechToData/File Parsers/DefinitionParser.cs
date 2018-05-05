@@ -37,6 +37,7 @@ namespace Metin2SpeechToData {
 		/// Parser for .definition files, constructor parses all .definition files in Definitions folder
 		/// </summary>
 		public DefinitionParser(Regex searchPattern) {
+			instance = this;
 			DirectoryInfo d = new DirectoryInfo(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Definitions");
 			FileInfo[] filesPresent = d.GetFiles("*.definition", SearchOption.AllDirectories).Where(path => searchPattern.IsMatch(path.Name)).ToArray();
 			if (filesPresent.Length == 0) {
@@ -59,7 +60,7 @@ namespace Metin2SpeechToData {
 					definitions.Add(data);
 				}
 			}
-			instance = this;
+			
 			getDefinitions = definitions.ToArray();
 			if(Mob_indexes.Count != 0) {
 				getMobDefinitions = new MobParserData().Parse(d);
@@ -67,7 +68,7 @@ namespace Metin2SpeechToData {
 		}
 
 		~DefinitionParser() {
-			instance = null;
+			Console.WriteLine("Destructor of definition parser");
 		}
 		#endregion
 
