@@ -46,6 +46,10 @@ namespace Metin2SpeechToData.Neural_Network {
 		}
 
 
+		public void ScalarAddition(Matrix m) {
+
+		}
+
 		public static Matrix operator +(Matrix a, Matrix b) {
 			if (a._height != b._height || a._width != b._width) {
 				throw new Exception("Attempting to sum two matrices with mismatched sizes.");
@@ -58,15 +62,30 @@ namespace Metin2SpeechToData.Neural_Network {
 			return a;
 		}
 
+		public static Matrix FromAray(double[] data) {
+			Matrix m = new Matrix(1, data.Length);
+			for (int i = 0; i < data.Length; i++) {
+				m.raw[0, i] = data[i];
+			}
+			return m;
+		}
+
+		public double[] ToArray() {
+			double[] array = new double[_height];
+			for (int i = 0; i < array.Length; i++) {
+				array[i] = raw[0, i];
+			}
+			return array;
+		}
 
 		public static Matrix operator *(Matrix a, Matrix b) {
 			//If A is an m - by - n matrix and B is an n - by - p matrix,
 			// then their matrix product AB is the m - by - p matrix whose entries are given by dot product
 			// of the corresponding row of A and the corresponding column of B:
-			Matrix x = new Matrix(a._width, b._height);
+			Matrix x = new Matrix(a._height, b._width);
 
-			for (int i = 0; i < a._width; i++) {
-				for (int j = 0; j < b._height; j++) {
+			for (int i = 0; i < x._width; i++) {
+				for (int j = 0; j < x._height; j++) {
 					x._matrix[i, j] = MatrixMultiplication(a, b, i, j);
 				}
 			}
@@ -75,7 +94,7 @@ namespace Metin2SpeechToData.Neural_Network {
 
 		private static double MatrixMultiplication(Matrix a, Matrix b, int row, int col) {
 			double value = 0;
-			for (int j = 0; j < b._height; j++) {
+			for (int j = 0; j < b._width; j++) {
 				value += (a._matrix[row, j] * b._matrix[j, col]);
 			}
 			return value;

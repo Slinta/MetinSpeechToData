@@ -53,6 +53,9 @@ namespace Metin2SpeechToData {
 			Matrix.Print(n);
 			Matrix multiplied = m * n;
 			Matrix.Print(multiplied);
+			NeuralNetwork nn = new NeuralNetwork(2, 2, 1);
+			double[] input = new double[2] { 0, 1 };
+			double[] outp = nn.Classify(input);
 	
 			config = new Configuration(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
 			interaction = new SpreadsheetInteraction(config.xlsxFile);
