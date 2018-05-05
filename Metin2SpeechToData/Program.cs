@@ -127,6 +127,7 @@ namespace Metin2SpeechToData {
 								helper = null;
 								game.SpeechRecognized -= Game_ModifierRecognized_Wrapper;
 								game.SpeechRecognized -= Game_SpeechRecognized_Wrapper;
+								game = null;
 								break;
 							}
 							case "chest": {

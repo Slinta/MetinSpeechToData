@@ -20,6 +20,9 @@ namespace Metin2SpeechToData {
 		}
 
 		public void CleanUp() {
+			state = EnemyState.NO_ENEMY;
+			mobDrops = null;
+			stack.Clear();
 			Program.OnModifierWordHear -= EnemyTargetingModifierRecognized;
 		}
 
