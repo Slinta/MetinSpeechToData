@@ -35,7 +35,7 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Hotkey parser to assign saved hotkeys for items
 		/// </summary>
-		private HotkeyPresetParser hotkeyParser;
+		public HotkeyPresetParser hotkeyParser;
 
 		#region Constructor/Destructor
 		/// <summary>

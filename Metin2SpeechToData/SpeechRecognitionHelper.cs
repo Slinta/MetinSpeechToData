@@ -110,20 +110,27 @@ namespace Metin2SpeechToData {
 					OnRecognitionChange(Program.RecognitionState.DROP_LOGGER_RUNNING);
 					Console.Clear();
 
-					Program.mapper.FreeAll();
+					for (int i = (int)Keys.F1; i < (int)Keys.F5; i++) {
+						Program.mapper.Free((Keys)i, true);
+					}
+					for (int i = (int)Keys.D1; i < (int)Keys.D5; i++) {
+						Program.mapper.Free((Keys)i, true);
+					}
 					currentModifier = ModifierWords.NONE;
 					LoadNewControlGrammar(MenuGrammarWithout(new string[3] { Program.controlCommands.getStartCommand, Program.controlCommands.getSwitchGrammarCommand, Program.controlCommands.getStopCommand }));
 					Console.WriteLine("Program running... " + Program.controlCommands.getStopCommand + " to stop.");
+					DefinitionParser.instance.hotkeyParser.SetKeysActiveState(true);
 				}
 			}
 			else if (e.text == Program.controlCommands.getStopCommand) {
+				Program.mapper.FreeCustom();
 				Console.WriteLine("Stopping Recognition!");
 			}
 			else if (e.text == Program.controlCommands.getPauseCommand) {
 				Console.WriteLine("Pausing Recognition!");
 				LoadNewControlGrammar(MenuGrammarWithout(new string[1] { Program.controlCommands.getPauseCommand }));
+				DefinitionParser.instance.hotkeyParser.SetKeysActiveState(false);
 				OnRecognitionChange(Program.RecognitionState.CONTROL_RUNNING);
-
 			}
 			else if (e.text == Program.controlCommands.getSwitchGrammarCommand) {
 				Choices definitions = new Choices();

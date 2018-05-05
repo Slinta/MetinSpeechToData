@@ -3,11 +3,16 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System;
 using System.Windows.Forms;
+using System.Collections.Generic;
 
 namespace Metin2SpeechToData {
-	class HotkeyPresetParser {
+	public class HotkeyPresetParser {
 
 		private FileInfo[] hotkeyFiles;
+
+		public List<int> activeKeyIDs = new List<int>();
+
+		private List<Keys> currKeys = new List<Keys>();
 
 		public HotkeyPresetParser(string selectedArea) {
 			DirectoryInfo directory = new DirectoryInfo(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Hotkeys");
@@ -25,6 +30,13 @@ namespace Metin2SpeechToData {
 			}
 		}
 
+
+		public void SetKeysActiveState(bool state) {
+			foreach (Keys key in currKeys) {
+				Program.mapper.SetInactive(key, !state);
+			}
+		}
+
 		public void Selected_Hotkey(SpeechRecognizedArgs args) {
 			Console.WriteLine("Selected " + args.text);
 			string[] fileContent = File.ReadAllLines(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Hotkeys" + Path.DirectorySeparatorChar + args.text);
@@ -39,20 +51,39 @@ namespace Metin2SpeechToData {
 				switch (curr.Length) {
 					case 1: {
 						Keys key = (Keys)Enum.Parse(typeof(Keys), curr[0]);
-						Program.mapper.AssignToHotkey(key, Program.mapper.EnemyHandlingItemDroppedWrapper, new SpeechRecognizedArgs(itemName, 100));
+						int ID = Program.mapper.AssignToHotkey(key, Program.mapper.EnemyHandlingItemDroppedWrapper, new SpeechRecognizedArgs(itemName, 100));
+						Console.WriteLine("Assigning - " + key + " for item " + itemName);
+						activeKeyIDs.Add(ID);
+						currKeys.Add(key);
 						break;
 					}
 					case 2: {
 						bool one = Enum.TryParse(curr[0], out KeyModifiers mod1);
 						Keys key = (Keys)Enum.Parse(typeof(Keys), curr[1]);
-						Program.mapper.AssignToHotkey(key, mod1, Program.mapper.EnemyHandlingItemDroppedWrapper, new SpeechRecognizedArgs(itemName, 100));
+						if (one) {
+							int ID = Program.mapper.AssignToHotkey(key, mod1, Program.mapper.EnemyHandlingItemDroppedWrapper, new SpeechRecognizedArgs(itemName, 100));
+							Console.WriteLine("Assigning - " + mod1 + " + " + key + " for item " + itemName);
+							activeKeyIDs.Add(ID);
+							currKeys.Add(key);
+						}
+						else {
+							Console.WriteLine("Unable to parse '" + curr[0] + "'");
+						}
 						break;
 					}
 					case 3: {
 						bool one = Enum.TryParse(curr[0], out KeyModifiers mod1);
 						bool two = Enum.TryParse(curr[1], out KeyModifiers mod2);
 						Keys key = (Keys)Enum.Parse(typeof(Keys), curr[2]);
-						Program.mapper.AssignToHotkey(key, mod1,mod2, Program.mapper.EnemyHandlingItemDroppedWrapper, new SpeechRecognizedArgs(itemName, 100));
+						if (one && two) {
+							int ID = Program.mapper.AssignToHotkey(key, mod1, mod2, Program.mapper.EnemyHandlingItemDroppedWrapper, new SpeechRecognizedArgs(itemName, 100));
+							Console.WriteLine("Assigning - " + mod1 + " + " + mod2 + " + " + key + " for item " + itemName);
+							activeKeyIDs.Add(ID);
+							currKeys.Add(key);
+						}
+						else {
+							Console.WriteLine("Unable to parse '" + (one ? curr[1] : curr[0]) + "'");
+						}
 						break;
 					}
 					case 4: {
@@ -65,6 +96,7 @@ namespace Metin2SpeechToData {
 					}
 				}
 			}
+			SetKeysActiveState(false);
 		}
 	}
 }

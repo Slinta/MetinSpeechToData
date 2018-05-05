@@ -35,6 +35,14 @@ namespace Metin2SpeechToData {
 
 		public static string currCommand = "";
 
+
+		/* NIY List:
+		 * TODO: Sessions
+		 *
+		 * 
+		 * 
+		 */
+
 		[STAThread]
 		static void Main(string[] args) {
 			// Init
