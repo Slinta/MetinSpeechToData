@@ -137,17 +137,20 @@ namespace Metin2SpeechToData {
 			Switch_WordRecognized(new SpeechRecognizedArgs(e.Result.Text, e.Result.Confidence));
 		}
 		private void Switch_WordRecognized(SpeechRecognizedArgs e) {
+			control.SpeechRecognized -= Switch_WordRecognized_Wrapper;
+			control.SpeechRecognized += Control_SpeechRecognized_Wrapper;
+
 			Console.WriteLine("\nSelected - " + e.text);
 			for (int i = (int)Keys.D1; i < (int)Keys.D9; i++) {
 				Program.mapper.Free((Keys)i, true);
 			}
-			masterRecognizer.SwitchGrammar(e.text);
-			control.SpeechRecognized -= Switch_WordRecognized_Wrapper;
-			control.Grammars[0].Enabled = true;
-			control.SpeechRecognized += Control_SpeechRecognized_Wrapper;
-			control.UnloadGrammar(control.Grammars[1]);
 			DefinitionParser.instance.currentGrammarFile = DefinitionParser.instance.GetDefinitionByName(e.text);
-			DefinitionParser.instance.currentMobGrammarFile = DefinitionParser.instance.GetMobDefinitionByName("Mob_" + e.text);
+			DefinitionParser.instance.currentMobGrammarFile = DefinitionParser.instance.GetMobDefinitionByName(e.text);
+
+			masterRecognizer.SwitchGrammar(e.text);
+
+			control.Grammars[0].Enabled = true;
+			control.UnloadGrammar(control.Grammars[1]);
 			Program.interaction.OpenWorksheet(e.text);
 			Program.mapper.SetInactive(Keys.F1, false);
 			Program.mapper.SetInactive(Keys.F2, false);
@@ -210,7 +213,5 @@ namespace Metin2SpeechToData {
 	public sealed class ModiferRecognizedEventArgs : EventArgs {
 		public SpeechRecognitionHelper.ModifierWords modifier { get; set; }
 		public string triggeringItem { get; set; }
-		public string triggeringEnemy { get; set; }
-
 	}
 }

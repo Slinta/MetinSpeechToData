@@ -48,7 +48,7 @@ namespace Metin2SpeechToData {
 		private void MasterMobRecognizer_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {
 			masterMobRecognizer.RecognizeAsyncStop();
 			currentEnemy = e.Result.Text;
-			evnt.Reset();
+			evnt.Set();
 		}
 
 		/// <summary>
@@ -61,7 +61,8 @@ namespace Metin2SpeechToData {
 				switch (state) {
 					case EnemyState.NO_ENEMY: {
 						string enemy = GetEnemy();
-						string actualEnemyName = DefinitionParser.instance.currentMobGrammarFile.GetMainPronounciation(args.triggeringEnemy);
+						evnt.Reset();
+						string actualEnemyName = DefinitionParser.instance.currentMobGrammarFile.GetMainPronounciation(enemy);
 						state = EnemyState.FIGHTING;
 						Program.interaction.OpenWorksheet(actualEnemyName);
 						currentEnemy = actualEnemyName;
@@ -75,7 +76,7 @@ namespace Metin2SpeechToData {
 						Program.interaction.AddNumberTo(new ExcelCellAddress(1, 5), 1);
 						currentEnemy = "";
 						stack.Clear();
-						if (args.triggeringEnemy != "") {
+						if (args.triggeringItem != "") {
 							EnemyTargetingModifierRecognized(SpeechRecognitionHelper.ModifierWords.NEW_TARGET, args);
 						}
 						break;
@@ -115,8 +116,8 @@ namespace Metin2SpeechToData {
 		/// Increases number count to 'item' in current speadsheet
 		/// </summary>
 		public void ItemDropped(DefinitionParserData.Item item, int amount = 1) {
-			if (!string.IsNullOrWhiteSpace(currentEnemy)){
-				mobDrops.UpdateDrops(currentEnemy, DefinitionParser.instance.currentGrammarFile.GetItemEntry(item.mainPronounciation));
+			if (!string.IsNullOrWhiteSpace(currentEnemy)) {
+				mobDrops.UpdateDrops(currentEnemy, item);
 			}
 			ExcelCellAddress address = Program.interaction.GetAddress(item.mainPronounciation);
 			Program.interaction.AddNumberTo(address, amount);

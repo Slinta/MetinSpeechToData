@@ -124,7 +124,6 @@ namespace Metin2SpeechToData {
 			OnModifierRecognized?.Invoke(this, new ModiferRecognizedEventArgs() {
 				modifier = modifier,
 				triggeringItem = e.text,
-				triggeringEnemy = ""
 			});
 		}
 
