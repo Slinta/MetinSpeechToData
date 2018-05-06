@@ -8,32 +8,25 @@ namespace Metin2SpeechToData {
 			FIGHTING
 		}
 
-		public EnemyState state;
+		public EnemyState state { get; set; }
+
 		public MobAsociatedDrops mobDrops;
-		private DropOutStack<ItemInsertion> stack = new DropOutStack<ItemInsertion>(5);
+		private DropOutStack<ItemInsertion> stack;
 		private string currentEnemy = "";
 		private string currentItem = "";
 
+
 		public EnemyHandling() {
-			Program.OnModifierWordHear += EnemyTargetingModifierRecognized;
+			GameRecognizer.OnModifierRecognized += EnemyTargetingModifierRecognized;
 			mobDrops = new MobAsociatedDrops();
+			stack = new DropOutStack<ItemInsertion>(Configuration.undoHistoryLength);
 		}
-
-		~EnemyHandling() {
-			Console.WriteLine("Enemy handling destructor");
-			//Console.WriteLine("Destructed called");
-			//Console.WriteLine("Destructed called");
-			//Console.WriteLine("Destructed called");
-			//Console.WriteLine("Destructed called");
-			//Program.OnModifierWordHear -= EnemyTargetingModifierRecognized;
-		}
-
 
 		public void CleanUp() {
 			state = EnemyState.NO_ENEMY;
 			mobDrops = null;
 			stack.Clear();
-			Program.OnModifierWordHear -= EnemyTargetingModifierRecognized;
+			GameRecognizer.OnModifierRecognized -= EnemyTargetingModifierRecognized;
 		}
 
 		/// <summary>
@@ -41,15 +34,11 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		/// <param name="keyWord">"NEW_TARGET" // "UNDO" // "REMOVE_TARGET" // TARGET_KILLED</param>
 		/// <param name="args">Always supply at least string.Empty as args!</param>
-		public void EnemyTargetingModifierRecognized(SpeechRecognitionHelper.ModifierWords keyWord, params string[] args) {
-			if (keyWord == SpeechRecognitionHelper.ModifierWords.NEW_TARGET) {
+		public void EnemyTargetingModifierRecognized(object sender, ModiferRecognizedEventArgs args) {
+			if (args.modifier == SpeechRecognitionHelper.ModifierWords.NEW_TARGET) {
 				switch (state) {
 					case EnemyState.NO_ENEMY: {
-						//Initial state
-						if (args[0] == "" && currentEnemy == "") {
-							return;
-						}
-						string actualEnemyName = DefinitionParser.instance.currentMobGrammarFile.GetMainPronounciation(args[0]);
+						string actualEnemyName = DefinitionParser.instance.currentMobGrammarFile.GetMainPronounciation(args.triggeringEnemy);
 						state = EnemyState.FIGHTING;
 						Program.interaction.OpenWorksheet(actualEnemyName);
 						currentEnemy = actualEnemyName;
@@ -63,18 +52,18 @@ namespace Metin2SpeechToData {
 						Program.interaction.AddNumberTo(new ExcelCellAddress(1, 5), 1);
 						currentEnemy = "";
 						stack.Clear();
-						if (args[0] != "") {
-							EnemyTargetingModifierRecognized(SpeechRecognitionHelper.ModifierWords.NEW_TARGET, args[0]);
+						if (args.triggeringItem != "") {
+							EnemyTargetingModifierRecognized(SpeechRecognitionHelper.ModifierWords.NEW_TARGET, args);
 						}
 						break;
 					}
 				}
 			}
-			else if (keyWord == SpeechRecognitionHelper.ModifierWords.TARGET_KILLED) {
+			else if (args.modifier == SpeechRecognitionHelper.ModifierWords.TARGET_KILLED) {
 				Program.interaction.OpenWorksheet(DefinitionParser.instance.currentGrammarFile.ID);
-				EnemyTargetingModifierRecognized(SpeechRecognitionHelper.ModifierWords.NEW_TARGET, "");
+				EnemyTargetingModifierRecognized(this, args);
 			}
-			else if (keyWord == SpeechRecognitionHelper.ModifierWords.UNDO) {
+			else if (args.modifier == SpeechRecognitionHelper.ModifierWords.UNDO) {
 				ItemInsertion action = stack.Peek();
 				if (action.addr == null) {
 					Console.WriteLine("Nothing else to undo!");
@@ -86,8 +75,8 @@ namespace Metin2SpeechToData {
 				if (resultUndo) {
 					action = stack.Pop();
 					Program.interaction.AddNumberTo(action.addr, -action.count);
-					string itemName = Program.interaction.currentSheet.Cells[action.addr.Row, action.addr.Column - 2].Value.ToString();
 					if (Program.interaction.currentSheet.Cells[action.addr.Row, action.addr.Column].GetValue<int>() == 0) {
+						string itemName = Program.interaction.currentSheet.Cells[action.addr.Row, action.addr.Column - 2].Value.ToString();
 						Console.WriteLine("Remove " + currentItem + " from current enemy's (" + currentEnemy + ") item list?");
 						bool resultRemoveFromFile = Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'?");
 						if (resultRemoveFromFile) {
@@ -102,12 +91,11 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Increases number count to 'item' in current speadsheet
 		/// </summary>
-		public void ItemDropped(string item, int amount = 1) {
-			string mainPronounciation = DefinitionParser.instance.currentGrammarFile.GetMainPronounciation(item);
+		public void ItemDropped(DefinitionParserData.Item item, int amount = 1) {
 			if (!string.IsNullOrWhiteSpace(currentEnemy)){
-				mobDrops.UpdateDrops(currentEnemy, DefinitionParser.instance.currentGrammarFile.GetItemEntry(mainPronounciation));
+				mobDrops.UpdateDrops(currentEnemy, DefinitionParser.instance.currentGrammarFile.GetItemEntry(item.mainPronounciation));
 			}
-			ExcelCellAddress address = Program.interaction.GetAddress(mainPronounciation);
+			ExcelCellAddress address = Program.interaction.GetAddress(item.mainPronounciation);
 			Program.interaction.AddNumberTo(address, amount);
 			stack.Push(new ItemInsertion { addr = address, count = amount });
 		}

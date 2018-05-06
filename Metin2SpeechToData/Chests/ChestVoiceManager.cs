@@ -10,7 +10,7 @@ namespace Metin2SpeechToData.Chests {
 		private ChestSpeechRecognized recognition;
 
 		#region Contrsuctor / Destructor
-		public ChestVoiceManager(ref SpeechRecognitionEngine engine) {
+		public ChestVoiceManager(ref SpeechRecognitionEngine engine):base(new GameRecognizer()) {
 			game = engine;
 			parser = new DefinitionParser(new System.Text.RegularExpressions.Regex(@"\w+\s(C|c)hest[+-]\.definition"));
 			recognition = new ChestSpeechRecognized(this);

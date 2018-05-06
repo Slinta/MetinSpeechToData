@@ -1,33 +1,17 @@
 ﻿using System;
 using System.IO;
-using System.Speech.Recognition;
 using System.Windows.Forms;
 using OfficeOpenXml;
 
 namespace Metin2SpeechToData {
 	public class Program {
-		public enum RecognitionState {
-			ERROR,
-			CONTROL_RUNNING,
-			DROP_LOGGER_RUNNING,
-			SWITCHING,
-		}
-
-		public delegate void Recognition(RecognitionState state);
-		public delegate void ModifierTrigger(SpeechRecognitionHelper.ModifierWords word, params string[] args);
-
-		public static event ModifierTrigger OnModifierWordHear;
 
 		public static bool debug = false;
 
-		private static SpeechRecognitionEngine game;
-		public static SpeechRecognitionHelper helper;
-
+		public static GameRecognizer gameRecognizer { get; private set; }
 		private static DefinitionParser parser;
 
-		public static EnemyHandling enemyHandling;
 		public static SpreadsheetInteraction interaction;
-
 		public static Configuration config;
 		public static ControlSpeechCommands controlCommands;
 
@@ -51,13 +35,10 @@ namespace Metin2SpeechToData {
 			mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
 
 			bool continueRunning = true;
-
 			//
 
 			Console.WriteLine("Welcome to Metin2 siNDiCATE Drop logger");
 			Console.WriteLine("Type 'help' for more info on how to use this program");
-
-
 
 			while (continueRunning) {
 				Console.WriteLine("Commands:" +
@@ -113,33 +94,18 @@ namespace Metin2SpeechToData {
 							}
 							case "voice": {
 								parser = new DefinitionParser(new System.Text.RegularExpressions.Regex(@"(Mob_)?\w+\.definition"));
-								game = new SpeechRecognitionEngine();
-								helper = new SpeechRecognitionHelper(ref game);
-								enemyHandling = new EnemyHandling();
-								helper.OnRecognitionChange += OnRecognitionChange;
-								helper.AcquireControl();
+								gameRecognizer = new GameRecognizer();
+								gameRecognizer.helper.AcquireControl();
 								Console.WriteLine("Returned to Main control!");
 								mapper.AssignToHotkey(Keys.F1, "voice");
 								mapper.AssignToHotkey(Keys.F2, "chest");
 								mapper.AssignToHotkey(Keys.F3, "help");
 								mapper.AssignToHotkey(Keys.F4, "quit");
 								mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
-								helper.CleanUp();
-								enemyHandling.CleanUp();
-								enemyHandling = null;
-								helper = null;
-								game.SpeechRecognized -= Game_ModifierRecognized_Wrapper;
-								game.SpeechRecognized -= Game_SpeechRecognized_Wrapper;
-								game = null;
 								break;
 							}
 							case "chest": {
-								game = new SpeechRecognitionEngine();
-								helper = new Chests.ChestVoiceManager(ref game);
-								helper.OnRecognitionChange += OnRecognitionChange;
-								helper.AcquireControl();
-								Console.WriteLine("Returned to Main control!");
-								helper = null;
+								//TODO: Reimplement chests
 								break;
 							}
 							case "clear": {
@@ -185,19 +151,9 @@ namespace Metin2SpeechToData {
 									debug = true;
 									Console.WriteLine("Entering debug mode");
 									parser = new DefinitionParser(new System.Text.RegularExpressions.Regex(".+"));
-									game = new SpeechRecognitionEngine();
-									helper = new SpeechRecognitionHelper(ref game);
-									enemyHandling = new EnemyHandling();
-									helper.OnRecognitionChange += OnRecognitionChange;
-									Console.WriteLine(game.Grammars.Count);
-
-									helper.AcquireControl();
-
+									gameRecognizer = new GameRecognizer();
+									gameRecognizer.helper.AcquireControl();
 									Console.WriteLine("Returned to Main control!");
-									enemyHandling = null;
-									helper = null;
-									game.SpeechRecognized -= Game_ModifierRecognized_Wrapper;
-									game.SpeechRecognized -= Game_SpeechRecognized_Wrapper;
 								}
 								break;
 							}
@@ -265,96 +221,6 @@ namespace Metin2SpeechToData {
 				currCommand = "";
 				mapper.FreeGame();
 			}
-		}
-
-		private static string HandleHotkeyCommand(string command) {
-			Console.WriteLine(command);
-			return command;
-		}
-
-		private static void OnRecognitionChange(RecognitionState state) {
-			switch (state) {
-				case RecognitionState.ERROR: {
-					Console.WriteLine("Something went wrong");
-					break;
-				}
-				case RecognitionState.CONTROL_RUNNING: {
-					game.SpeechRecognized -= Game_SpeechRecognized_Wrapper;
-					game.RecognizeAsyncStop();
-					break;
-				}
-				case RecognitionState.DROP_LOGGER_RUNNING: {
-					game.SetInputToDefaultAudioDevice();
-					game.SpeechRecognized += Game_SpeechRecognized_Wrapper;
-					game.RecognizeAsync(RecognizeMode.Multiple);
-					break;
-				}
-			}
-		}
-
-		private static void Game_SpeechRecognized_Wrapper(object sender, SpeechRecognizedEventArgs e) {
-			Game_SpeechRecognized(sender, new SpeechRecognizedArgs(e.Result.Text, e.Result.Confidence));
-		}
-		private static void Game_SpeechRecognized(object sender, SpeechRecognizedArgs e) {
-			//TODO bind specific items to hotkeys
-			if (SpeechRecognitionHelper.reverseModifierDict.ContainsKey(e.text)) {
-				SpeechRecognitionHelper.ModifierWords current = SpeechRecognitionHelper.reverseModifierDict[e.text];
-				switch (current) {
-					case SpeechRecognitionHelper.ModifierWords.NEW_TARGET: {
-						game.Grammars[0].Enabled = false;
-						game.Grammars[2].Enabled = true;
-						OnModifierWordHear?.Invoke(SpeechRecognitionHelper.currentModifier, "");
-						Console.WriteLine("Listening for enemy type");
-						SpeechRecognitionHelper.currentModifier = SpeechRecognitionHelper.ModifierWords.NEW_TARGET;
-						game.SpeechRecognized += Game_ModifierRecognized_Wrapper;
-						game.SpeechRecognized -= Game_SpeechRecognized_Wrapper;
-						return;
-					}
-					case SpeechRecognitionHelper.ModifierWords.UNDO: {
-						Console.Write("Undoing...");
-						Confirmation.SelectivelyDisableEnableGrammars(ref game, true);
-						OnModifierWordHear?.Invoke(SpeechRecognitionHelper.ModifierWords.UNDO, "");
-						Confirmation.SelectivelyDisableEnableGrammars(ref game, false);
-						return;
-					}
-					case SpeechRecognitionHelper.ModifierWords.TARGET_KILLED: {
-						Console.Write("Switching back to default NONE target");
-						OnModifierWordHear?.Invoke(SpeechRecognitionHelper.ModifierWords.TARGET_KILLED, "");
-						return;
-					}
-					default: {
-						return;
-					}
-				}
-			}
-			Console.WriteLine(e.text + " -- " + e.confidence);
-			enemyHandling.ItemDropped(e.text);
-		}
-
-		private static void Game_ModifierRecognized_Wrapper(object sender, SpeechRecognizedEventArgs e) {
-			Game_ModifierRecognized(sender, new SpeechRecognizedArgs(e.Result.Text, e.Result.Confidence));
-		}
-		private static void Game_ModifierRecognized(object sender, SpeechRecognizedArgs e) {
-			switch (SpeechRecognitionHelper.currentModifier) {
-				case SpeechRecognitionHelper.ModifierWords.NEW_TARGET: {
-					bool recognisedWordComesFromGrammarOne = false;
-					foreach (string theString in SpeechRecognitionHelper.modifierDict.Values) {
-						if (theString == e.text) {
-							recognisedWordComesFromGrammarOne = true;
-							Console.WriteLine("NewTarget cancelled");
-						}
-					}
-					if (!recognisedWordComesFromGrammarOne) {
-						OnModifierWordHear?.Invoke(SpeechRecognitionHelper.currentModifier, e.text);
-					}
-					game.Grammars[0].Enabled = true;
-					game.Grammars[2].Enabled = false;
-					SpeechRecognitionHelper.currentModifier = SpeechRecognitionHelper.ModifierWords.NONE;
-					break;
-				}
-			}
-			game.SpeechRecognized -= Game_ModifierRecognized_Wrapper;
-			game.SpeechRecognized += Game_SpeechRecognized_Wrapper;
 		}
 	}
 }

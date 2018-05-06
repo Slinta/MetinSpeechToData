@@ -29,7 +29,7 @@ namespace Metin2SpeechToData {
 			interaction.InsertValue(new ExcelCellAddress(1, 4), "Num killed:");
 			interaction.InsertValue(new ExcelCellAddress(1, 5), 0);
 
-			Dictionary<string,string[]> itemEntries = Program.enemyHandling.mobDrops.GetDropsForMob(mobName);
+			Dictionary<string,string[]> itemEntries = Program.gameRecognizer.enemyHandling.mobDrops.GetDropsForMob(mobName);
 
 			ExcelCellAddress startAddr = new ExcelCellAddress("A2");
 			foreach (string key in itemEntries.Keys) {

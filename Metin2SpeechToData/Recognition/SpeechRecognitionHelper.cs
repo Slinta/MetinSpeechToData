@@ -29,45 +29,23 @@ namespace Metin2SpeechToData {
 			{ Program.controlCommands.getUndoCommand, ModifierWords.UNDO },
 		};
 
-		protected SpeechRecognitionEngine control;
-		private SpeechRecognitionEngine main;
 
+		protected SpeechRecognitionEngine control;
 		public static ModifierWords currentModifier = ModifierWords.NONE;
 
-		public event Program.Recognition OnRecognitionChange;
+		public event GameRecognizer.Recognition OnRecognitionChange;
+		private GameRecognizer masterRecognizer;
 
 		#region Contrusctor / Destructor
-		public SpeechRecognitionHelper() {
-			main = null;
+		public SpeechRecognitionHelper(GameRecognizer master) {
+			masterRecognizer = master;
 			InitializeControl();
-		}
-
-		public SpeechRecognitionHelper(ref SpeechRecognitionEngine engine) {
-			main = engine;
-			InitializeControl();
-		}
-
-		~SpeechRecognitionHelper() {
-			Console.WriteLine("Destructor of SpeechRecognitionHelper.");
-		}
-
-		public void CleanUp() {
-			currentModifier = ModifierWords.NONE;
-			control.SpeechRecognized -= Control_SpeechRecognized_Wrapper;
-			control.SpeechRecognized -= Switch_WordRecognized_Wrapper;
-			main = null;
-			control = null;
 		}
 
 		private void InitializeControl() {
 			control = new SpeechRecognitionEngine();
-			Grammar controlGrammar = new Grammar(new Choices(
-					Program.controlCommands.getStartCommand,
-					Program.controlCommands.getPauseCommand,
-					Program.controlCommands.getStopCommand,
-					Program.controlCommands.getSwitchGrammarCommand)) {
-				Name = "Controler Grammar"
-			};
+			Grammar controlGrammar = new Grammar(new Choices( Program.controlCommands.getStartCommand, Program.controlCommands.getPauseCommand,
+															  Program.controlCommands.getStopCommand, Program.controlCommands.getSwitchGrammarCommand)) { Name = "Controler Grammar" };
 
 			control.LoadGrammar(controlGrammar);
 			control.SetInputToDefaultAudioDevice();
@@ -99,19 +77,22 @@ namespace Metin2SpeechToData {
 		protected virtual void Control_SpeechRecognized(SpeechRecognizedArgs e) {
 
 			if (e.text == Program.controlCommands.getStartCommand) {
-				Console.Write("Starting Recognition. Current grammar: ");
-				if (main.Grammars.Count == 0) {
-					Console.WriteLine("NOT INITIALIZED!");
-					Console.WriteLine("Set grammar first with 'Computer switch grammar'");
+				Console.Write("Starting Recognition... ");
+				if (masterRecognizer.getCurrentGrammars.Keys.Count == 0) {
+					Console.WriteLine("Current grammar: NOT INITIALIZED!");
+					Console.WriteLine("Set grammar first with " + Program.controlCommands.getSwitchGrammarCommand);
 					return;
 				}
 				else {
-					Console.WriteLine(main.Grammars[0].Name);
-					main.Grammars[0].Enabled = true;
-					OnRecognitionChange(Program.RecognitionState.DROP_LOGGER_RUNNING);
+					Console.Write("Currently enabled grammars: ");
+					string list = "";
+					foreach (string name in masterRecognizer.getCurrentGrammars.Keys) {
+						list = list + name + ", ";
+					}
+					Console.WriteLine(list.Remove(list.Length - 2, 2));
+					OnRecognitionChange(this, GameRecognizer.RecognitionState.ACTIVE);
 					Program.mapper.FreeAll();
 					currentModifier = ModifierWords.NONE;
-
 					LoadNewControlGrammar(MenuGrammarWithout(new string[3] { Program.controlCommands.getStartCommand, Program.controlCommands.getSwitchGrammarCommand, Program.controlCommands.getStopCommand }));
 				}
 			}
@@ -121,7 +102,7 @@ namespace Metin2SpeechToData {
 			else if (e.text == Program.controlCommands.getPauseCommand) {
 				Console.WriteLine("Pausing Recognition!");
 				LoadNewControlGrammar(MenuGrammarWithout(new string[1] { Program.controlCommands.getPauseCommand }));
-				OnRecognitionChange(Program.RecognitionState.CONTROL_RUNNING);
+				OnRecognitionChange(this, GameRecognizer.RecognitionState.INACTIVE);
 
 			}
 			else if (e.text == Program.controlCommands.getSwitchGrammarCommand) {
@@ -148,10 +129,7 @@ namespace Metin2SpeechToData {
 				control.Grammars[0].Enabled = false;
 				control.SpeechRecognized -= Control_SpeechRecognized_Wrapper;
 				control.SpeechRecognized += Switch_WordRecognized_Wrapper;
-				OnRecognitionChange(Program.RecognitionState.SWITCHING);
-			}
-			else {
-				OnRecognitionChange(Program.RecognitionState.ERROR);
+				OnRecognitionChange(this, GameRecognizer.RecognitionState.SWITCHING);
 			}
 		}
 
@@ -163,18 +141,11 @@ namespace Metin2SpeechToData {
 			for (int i = (int)Keys.D1; i < (int)Keys.D9; i++) {
 				Program.mapper.Free((Keys)i, true);
 			}
-			main.UnloadAllGrammars();
-			main.LoadGrammar(DefinitionParser.instance.GetGrammar(e.text));
-			main.LoadGrammar(new Grammar(new Choices(modifierDict.Values.ToArray())));
-			main.LoadGrammar(DefinitionParser.instance.GetMobGrammar("Mob_" + e.text));
-			main.Grammars[0].Enabled = true;
-			main.Grammars[1].Enabled = true;
-			main.Grammars[2].Enabled = false;
+			masterRecognizer.SwitchGrammar(e.text);
 			control.SpeechRecognized -= Switch_WordRecognized_Wrapper;
 			control.Grammars[0].Enabled = true;
 			control.SpeechRecognized += Control_SpeechRecognized_Wrapper;
 			control.UnloadGrammar(control.Grammars[1]);
-			//control.Grammars[1].Enabled = false;
 			DefinitionParser.instance.currentGrammarFile = DefinitionParser.instance.GetDefinitionByName(e.text);
 			DefinitionParser.instance.currentMobGrammarFile = DefinitionParser.instance.GetMobDefinitionByName("Mob_" + e.text);
 			Program.interaction.OpenWorksheet(e.text);
@@ -182,9 +153,6 @@ namespace Metin2SpeechToData {
 			Program.mapper.SetInactive(Keys.F2, false);
 			Program.mapper.SetInactive(Keys.F3, false);
 			Program.mapper.SetInactive(Keys.F4, false);
-			if (Program.debug) {
-				Console.WriteLine(main.Grammars.Count);
-			}
 		}
 
 		/// <summary>
@@ -201,12 +169,11 @@ namespace Metin2SpeechToData {
 			);
 			control.SpeechRecognized += handle;
 			signal.Wait();
-			//TODO clean references here more ??
 			control.RecognizeAsyncStop();
 			control.Dispose();
 			control.SpeechRecognized -= handle;
 			control.SpeechRecognized -= Control_SpeechRecognized_Wrapper;
-			
+
 			if (Program.debug) {
 				Console.WriteLine("Waited long enough!");
 			}
@@ -222,7 +189,7 @@ namespace Metin2SpeechToData {
 			Choices choices = new Choices();
 			IEnumerable<string> resultingCommands = Program.controlCommands.MenuCommands().Except(forbiddenC);
 			choices.Add(resultingCommands.ToArray());
-			Grammar grammar = ( new Grammar(choices) {
+			Grammar grammar = (new Grammar(choices) {
 				Name = "Controler Grammar"
 			});
 			return grammar;
@@ -238,5 +205,12 @@ namespace Metin2SpeechToData {
 			return grammar;
 
 		}
+	}
+
+	public sealed class ModiferRecognizedEventArgs : EventArgs {
+		public SpeechRecognitionHelper.ModifierWords modifier { get; set; }
+		public string triggeringItem { get; set; }
+		public string triggeringEnemy { get; set; }
+
 	}
 }
