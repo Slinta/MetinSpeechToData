@@ -41,7 +41,7 @@ namespace Metin2SpeechToData {
 
 		/* NIY List:
 		 * TODO: Sessions
-		 *
+		 * TODO: Error check and speech recognition overlaps
 		 * 
 		 * 
 		 */
