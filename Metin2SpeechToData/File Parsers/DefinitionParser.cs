@@ -67,6 +67,7 @@ namespace Metin2SpeechToData {
 			}
 			
 			getDefinitions = definitions.ToArray();
+
 			if(Mob_indexes.Count != 0) {
 				getMobDefinitions = new MobParserData().Parse(d);
 			}
@@ -119,9 +120,13 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// If exist, loads hotkeys for selected area
 		/// </summary>
-		/// <param name="area"></param>
 		public void LoadHotkeys(string area) {
-			hotkeyParser = new HotkeyPresetParser(area);
+			if (hotkeyParser == null) {
+				hotkeyParser = new HotkeyPresetParser(area);
+			}
+			else {
+				hotkeyParser.Load(area);
+			}
 		}
 
 		/// <summary>

@@ -13,8 +13,9 @@ namespace Metin2SpeechToData {
 			SWITCHING,
 		}
 
-		public delegate void Recognition(RecognitionState state);
-		public delegate void ModifierTrigger(SpeechRecognitionHelper.ModifierWords word, params string[] args);
+		public delegate void Recognition(object sender, RecognitionState state);
+		//TODO: rewrite this wihtout usding params
+		public delegate void ModifierTrigger(object sender, SpeechRecognitionHelper.ModifierWords word, params string[] args);
 
 		public static event ModifierTrigger OnModifierWordHear;
 
@@ -34,6 +35,8 @@ namespace Metin2SpeechToData {
 		public static HotKeyMapper mapper;
 
 		public static string currCommand = "";
+
+		private static RecognitionState currState;
 
 
 		/* NIY List:
@@ -57,7 +60,6 @@ namespace Metin2SpeechToData {
 			mapper.AssignToHotkey(Keys.F3, "help");
 			mapper.AssignToHotkey(Keys.F4, "quit");
 			mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
-
 			bool continueRunning = true;
 			//
 
@@ -117,34 +119,31 @@ namespace Metin2SpeechToData {
 								break;
 							}
 							case "voice": {
-								parser = new DefinitionParser(new System.Text.RegularExpressions.Regex(@"(Mob_)?\w+\.definition"));
-								game = new SpeechRecognitionEngine();
-								helper = new SpeechRecognitionHelper(ref game);
-								enemyHandling = new EnemyHandling();
+								if (parser == null) {
+									parser = new DefinitionParser(new System.Text.RegularExpressions.Regex(@"(Mob_)?\w+\.definition"));
+									game = new SpeechRecognitionEngine();
+									helper = new SpeechRecognitionHelper(ref game);
+									enemyHandling = new EnemyHandling();
+								}
 								helper.OnRecognitionChange += OnRecognitionChange;
 								helper.AcquireControl();
 								Console.WriteLine("Returned to Main control!");
-								mapper.AssignToHotkey(Keys.F1, "voice");
-								mapper.AssignToHotkey(Keys.F2, "chest");
-								mapper.AssignToHotkey(Keys.F3, "help");
-								mapper.AssignToHotkey(Keys.F4, "quit");
-								mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
+								AssignMenuHotkeys();
 								helper.CleanUp();
 								enemyHandling.CleanUp();
-								enemyHandling = null;
-								helper = null;
 								game.SpeechRecognized -= Game_ModifierRecognized_Wrapper;
 								game.SpeechRecognized -= Game_SpeechRecognized_Wrapper;
-								game = null;
 								break;
 							}
 							case "chest": {
-								game = new SpeechRecognitionEngine();
+								if (game == null) {
+									game = new SpeechRecognitionEngine();
+								}
 								helper = new Chests.ChestVoiceManager(ref game);
 								helper.OnRecognitionChange += OnRecognitionChange;
 								helper.AcquireControl();
 								Console.WriteLine("Returned to Main control!");
-								helper = null;
+								AssignMenuHotkeys();
 								break;
 							}
 							case "clear": {
@@ -272,12 +271,10 @@ namespace Metin2SpeechToData {
 			}
 		}
 
-		private static string HandleHotkeyCommand(string command) {
-			Console.WriteLine(command);
-			return command;
-		}
-
-		private static void OnRecognitionChange(RecognitionState state) {
+		private static void OnRecognitionChange(object sender, RecognitionState state) {
+			if(currState == state) {
+				return;
+			}
 			switch (state) {
 				case RecognitionState.ERROR: {
 					Console.WriteLine("Something went wrong");
@@ -295,20 +292,20 @@ namespace Metin2SpeechToData {
 					break;
 				}
 			}
+			currState = state;
 		}
 
 		private static void Game_SpeechRecognized_Wrapper(object sender, SpeechRecognizedEventArgs e) {
 			Game_SpeechRecognized(sender, new SpeechRecognizedArgs(e.Result.Text, e.Result.Confidence));
 		}
 		private static void Game_SpeechRecognized(object sender, SpeechRecognizedArgs e) {
-			//TODO bind specific items to hotkeys
 			if (SpeechRecognitionHelper.reverseModifierDict.ContainsKey(e.text)) {
 				SpeechRecognitionHelper.ModifierWords current = SpeechRecognitionHelper.reverseModifierDict[e.text];
 				switch (current) {
 					case SpeechRecognitionHelper.ModifierWords.NEW_TARGET: {
 						game.Grammars[0].Enabled = false;
 						game.Grammars[2].Enabled = true;
-						OnModifierWordHear?.Invoke(SpeechRecognitionHelper.currentModifier, "");
+						OnModifierWordHear?.Invoke(null, SpeechRecognitionHelper.currentModifier, "");
 						Console.WriteLine("Listening for enemy type");
 						SpeechRecognitionHelper.currentModifier = SpeechRecognitionHelper.ModifierWords.NEW_TARGET;
 						game.SpeechRecognized += Game_ModifierRecognized_Wrapper;
@@ -318,13 +315,13 @@ namespace Metin2SpeechToData {
 					case SpeechRecognitionHelper.ModifierWords.UNDO: {
 						Console.Write("Undoing...");
 						Confirmation.SelectivelyDisableEnableGrammars(ref game, true);
-						OnModifierWordHear?.Invoke(SpeechRecognitionHelper.ModifierWords.UNDO, "");
+						OnModifierWordHear?.Invoke(null, SpeechRecognitionHelper.ModifierWords.UNDO, "");
 						Confirmation.SelectivelyDisableEnableGrammars(ref game, false);
 						return;
 					}
 					case SpeechRecognitionHelper.ModifierWords.TARGET_KILLED: {
 						Console.Write("Switching back to default NONE target");
-						OnModifierWordHear?.Invoke(SpeechRecognitionHelper.ModifierWords.TARGET_KILLED, "");
+						OnModifierWordHear?.Invoke(null, SpeechRecognitionHelper.ModifierWords.TARGET_KILLED, "");
 						return;
 					}
 					default: {
@@ -350,7 +347,7 @@ namespace Metin2SpeechToData {
 						}
 					}
 					if (!recognisedWordComesFromGrammarOne) {
-						OnModifierWordHear?.Invoke(SpeechRecognitionHelper.currentModifier, e.text);
+						OnModifierWordHear?.Invoke(null, SpeechRecognitionHelper.currentModifier, e.text);
 					}
 					game.Grammars[0].Enabled = true;
 					game.Grammars[2].Enabled = false;
@@ -360,6 +357,15 @@ namespace Metin2SpeechToData {
 			}
 			game.SpeechRecognized -= Game_ModifierRecognized_Wrapper;
 			game.SpeechRecognized += Game_SpeechRecognized_Wrapper;
+		}
+
+
+		private static void AssignMenuHotkeys() {
+			mapper.AssignToHotkey(Keys.F1, "voice");
+			mapper.AssignToHotkey(Keys.F2, "chest");
+			mapper.AssignToHotkey(Keys.F3, "help");
+			mapper.AssignToHotkey(Keys.F4, "quit");
+			mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
 		}
 	}
 }

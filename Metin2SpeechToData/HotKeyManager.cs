@@ -122,7 +122,6 @@ namespace Metin2SpeechToData {
 
 		public HotKeyMapper() {
 			HotKeyManager.HotKeyPressed += new EventHandler<HotKeyEventArgs>(HotKeyManager_HotKeyPressed);
-			Console.WriteLine("Initialized Key mapping!");
 		}
 
 		#region Add Hotkeys

@@ -13,10 +13,6 @@ namespace Metin2SpeechToData {
 			main = interaction;
 		}
 
-		~SpreadsheetHelper() {
-			main = null;
-		}
-
 		/// <summary>
 		/// Adjusts collumn width of current sheet
 		/// </summary>

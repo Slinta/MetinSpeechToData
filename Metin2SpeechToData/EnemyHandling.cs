@@ -31,7 +31,7 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		/// <param name="keyWord">"NEW_TARGET" // "UNDO" // "REMOVE_TARGET" // TARGET_KILLED</param>
 		/// <param name="args">Always supply at least string.Empty as args!</param>
-		public void EnemyTargetingModifierRecognized(SpeechRecognitionHelper.ModifierWords keyWord, params string[] args) {
+		public void EnemyTargetingModifierRecognized(object sender, SpeechRecognitionHelper.ModifierWords keyWord, params string[] args) {
 			if (keyWord == SpeechRecognitionHelper.ModifierWords.NEW_TARGET) {
 				switch (state) {
 					case EnemyState.NO_ENEMY: {
@@ -54,7 +54,7 @@ namespace Metin2SpeechToData {
 						currentEnemy = "";
 						stack.Clear();
 						if (args[0] != "") {
-							EnemyTargetingModifierRecognized(SpeechRecognitionHelper.ModifierWords.NEW_TARGET, args[0]);
+							EnemyTargetingModifierRecognized(this, SpeechRecognitionHelper.ModifierWords.NEW_TARGET, args[0]);
 						}
 						break;
 					}
@@ -62,7 +62,7 @@ namespace Metin2SpeechToData {
 			}
 			else if (keyWord == SpeechRecognitionHelper.ModifierWords.TARGET_KILLED) {
 				Program.interaction.OpenWorksheet(DefinitionParser.instance.currentGrammarFile.ID);
-				EnemyTargetingModifierRecognized(SpeechRecognitionHelper.ModifierWords.NEW_TARGET, "");
+				EnemyTargetingModifierRecognized(this, SpeechRecognitionHelper.ModifierWords.NEW_TARGET, "");
 			}
 			else if (keyWord == SpeechRecognitionHelper.ModifierWords.UNDO) {
 				ItemInsertion action = stack.Peek();

@@ -5,7 +5,7 @@ using System.IO;
 using OfficeOpenXml;
 
 namespace Metin2SpeechToData {
-	public class SpreadsheetInteraction {
+	public class SpreadsheetInteraction : IDisposable {
 
 		private ExcelPackage xlsxFile;
 		private ExcelWorkbook content;
@@ -35,7 +35,8 @@ namespace Metin2SpeechToData {
 		}
 
 		~SpreadsheetInteraction() {
-			Save();
+			Dispose(false);
+			return;
 		}
 		#endregion
 
@@ -223,5 +224,26 @@ namespace Metin2SpeechToData {
 			public ExcelCellAddress totalCollectedFirstIndex;
 			public int totalEntries;
 		}
+
+		#region IDisposable Support
+		private bool disposedValue = false;
+
+		protected virtual void Dispose(bool disposing) {
+			if (!disposedValue) {
+				Save();
+				if (disposing) {
+					xlsxFile.Dispose();
+					content.Dispose();
+					currentSheet.Dispose();
+				}
+				disposedValue = true;
+			}
+		}
+
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+		#endregion
 	}
 }

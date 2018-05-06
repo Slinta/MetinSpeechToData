@@ -17,17 +17,7 @@ namespace Metin2SpeechToData {
 		public HotkeyPresetParser(string selectedArea) {
 			DirectoryInfo directory = new DirectoryInfo(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Hotkeys");
 			hotkeyFiles = directory.GetFiles("* *.definition");
-			FileInfo[] validForArea = hotkeyFiles.Where(file => new Regex(selectedArea + @"\ \d+\.definition").IsMatch(file.Name)).ToArray();
-			if (validForArea.Length > 0) {
-				Console.WriteLine("Found some hotkey definitions for " + selectedArea + ", load them ?");
-				for (int i = 0; i < validForArea.Length; i++) {
-					Console.WriteLine("(" + (i + 1) + ") " + validForArea[i].Name.Split('.')[0]);
-					Program.mapper.AssignToHotkey(Keys.D1, Selected_Hotkey, new SpeechRecognizedArgs(validForArea[i].Name.Split(':')[0], 100));
-				}
-			}
-			else {
-				Console.WriteLine("No hotkey mappings were found, continuing.");
-			}
+			Load(selectedArea);
 		}
 
 
@@ -97,6 +87,20 @@ namespace Metin2SpeechToData {
 				}
 			}
 			SetKeysActiveState(false);
+		}
+
+		public void Load(string area) {
+			FileInfo[] validForArea = hotkeyFiles.Where(file => new Regex(area + @"\ \d+\.definition").IsMatch(file.Name)).ToArray();
+			if (validForArea.Length > 0) {
+				Console.WriteLine("Found some hotkey definitions for " + area + ", load them ?");
+				for (int i = 0; i < validForArea.Length; i++) {
+					Console.WriteLine("(" + (i + 1) + ") " + validForArea[i].Name.Split('.')[0]);
+					Program.mapper.AssignToHotkey(Keys.D1, Selected_Hotkey, new SpeechRecognizedArgs(validForArea[i].Name.Split(':')[0], 100));
+				}
+			}
+			else {
+				Console.WriteLine("No hotkey mappings were found, continuing.");
+			}
 		}
 	}
 }

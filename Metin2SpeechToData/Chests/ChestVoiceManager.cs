@@ -4,7 +4,7 @@ using System.Speech.Recognition;
 using System.Windows.Forms;
 
 namespace Metin2SpeechToData.Chests {
-	class ChestVoiceManager : SpeechRecognitionHelper {
+	class ChestVoiceManager : SpeechRecognitionHelper, IDisposable {
 
 		private SpeechRecognitionEngine game;
 		private DefinitionParser parser;
@@ -20,8 +20,6 @@ namespace Metin2SpeechToData.Chests {
 		~ChestVoiceManager() {
 			parser = null;
 			game.SpeechRecognized -= Control_SpeechRecognized_Wrapper;
-			control.Dispose();
-			game.Dispose();
 		}
 		#endregion
 
@@ -105,5 +103,27 @@ namespace Metin2SpeechToData.Chests {
 			DefinitionParser.instance.LoadHotkeys(e.text);
 			Console.WriteLine("(F1) or '" + Program.controlCommands.getStartCommand + "' to start");
 		}
+
+		#region IDisposable Support
+		private bool disposedValue = false;
+
+		protected virtual void Dispose(bool disposing) {
+			if (!disposedValue) {
+				if (disposing) {
+					control.Dispose();
+					game.Dispose();
+					recognition.Dispose();
+				}
+
+				disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+		#endregion
 	}
 }
