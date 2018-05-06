@@ -61,12 +61,14 @@
     <Compile Include="File Parsers\DefinitionParserData.cs" />
     <Compile Include="DropOutStack.cs" />
     <Compile Include="EnemyHandling.cs" />
+    <Compile Include="File Parsers\HotkeyPresetParser.cs" />
     <Compile Include="File Parsers\MobAsociatedDrops.cs" />
     <Compile Include="File Parsers\MobParserData.cs" />
     <Compile Include="HotKeyManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SpeechRecognitionHelper.cs" />
+    <Compile Include="Recognition\GameRecognizer.cs" />
+    <Compile Include="Recognition\SpeechRecognitionHelper.cs" />
     <Compile Include="SpeechRecognizedArgs.cs" />
     <Compile Include="Spreadsheet\SpreadsheetHelper.cs" />
     <Compile Include="Spreadsheet\SpreadsheetInteraction.cs" />

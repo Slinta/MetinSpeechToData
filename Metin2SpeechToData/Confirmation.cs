@@ -8,12 +8,13 @@ namespace Metin2SpeechToData {
 		private static SpeechRecognitionEngine _confimer = new SpeechRecognitionEngine();
 		private static ManualResetEventSlim evnt = new ManualResetEventSlim(false);
 
-		private static readonly string[] _boolConfirmation = new string[2] { Program.controlCommands.getConfirmationCommand, Program.controlCommands.getRefusalCommand };
+		private static string[] _boolConfirmation;
 
 		private static bool _booleanResult;
 
 		private static List<int> grammarsThatWereEnabledBefore = new List<int>();
 		public static void Initialize() {
+			_boolConfirmation = new string[2] { Program.controlCommands.getConfirmationCommand, Program.controlCommands.getRefusalCommand };
 			_confimer.SetInputToDefaultAudioDevice();
 		}
 
@@ -53,6 +54,7 @@ namespace Metin2SpeechToData {
 				for (int i = 0; i < grammarsThatWereEnabledBefore.Count; i++) {
 					engine.Grammars[grammarsThatWereEnabledBefore[i]].Enabled = true;
 				}
+				grammarsThatWereEnabledBefore.Clear();
 			}
 
 		}

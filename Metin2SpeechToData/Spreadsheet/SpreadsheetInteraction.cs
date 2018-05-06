@@ -5,7 +5,7 @@ using System.IO;
 using OfficeOpenXml;
 
 namespace Metin2SpeechToData {
-	public class SpreadsheetInteraction {
+	public class SpreadsheetInteraction : IDisposable {
 
 		private ExcelPackage xlsxFile;
 		private ExcelWorkbook content;
@@ -32,24 +32,11 @@ namespace Metin2SpeechToData {
 
 			templates = new SpreadsheetTemplates(this);
 			templates.InitializeMainSheet();
-
-			//TODO finish implementing these and start fillin main sheet with some data
-			ExcelRange range = helper.GetRangeContinuous(new ExcelCellAddress("B1"), new ExcelCellAddress("D3"));
-			helper.Sum(new ExcelCellAddress("A1"), range);
-			ExcelCellAddress addr1 = new ExcelCellAddress("B3");
-			ExcelCellAddress addr2 = new ExcelCellAddress("C5");
-			ExcelCellAddress addr3 = new ExcelCellAddress("D7");
-			InsertValue(addr1, 50);
-			InsertValue(addr2, 10);
-			InsertValue(addr3, 60);
-			helper.Average(new ExcelCellAddress("A2"), new ExcelCellAddress[3] { addr1, addr2, addr3 });
-			ExcelRange gg = helper.GetRangeContinuous("A1", "A2");
-			helper.DivideBy(new ExcelCellAddress("A3"), gg, addr1);
-			Save();
 		}
 
 		~SpreadsheetInteraction() {
-			Save();
+			Dispose(false);
+			return;
 		}
 		#endregion
 
@@ -133,7 +120,7 @@ namespace Metin2SpeechToData {
 
 		public void InitMobSheet(string mobName) {
 			_currentSheet = content.Worksheets[mobName];
-			SpreadsheetHelper.Dicts dicts = templates.InitializeMobSheet(mobName, Program.enemyHandling.mobDrops);
+			SpreadsheetHelper.Dicts dicts = templates.InitializeMobSheet(mobName, Program.gameRecognizer.enemyHandling.mobDrops);
 			if (!sheetToAdresses.ContainsKey(mobName)) {
 				sheetToAdresses.Add(mobName, dicts.addresses);
 				sheetToGroups.Add(mobName, dicts.groups);
@@ -148,7 +135,7 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		public void AddItemEntryToCurrentSheet(DefinitionParserData.Item entry) {
 
-			ExcelCellAddress current = new ExcelCellAddress(2, 1 + Program.enemyHandling.mobDrops.GetGroupNumberForEnemy(_currentSheet.Name, entry.group) * 4);
+			ExcelCellAddress current = new ExcelCellAddress(2, 1 + Program.gameRecognizer.enemyHandling.mobDrops.GetGroupNumberForEnemy(_currentSheet.Name, entry.group) * 4);
 			int maxDetph = 10;
 
 			//Add the group if it does't exist
@@ -194,7 +181,6 @@ namespace Metin2SpeechToData {
 			sheetToAdresses[_currentSheet.Name].Remove(entry.mainPronounciation);
 		}
 
-
 		/// <summary>
 		/// Gets the item address belonging to 'itemName' in current sheet
 		/// </summary>
@@ -211,7 +197,12 @@ namespace Metin2SpeechToData {
 		/// Saves current changes to the .xlsx file
 		/// </summary>
 		public void Save() {
-			xlsxFile.Save();
+			try { 
+				xlsxFile.Save();
+			}
+			catch {
+				Console.WriteLine("Could not update. Ignoring.");
+			}
 		}
 
 		/// <summary>
@@ -233,5 +224,26 @@ namespace Metin2SpeechToData {
 			public ExcelCellAddress totalCollectedFirstIndex;
 			public int totalEntries;
 		}
+
+		#region IDisposable Support
+		private bool disposedValue = false;
+
+		protected virtual void Dispose(bool disposing) {
+			if (!disposedValue) {
+				Save();
+				if (disposing) {
+					xlsxFile.Dispose();
+					content.Dispose();
+					currentSheet.Dispose();
+				}
+				disposedValue = true;
+			}
+		}
+
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+		#endregion
 	}
 }

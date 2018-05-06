@@ -122,14 +122,13 @@ namespace Metin2SpeechToData {
 
 		public HotKeyMapper() {
 			HotKeyManager.HotKeyPressed += new EventHandler<HotKeyEventArgs>(HotKeyManager_HotKeyPressed);
-			Console.WriteLine("Initialized Key mapping!");
 		}
 
 		#region Add Hotkeys
 		/// <summary>
 		/// Assign hotkey 'selectedKey' to call function 'action' with 'arguments'
 		/// </summary>
-		public void AssignToHotkey(Keys selectedKey, Action<SpeechRecognizedArgs> action, SpeechRecognizedArgs arguments) {
+		public int AssignToHotkey(Keys selectedKey, Action<SpeechRecognizedArgs> action, SpeechRecognizedArgs arguments) {
 			if (voiceHotkeys.ContainsKey(selectedKey)) {
 				throw new CustomException(selectedKey + " already mapped to " + voiceHotkeys[selectedKey] + "!");
 			}
@@ -137,13 +136,15 @@ namespace Metin2SpeechToData {
 				_action = action,
 				_data = arguments,
 				_keyModifier = KeyModifiers.None,
-				_ungerID = HotKeyManager.RegisterHotKey(selectedKey, KeyModifiers.None)}
+				_unregID = HotKeyManager.RegisterHotKey(selectedKey, KeyModifiers.None)
+			}
 			);
+			return voiceHotkeys[selectedKey]._unregID;
 		}
 		/// <summary>
 		/// Assign hotkey 'selectedKey' + a 'modifier' key to call function 'action' with 'arguments'
 		/// </summary>
-		public void AssignToHotkey(Keys selectedKey, KeyModifiers modifier, Action<SpeechRecognizedArgs> action, SpeechRecognizedArgs arguments) {
+		public int AssignToHotkey(Keys selectedKey, KeyModifiers modifier, Action<SpeechRecognizedArgs> action, SpeechRecognizedArgs arguments) {
 			if (voiceHotkeys.ContainsKey(selectedKey)) {
 				throw new CustomException(selectedKey + " already mapped to " + voiceHotkeys[selectedKey] + "!");
 			}
@@ -151,13 +152,15 @@ namespace Metin2SpeechToData {
 				_action = action,
 				_data = arguments,
 				_keyModifier = modifier,
-				_ungerID = HotKeyManager.RegisterHotKey(selectedKey, modifier)}
+				_unregID = HotKeyManager.RegisterHotKey(selectedKey, modifier)
+			}
 			);
+			return voiceHotkeys[selectedKey]._unregID;
 		}
 		/// <summary>
 		/// Assign hotkey 'selectedKey' + 'modifier' keys to call function 'action' with 'arguments'
 		/// </summary>
-		public void AssignToHotkey(Keys selectedKey, KeyModifiers modifier1, KeyModifiers modifier2, Action<SpeechRecognizedArgs> action, SpeechRecognizedArgs arguments) {
+		public int AssignToHotkey(Keys selectedKey, KeyModifiers modifier1, KeyModifiers modifier2, Action<SpeechRecognizedArgs> action, SpeechRecognizedArgs arguments) {
 			if (voiceHotkeys.ContainsKey(selectedKey)) {
 				throw new CustomException(selectedKey + " already mapped to " + voiceHotkeys[selectedKey] + "!");
 			}
@@ -165,56 +168,59 @@ namespace Metin2SpeechToData {
 				_action = action,
 				_data = arguments,
 				_keyModifier = modifier1 | modifier2,
-				_ungerID = HotKeyManager.RegisterHotKey(selectedKey, modifier1 | modifier2)}
+				_unregID = HotKeyManager.RegisterHotKey(selectedKey, modifier1 | modifier2)
+			}
 			);
+			return voiceHotkeys[selectedKey]._unregID;
 		}
+
 		/// <summary>
 		/// Assign hotkey 'selectedKey' to call function 'action' with 'arguments'
 		/// </summary>
-		public void AssignToHotkey(Keys hotkey, string command) {
+		public int AssignToHotkey(Keys hotkey, string command) {
 			if (controlHotkeys.ContainsKey(hotkey)) {
-				return;
 				throw new CustomException(hotkey + " already mapped to " + controlHotkeys[hotkey] + "!");
 			}
 			controlHotkeys.Add(hotkey, new ActionStashString() {
 				_action = AbortReadLine,
 				_data = command,
 				_keyModifier = KeyModifiers.None,
-				_ungerID = HotKeyManager.RegisterHotKey(hotkey, KeyModifiers.None)
+				_unregID = HotKeyManager.RegisterHotKey(hotkey, KeyModifiers.None)
 			}
 			);
+			return controlHotkeys[hotkey]._unregID;
 		}
 		/// <summary>
 		/// Assign hotkey 'selectedKey' + a 'modifier' key to call function 'action' with 'arguments'
 		/// </summary>
-		public void AssignToHotkey(Keys hotkey, KeyModifiers modifier, string command) {
+		public int AssignToHotkey(Keys hotkey, KeyModifiers modifier, string command) {
 			if (controlHotkeys.ContainsKey(hotkey)) {
-				return;
 				throw new CustomException(hotkey + " already mapped to " + controlHotkeys[hotkey] + "!");
 			}
 			controlHotkeys.Add(hotkey, new ActionStashString() {
 				_action = AbortReadLine,
 				_data = command,
 				_keyModifier = modifier,
-				_ungerID = HotKeyManager.RegisterHotKey(hotkey, modifier)
+				_unregID = HotKeyManager.RegisterHotKey(hotkey, modifier)
 			}
 			);
+			return controlHotkeys[hotkey]._unregID;
 		}
 		/// <summary>
 		/// Assign hotkey 'selectedKey' + 'modifier' keys to call function 'action' with 'arguments'
 		/// </summary>
-		public void AssignToHotkey(Keys hotkey, KeyModifiers modifier1, KeyModifiers modifier2, string command) {
+		public int AssignToHotkey(Keys hotkey, KeyModifiers modifier1, KeyModifiers modifier2, string command) {
 			if (controlHotkeys.ContainsKey(hotkey)) {
-				return;
 				throw new CustomException(hotkey + " already mapped to " + controlHotkeys[hotkey] + "!");
 			}
 			controlHotkeys.Add(hotkey, new ActionStashString() {
 				_action = AbortReadLine,
 				_data = command,
 				_keyModifier = modifier1 | modifier2,
-				_ungerID = HotKeyManager.RegisterHotKey(hotkey, modifier1 | modifier2)
+				_unregID = HotKeyManager.RegisterHotKey(hotkey, modifier1 | modifier2)
 			}
 			);
+			return controlHotkeys[hotkey]._unregID;
 		}
 
 		#endregion
@@ -233,37 +239,47 @@ namespace Metin2SpeechToData {
 		/// Removes all control hotkeys
 		/// </summary>
 		public void FreeControl() {
-			foreach (KeyValuePair<Keys,ActionStashString> item in controlHotkeys) {
-				HotKeyManager.UnregisterHotKey(item.Value._ungerID);
+			foreach (KeyValuePair<Keys, ActionStashString> item in controlHotkeys) {
+				HotKeyManager.UnregisterHotKey(item.Value._unregID);
 			}
 			controlHotkeys.Clear();
 		}
+
 		/// <summary>
 		/// Removes all game hotkeys
 		/// </summary>
 		public void FreeGame() {
 			foreach (KeyValuePair<Keys, ActionStashSpeechArgs> item in voiceHotkeys) {
-				HotKeyManager.UnregisterHotKey(item.Value._ungerID);
+				HotKeyManager.UnregisterHotKey(item.Value._unregID);
 			}
 			voiceHotkeys.Clear();
 		}
 
 		/// <summary>
+		/// Removes all custom hotkeys
+		/// </summary>
+		public void FreeCustom() {
+			foreach (int key in DefinitionParser.instance.hotkeyParser.activeKeyIDs) {
+				HotKeyManager.UnregisterHotKey(key);
+			}
+		}
+
+		/// <summary>
 		/// Selectively remove a hotkey
 		/// </summary>
-		public void Free(Keys hotkey, bool unsubscribe, bool debug = false ) {
+		public void Free(Keys hotkey, bool unsubscribe, bool debug = false) {
 			if (voiceHotkeys.ContainsKey(hotkey)) {
 				if (unsubscribe) {
-					HotKeyManager.UnregisterHotKey(voiceHotkeys[hotkey]._ungerID);
+					HotKeyManager.UnregisterHotKey(voiceHotkeys[hotkey]._unregID);
 				}
-				
+
 				voiceHotkeys.Remove(hotkey);
 			}
 			else if (controlHotkeys.ContainsKey(hotkey)) {
 				if (unsubscribe) {
-					HotKeyManager.UnregisterHotKey(controlHotkeys[hotkey]._ungerID);
+					HotKeyManager.UnregisterHotKey(controlHotkeys[hotkey]._unregID);
 				}
-				
+
 				controlHotkeys.Remove(hotkey);
 			}
 			else {
@@ -271,6 +287,11 @@ namespace Metin2SpeechToData {
 			}
 		}
 		#endregion
+
+		public void RemapHotkey(Keys key, Action<SpeechRecognizedArgs> action, SpeechRecognizedArgs arguments) {
+			Free(key, false);
+			AssignToHotkey(key, action, arguments);
+		}
 
 		public void SetInactive(Keys key, bool state) {
 			if (controlHotkeys.ContainsKey(key)) {
@@ -289,6 +310,11 @@ namespace Metin2SpeechToData {
 			Program.currCommand = command;
 			Thread.Sleep(250);
 			PostMessage(Process.GetCurrentProcess().MainWindowHandle, 0x100, 0x0D, 0);
+		}
+
+		public void EnemyHandlingItemDroppedWrapper(SpeechRecognizedArgs args) {
+			Console.WriteLine("Activated hotkey for item " + args.text + "!");
+			Program.gameRecognizer.enemyHandling.ItemDropped(args.text, 1);
 		}
 
 		private void HotKeyManager_HotKeyPressed(object sender, HotKeyEventArgs e) {
@@ -319,7 +345,7 @@ namespace Metin2SpeechToData {
 			public KeyModifiers _keyModifier;
 			public Action<SpeechRecognizedArgs> _action;
 			public SpeechRecognizedArgs _data;
-			public int _ungerID;
+			public int _unregID;
 			public bool _isInactive;
 		}
 
@@ -327,7 +353,7 @@ namespace Metin2SpeechToData {
 			public KeyModifiers _keyModifier;
 			public Action<string> _action;
 			public string _data;
-			public int _ungerID;
+			public int _unregID;
 			public bool _isInactive;
 		}
 	}

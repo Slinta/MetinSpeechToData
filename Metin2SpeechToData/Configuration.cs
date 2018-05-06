@@ -8,6 +8,7 @@ namespace Metin2SpeechToData {
 		public FileInfo xlsxFile { get; private set; }
 
 		public const string FILE_NAME = "Metin2 Drop Speadsheet.xlsx";
+		public static int undoHistoryLength { get; private set; } = 5;
 
 		public Configuration(string filePath) {
 			if (!File.Exists(filePath)) {
@@ -32,7 +33,7 @@ namespace Metin2SpeechToData {
 				else {
 					FolderBrowserDialog folderBrowser = new FolderBrowserDialog();
 					folderBrowser.Description = "Select the directory where you want to put your .xlsx";
-					folderBrowser.ShowNewFolderButton = true;					
+					folderBrowser.ShowNewFolderButton = true;
 					folderBrowser.ShowDialog();
 					if (string.IsNullOrWhiteSpace(folderBrowser.SelectedPath)) {
 						folderBrowser.ShowDialog();
@@ -45,7 +46,10 @@ namespace Metin2SpeechToData {
 					package.Workbook.Worksheets.Add("Metin2 Drop Analyzer");
 					package.SaveAs(xlsxFile);
 				}
-				sw.Write("PATH{\n\t" + xlsxFile + "\n}");
+				sw.Write("# Path to the file\n");
+				sw.Write("PATH{\n\t" + xlsxFile + "\n}\n");
+				sw.Write("\n# Undo stack depth, the amout of \"undos\" you can make\n");
+				sw.Write("UNDO_HISTORY_LENGTH= " + 5 + "\n");
 			}
 		}
 
@@ -54,6 +58,10 @@ namespace Metin2SpeechToData {
 			using (StreamReader sr = File.OpenText(filePath)) {
 				while (!sr.EndOfStream) {
 					string line = sr.ReadLine();
+					if(line.Contains("#") || string.IsNullOrWhiteSpace(line)) {
+						continue;
+					}
+
 					if (line.Contains("{")) {
 						string[] seg = line.Split('{');
 						switch (seg[0]) {
@@ -73,6 +81,10 @@ namespace Metin2SpeechToData {
 								break;
 							}
 						}
+					}
+					if (line.Contains("=")) {
+						string[] split = line.Split('=');
+						undoHistoryLength = int.Parse(split[1].Trim('\n', ' ', '\t'));
 					}
 				}
 				if (parseSuccess) {

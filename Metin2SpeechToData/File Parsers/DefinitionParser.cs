@@ -32,6 +32,11 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		public MobParserData currentMobGrammarFile;
 
+		/// <summary>
+		/// Hotkey parser to assign saved hotkeys for items
+		/// </summary>
+		public HotkeyPresetParser hotkeyParser;
+
 		#region Constructor/Destructor
 		/// <summary>
 		/// Parser for .definition files, constructor parses all .definition files in Definitions folder
@@ -62,6 +67,7 @@ namespace Metin2SpeechToData {
 			}
 			
 			getDefinitions = definitions.ToArray();
+
 			if(Mob_indexes.Count != 0) {
 				getMobDefinitions = new MobParserData().Parse(d);
 			}
@@ -111,6 +117,17 @@ namespace Metin2SpeechToData {
 		}
 		#endregion
 
+		/// <summary>
+		/// If exist, loads hotkeys for selected area
+		/// </summary>
+		public void LoadHotkeys(string area) {
+			if (hotkeyParser == null) {
+				hotkeyParser = new HotkeyPresetParser(area);
+			}
+			else {
+				hotkeyParser.Load(area);
+			}
+		}
 
 		/// <summary>
 		/// Get grammar by its name (file name)
@@ -129,7 +146,7 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		public Grammar GetMobGrammar(string identifier) {
 			foreach (MobParserData def in getMobDefinitions) {
-				if (def.ID == identifier) {
+				if (def.ID == "Mob_" + identifier) {
 					return def.grammar;
 				}
 			}
@@ -153,7 +170,7 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		public MobParserData GetMobDefinitionByName(string name) {
 			foreach (MobParserData data in getMobDefinitions) {
-				if (data.ID == name) {
+				if (data.ID == "Mob_" + name) {
 					return data;
 				}
 			}
