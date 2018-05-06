@@ -52,16 +52,13 @@ namespace Metin2SpeechToData {
 		public void SwitchGrammar(string grammarID) {
 			Grammar selected = DefinitionParser.instance.GetGrammar(grammarID);
 			if(DefinitionParser.instance.currentMobGrammarFile != null) {
-				mainGameRecognizer.LoadGrammar(DefinitionParser.instance.GetMobGrammar(grammarID));
+				enemyHandling.SwitchGrammar(grammarID);
 			}
 			mainGameRecognizer.LoadGrammar(selected);
 
 			for (int i = 0; i < mainGameRecognizer.Grammars.Count; i++) {
 				if(mainGameRecognizer.Grammars[i].Name == grammarID) {
 					getCurrentGrammars.Add(grammarID, i);
-				}
-				if (mainGameRecognizer.Grammars[i].Name == "Mob_" + grammarID) {
-					getCurrentGrammars.Add("Mob_" + grammarID, i);
 				}
 			}
 		}

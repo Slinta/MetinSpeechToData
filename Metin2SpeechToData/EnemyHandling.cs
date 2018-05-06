@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Speech.Recognition;
+using System.Threading;
 using OfficeOpenXml;
 
 namespace Metin2SpeechToData {
@@ -9,7 +11,8 @@ namespace Metin2SpeechToData {
 		}
 
 		public EnemyState state { get; set; }
-
+		private SpeechRecognitionEngine masterMobRecognizer;
+		private ManualResetEventSlim evnt;
 		public MobAsociatedDrops mobDrops;
 		private DropOutStack<ItemInsertion> stack;
 		private string currentEnemy = "";
@@ -20,13 +23,32 @@ namespace Metin2SpeechToData {
 			GameRecognizer.OnModifierRecognized += EnemyTargetingModifierRecognized;
 			mobDrops = new MobAsociatedDrops();
 			stack = new DropOutStack<ItemInsertion>(Configuration.undoHistoryLength);
+			evnt = new ManualResetEventSlim(false);
+			masterMobRecognizer = new SpeechRecognitionEngine();
+			masterMobRecognizer.SetInputToDefaultAudioDevice();
+			masterMobRecognizer.SpeechRecognized += MasterMobRecognizer_SpeechRecognized;
 		}
 
-		public void CleanUp() {
-			state = EnemyState.NO_ENEMY;
-			mobDrops = null;
-			stack.Clear();
-			GameRecognizer.OnModifierRecognized -= EnemyTargetingModifierRecognized;
+		/// <summary>
+		/// Switch mob grammar for area
+		/// </summary>
+		/// <param name="grammarID"></param>
+		public void SwitchGrammar(string grammarID) {
+			Grammar selected = DefinitionParser.instance.GetMobGrammar(grammarID);
+			masterMobRecognizer.LoadGrammar(selected);
+		}
+
+		private string GetEnemy() {
+			Console.WriteLine("Listening for enemy...");
+			masterMobRecognizer.RecognizeAsync(RecognizeMode.Multiple);
+			evnt.Wait();
+			return currentEnemy;
+		}
+
+		private void MasterMobRecognizer_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {
+			masterMobRecognizer.RecognizeAsyncStop();
+			currentEnemy = e.Result.Text;
+			evnt.Reset();
 		}
 
 		/// <summary>
@@ -38,6 +60,7 @@ namespace Metin2SpeechToData {
 			if (args.modifier == SpeechRecognitionHelper.ModifierWords.NEW_TARGET) {
 				switch (state) {
 					case EnemyState.NO_ENEMY: {
+						string enemy = GetEnemy();
 						string actualEnemyName = DefinitionParser.instance.currentMobGrammarFile.GetMainPronounciation(args.triggeringEnemy);
 						state = EnemyState.FIGHTING;
 						Program.interaction.OpenWorksheet(actualEnemyName);
@@ -52,7 +75,7 @@ namespace Metin2SpeechToData {
 						Program.interaction.AddNumberTo(new ExcelCellAddress(1, 5), 1);
 						currentEnemy = "";
 						stack.Clear();
-						if (args.triggeringItem != "") {
+						if (args.triggeringEnemy != "") {
 							EnemyTargetingModifierRecognized(SpeechRecognitionHelper.ModifierWords.NEW_TARGET, args);
 						}
 						break;
@@ -98,6 +121,13 @@ namespace Metin2SpeechToData {
 			ExcelCellAddress address = Program.interaction.GetAddress(item.mainPronounciation);
 			Program.interaction.AddNumberTo(address, amount);
 			stack.Push(new ItemInsertion { addr = address, count = amount });
+		}
+
+		public void CleanUp() {
+			state = EnemyState.NO_ENEMY;
+			mobDrops = null;
+			stack.Clear();
+			GameRecognizer.OnModifierRecognized -= EnemyTargetingModifierRecognized;
 		}
 
 		private struct ItemInsertion {
