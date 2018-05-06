@@ -35,6 +35,7 @@ namespace Metin2SpeechToData {
 		public GameRecognizer() {
 			mainGameRecognizer = new SpeechRecognitionEngine();
 			mainGameRecognizer.SetInputToDefaultAudioDevice();
+			mainGameRecognizer.InitialSilenceTimeout = new TimeSpan(1000);
 
 			enemyHandling = new EnemyHandling();
 			helper = new SpeechRecognitionHelper(this);
@@ -110,6 +111,8 @@ namespace Metin2SpeechToData {
 			#region TODO Disable unwanted grammars
 			switch (modifier) {
 				case SpeechRecognitionHelper.ModifierWords.NEW_TARGET: {
+					mainGameRecognizer.Grammars[primaryGrammarIndex].Enabled = false;
+					mainGameRecognizer.Grammars[getCurrentGrammars[Program.controlCommands.getNewTargetCommand]].Enabled = false;
 					break;
 				}
 				case SpeechRecognitionHelper.ModifierWords.UNDO: {
@@ -125,6 +128,22 @@ namespace Metin2SpeechToData {
 				modifier = modifier,
 				triggeringItem = e.text,
 			});
+
+			#region TODO Reenable unwanted grammars
+			switch (modifier) {
+				case SpeechRecognitionHelper.ModifierWords.NEW_TARGET: {
+					mainGameRecognizer.Grammars[primaryGrammarIndex].Enabled = true;
+					mainGameRecognizer.Grammars[getCurrentGrammars[Program.controlCommands.getNewTargetCommand]].Enabled = true;
+					break;
+				}
+				case SpeechRecognitionHelper.ModifierWords.UNDO: {
+					break;
+				}
+				case SpeechRecognitionHelper.ModifierWords.TARGET_KILLED: {
+					break;
+				}
+			}
+			#endregion
 		}
 
 

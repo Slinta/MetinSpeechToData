@@ -19,6 +19,13 @@ namespace Metin2SpeechToData {
 
 		public static string currCommand = "";
 
+		/* NIY List:
+		 * TODO: Sessions
+		 *
+		 * 
+		 * 
+		 */
+
 		[STAThread]
 		static void Main(string[] args) {
 			// Init
@@ -33,7 +40,6 @@ namespace Metin2SpeechToData {
 			mapper.AssignToHotkey(Keys.F3, "help");
 			mapper.AssignToHotkey(Keys.F4, "quit");
 			mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
-
 			bool continueRunning = true;
 			//
 

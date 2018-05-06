@@ -61,6 +61,7 @@
     <Compile Include="File Parsers\DefinitionParserData.cs" />
     <Compile Include="DropOutStack.cs" />
     <Compile Include="EnemyHandling.cs" />
+    <Compile Include="File Parsers\HotkeyPresetParser.cs" />
     <Compile Include="File Parsers\MobAsociatedDrops.cs" />
     <Compile Include="File Parsers\MobParserData.cs" />
     <Compile Include="HotKeyManager.cs" />

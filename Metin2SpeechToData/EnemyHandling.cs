@@ -58,6 +58,7 @@ namespace Metin2SpeechToData {
 		/// <param name="args">Always supply at least string.Empty as args!</param>
 		public void EnemyTargetingModifierRecognized(object sender, ModiferRecognizedEventArgs args) {
 			if (args.modifier == SpeechRecognitionHelper.ModifierWords.NEW_TARGET) {
+
 				switch (state) {
 					case EnemyState.NO_ENEMY: {
 						string enemy = GetEnemy();
@@ -68,7 +69,7 @@ namespace Metin2SpeechToData {
 						currentEnemy = actualEnemyName;
 						Console.WriteLine("Acquired target: " + currentEnemy);
 						stack.Clear();
-						break;
+						return;
 					}
 					case EnemyState.FIGHTING: {
 						state = EnemyState.NO_ENEMY;
@@ -76,16 +77,15 @@ namespace Metin2SpeechToData {
 						Program.interaction.AddNumberTo(new ExcelCellAddress(1, 5), 1);
 						currentEnemy = "";
 						stack.Clear();
-						if (args.triggeringItem != "") {
-							EnemyTargetingModifierRecognized(SpeechRecognitionHelper.ModifierWords.NEW_TARGET, args);
-						}
-						break;
+						EnemyTargetingModifierRecognized(this, args);
+						return;
 					}
 				}
 			}
 			else if (args.modifier == SpeechRecognitionHelper.ModifierWords.TARGET_KILLED) {
 				Program.interaction.OpenWorksheet(DefinitionParser.instance.currentGrammarFile.ID);
-				EnemyTargetingModifierRecognized(this, args);
+				currentEnemy = "";
+				currentItem = "";
 			}
 			else if (args.modifier == SpeechRecognitionHelper.ModifierWords.UNDO) {
 				ItemInsertion action = stack.Peek();
@@ -123,6 +123,10 @@ namespace Metin2SpeechToData {
 			Program.interaction.AddNumberTo(address, amount);
 			stack.Push(new ItemInsertion { addr = address, count = amount });
 		}
+		public void ItemDropped(string item, int amount = 1) {
+			ItemDropped(DefinitionParser.instance.currentGrammarFile.GetItemEntry(item), amount);
+		}
+
 
 		public void CleanUp() {
 			state = EnemyState.NO_ENEMY;

@@ -4,7 +4,7 @@ using OfficeOpenXml;
 using System.Threading;
 
 namespace Metin2SpeechToData.Chests {
-	class ChestSpeechRecognized {
+	class ChestSpeechRecognized : IDisposable {
 		private SpeechRecognitionEngine game;
 		private SpeechRecognitionEngine numbers;
 		private ChestVoiceManager manager;
@@ -25,11 +25,6 @@ namespace Metin2SpeechToData.Chests {
 			numbers.LoadGrammar(new Grammar(new Choices(strs)));
 		}
 
-		~ChestSpeechRecognized() {
-			numbers.SpeechRecognized -= Numbers_SpeechRecognized;
-			game.SpeechRecognized -= Game_SpeechRecognized;
-			numbers.Dispose();
-		}
 
 		public void Subscribe(SpeechRecognitionEngine game) {
 			this.game = game;
@@ -94,5 +89,26 @@ namespace Metin2SpeechToData.Chests {
 			public ExcelCellAddress addr;
 			public int count;
 		}
+
+		#region IDisposable Support
+		private bool disposedValue = false;
+
+		protected virtual void Dispose(bool disposing) {
+			if (!disposedValue) {
+				numbers.SpeechRecognized -= Numbers_SpeechRecognized;
+				game.SpeechRecognized -= Game_SpeechRecognized;
+				if (disposing) {
+					game.Dispose();
+					numbers.Dispose();
+					evnt.Dispose();
+				}
+				disposedValue = true;
+			}
+		}
+
+		public void Dispose() {
+			Dispose(true);
+		}
+		#endregion
 	}
 }
