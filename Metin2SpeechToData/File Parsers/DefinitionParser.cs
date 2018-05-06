@@ -146,7 +146,7 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		public Grammar GetMobGrammar(string identifier) {
 			foreach (MobParserData def in getMobDefinitions) {
-				if (def.ID == identifier) {
+				if (def.ID == "Mob_" + identifier) {
 					return def.grammar;
 				}
 			}
@@ -170,7 +170,7 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		public MobParserData GetMobDefinitionByName(string name) {
 			foreach (MobParserData data in getMobDefinitions) {
-				if (data.ID == name) {
+				if (data.ID == "Mob_" + name) {
 					return data;
 				}
 			}

@@ -120,7 +120,7 @@ namespace Metin2SpeechToData {
 
 		public void InitMobSheet(string mobName) {
 			_currentSheet = content.Worksheets[mobName];
-			SpreadsheetHelper.Dicts dicts = templates.InitializeMobSheet(mobName, Program.enemyHandling.mobDrops);
+			SpreadsheetHelper.Dicts dicts = templates.InitializeMobSheet(mobName, Program.gameRecognizer.enemyHandling.mobDrops);
 			if (!sheetToAdresses.ContainsKey(mobName)) {
 				sheetToAdresses.Add(mobName, dicts.addresses);
 				sheetToGroups.Add(mobName, dicts.groups);
@@ -135,7 +135,7 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		public void AddItemEntryToCurrentSheet(DefinitionParserData.Item entry) {
 
-			ExcelCellAddress current = new ExcelCellAddress(2, 1 + Program.enemyHandling.mobDrops.GetGroupNumberForEnemy(_currentSheet.Name, entry.group) * 4);
+			ExcelCellAddress current = new ExcelCellAddress(2, 1 + Program.gameRecognizer.enemyHandling.mobDrops.GetGroupNumberForEnemy(_currentSheet.Name, entry.group) * 4);
 			int maxDetph = 10;
 
 			//Add the group if it does't exist
