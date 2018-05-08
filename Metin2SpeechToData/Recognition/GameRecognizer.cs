@@ -1,51 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Speech.Recognition;
 
 
 namespace Metin2SpeechToData {
-	public class GameRecognizer: IDisposable {
-
-		public delegate void Recognition(object sender, RecognitionState state);
-		public delegate void Modifier(object sender, ModiferRecognizedEventArgs args);
+	public class GameRecognizer: RecognitionBase {
 
 		public static event Modifier OnModifierRecognized;
-
-		public enum RecognitionState {
-			INACTIVE,
-			ACTIVE,
-			SWITCHING,
-			PAUSED,
-			STOPPED,
-		}
 
 		public RecognitionState currentState { get; private set; }
 
 		public SpeechRecognitionHelper helper;
 		public EnemyHandling enemyHandling;
 
-		/// <summary>
-		/// Get currently loded grammars by name with indexes
-		/// </summary>
-		public Dictionary<string, int> getCurrentGrammars { get; } = new Dictionary<string, int>();
-
-		private SpeechRecognitionEngine mainGameRecognizer;
-
-		public GameRecognizer() {
-			mainGameRecognizer = new SpeechRecognitionEngine();
-			mainGameRecognizer.SetInputToDefaultAudioDevice();
-			mainGameRecognizer.InitialSilenceTimeout = new TimeSpan(1000);
-
+		public GameRecognizer(): base() {
 			enemyHandling = new EnemyHandling();
 			helper = new SpeechRecognitionHelper(this);
 			currentState = RecognitionState.INACTIVE;
-			helper.OnRecognitionChange += OnRecognitionChange;
 
-			mainGameRecognizer.LoadGrammar(new Grammar(new Choices(Program.controlCommands.getNewTargetCommand)));
-			mainGameRecognizer.LoadGrammar(new Grammar(new Choices(Program.controlCommands.getTargetKilledCommand)));
-			mainGameRecognizer.LoadGrammar(new Grammar(new Choices(Program.controlCommands.getUndoCommand)));
-			mainGameRecognizer.LoadGrammar(new Grammar(new Choices(Program.controlCommands.getRemoveTargetCommand)));
+			mainRecognizer.LoadGrammar(new Grammar(new Choices(Program.controlCommands.getNewTargetCommand)));
+			mainRecognizer.LoadGrammar(new Grammar(new Choices(Program.controlCommands.getTargetKilledCommand)));
+			mainRecognizer.LoadGrammar(new Grammar(new Choices(Program.controlCommands.getUndoCommand)));
+			mainRecognizer.LoadGrammar(new Grammar(new Choices(Program.controlCommands.getRemoveTargetCommand)));
 			
 			getCurrentGrammars.Add(Program.controlCommands.getNewTargetCommand, 0);
 			getCurrentGrammars.Add(Program.controlCommands.getTargetKilledCommand, 1);
@@ -53,44 +29,20 @@ namespace Metin2SpeechToData {
 			getCurrentGrammars.Add(Program.controlCommands.getRemoveTargetCommand, 3);
 		}
 
-		public void SwitchGrammar(string grammarID) {
+		public override void SwitchGrammar(string grammarID) {
 			Grammar selected = DefinitionParser.instance.GetGrammar(grammarID);
-			if(DefinitionParser.instance.currentMobGrammarFile != null) {
+			if (DefinitionParser.instance.currentMobGrammarFile != null) {
 				enemyHandling.SwitchGrammar(grammarID);
 			}
-			mainGameRecognizer.LoadGrammar(selected);
-
-			for (int i = 0; i < mainGameRecognizer.Grammars.Count; i++) {
-				if(mainGameRecognizer.Grammars[i].Name == grammarID) {
-					getCurrentGrammars.Add(grammarID, i);
-				}
-			}
+			mainRecognizer.LoadGrammar(selected);
+			base.SwitchGrammar(grammarID);
 		}
 
 
-		private void OnRecognitionChange(object sender, RecognitionState state) {
+		public override void OnRecognitionStateChanged(object sender, RecognitionState state) {
+			base.OnRecognitionStateChanged(sender, state);
 			switch (state) {
-				case RecognitionState.INACTIVE: {
-					if (Program.debug) {
-						Console.WriteLine("Currently inactive");
-					}
-					mainGameRecognizer.SpeechRecognized -= Game_SpeechRecognized_Wrapper;
-					mainGameRecognizer.RecognizeAsyncStop();
-					break;
-				}
-				case RecognitionState.ACTIVE: {
-					if (Program.debug) {
-						Console.WriteLine("Currently active");
-					}
-					mainGameRecognizer.SetInputToDefaultAudioDevice();
-					mainGameRecognizer.SpeechRecognized += Game_SpeechRecognized_Wrapper;
-					mainGameRecognizer.RecognizeAsync(RecognizeMode.Multiple);
-					break;
-				}
 				case RecognitionState.PAUSED: {
-					if (Program.debug) {
-						Console.WriteLine("Currently paused");
-					}
 					if (currentState == RecognitionState.ACTIVE) {
 						DefinitionParser.instance.hotkeyParser.SetKeysActiveState(false);
 						Console.WriteLine("Pausing Recognition");
@@ -102,17 +54,8 @@ namespace Metin2SpeechToData {
 					break;
 				}
 				case RecognitionState.STOPPED: {
-					if (Program.debug) {
-						Console.WriteLine("Currently stoped");
-					}
-					if(currentState == RecognitionState.PAUSED) {
+					if (currentState == RecognitionState.PAUSED) {
 						Program.mapper.FreeCustom();
-					}
-					break;
-				}
-				case RecognitionState.SWITCHING: {
-					if (Program.debug) {
-						Console.WriteLine("Currenly switching");
 					}
 					break;
 				}
@@ -120,59 +63,52 @@ namespace Metin2SpeechToData {
 			currentState = state;
 		}
 
-		private void Game_ModifierRecognized(object sender, SpeechRecognizedArgs e) {
-			SpeechRecognitionHelper.ModifierWords modifier = SpeechRecognitionHelper.reverseModifierDict[e.text];
 
-			#region TODO Disable unwanted grammars
-			switch (modifier) {
-				case SpeechRecognitionHelper.ModifierWords.NEW_TARGET: {
-					mainGameRecognizer.Grammars[primaryGrammarIndex].Enabled = false;
-					mainGameRecognizer.Grammars[getCurrentGrammars[Program.controlCommands.getNewTargetCommand]].Enabled = false;
-					break;
-				}
-				case SpeechRecognitionHelper.ModifierWords.UNDO: {
-					break;
-				}
-				case SpeechRecognitionHelper.ModifierWords.TARGET_KILLED: {
-					break;
-				}
+		protected override void SpeechRecognized(object sender, SpeechRecognizedArgs args) {
+			if (SpeechRecognitionHelper.reverseModifierDict.ContainsKey(args.text)) {
+				ModifierRecognized(this, args);
+				return;
 			}
-			#endregion
+			Console.WriteLine(args.text + " -- " + args.confidence);
+			DefinitionParserData.Item item = DefinitionParser.instance.currentGrammarFile.GetItemEntry(DefinitionParser.instance.currentGrammarFile.GetMainPronounciation(args.text));
+			enemyHandling.ItemDropped(item);
+		}
+
+
+		protected override void ModifierRecognized(object sender, SpeechRecognizedArgs args) {
+			SpeechRecognitionHelper.ModifierWords modifier = SpeechRecognitionHelper.reverseModifierDict[args.text];
+
+			PreModiferEvaluation(modifier);
 
 			OnModifierRecognized?.Invoke(this, new ModiferRecognizedEventArgs() {
 				modifier = modifier,
-				triggeringItem = e.text,
+				triggeringItem = args.text,
 			});
 
-			#region TODO Reenable unwanted grammars
-			switch (modifier) {
+			PostModiferEvaluation(modifier);
+		}
+
+
+		protected override void PreModiferEvaluation(SpeechRecognitionHelper.ModifierWords current) {
+			base.PreModiferEvaluation(current);
+			switch (current) {
 				case SpeechRecognitionHelper.ModifierWords.NEW_TARGET: {
-					mainGameRecognizer.Grammars[primaryGrammarIndex].Enabled = true;
-					mainGameRecognizer.Grammars[getCurrentGrammars[Program.controlCommands.getNewTargetCommand]].Enabled = true;
-					break;
-				}
-				case SpeechRecognitionHelper.ModifierWords.UNDO: {
-					break;
-				}
-				case SpeechRecognitionHelper.ModifierWords.TARGET_KILLED: {
+					mainRecognizer.Grammars[primaryGrammarIndex].Enabled = false;
+					mainRecognizer.Grammars[getCurrentGrammars[Program.controlCommands.getNewTargetCommand]].Enabled = false;
 					break;
 				}
 			}
-			#endregion
 		}
 
-
-		private void Game_SpeechRecognized_Wrapper(object sender, SpeechRecognizedEventArgs e) {
-			Game_SpeechRecognized(sender, new SpeechRecognizedArgs(e.Result.Text, e.Result.Confidence));
-		}
-		private void Game_SpeechRecognized(object sender, SpeechRecognizedArgs e) {
-			if (SpeechRecognitionHelper.reverseModifierDict.ContainsKey(e.text)) {
-				Game_ModifierRecognized(this, e);
-				return;
+		protected override void PostModiferEvaluation(SpeechRecognitionHelper.ModifierWords current) {
+			base.PostModiferEvaluation(current);
+			switch (current) {
+				case SpeechRecognitionHelper.ModifierWords.NEW_TARGET: {
+					mainRecognizer.Grammars[primaryGrammarIndex].Enabled = true;
+					mainRecognizer.Grammars[getCurrentGrammars[Program.controlCommands.getNewTargetCommand]].Enabled = true;
+					break;
+				}
 			}
-			Console.WriteLine(e.text + " -- " + e.confidence);
-			DefinitionParserData.Item item = DefinitionParser.instance.currentGrammarFile.GetItemEntry(DefinitionParser.instance.currentGrammarFile.GetMainPronounciation(e.text));
-			enemyHandling.ItemDropped(item);
 		}
 
 		/// <summary>
@@ -182,10 +118,6 @@ namespace Metin2SpeechToData {
 			get {
 				return getCurrentGrammars[DefinitionParser.instance.currentGrammarFile.ID];
 			}
-		}
-
-		public void Dispose() {
-			((IDisposable)mainGameRecognizer).Dispose();
 		}
 	}
 }

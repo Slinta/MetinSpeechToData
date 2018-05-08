@@ -18,7 +18,6 @@ namespace Metin2SpeechToData {
 		private string currentEnemy = "";
 		private string currentItem = "";
 
-
 		public EnemyHandling() {
 			GameRecognizer.OnModifierRecognized += EnemyTargetingModifierRecognized;
 			mobDrops = new MobAsociatedDrops();

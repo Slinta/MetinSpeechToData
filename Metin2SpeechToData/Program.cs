@@ -112,7 +112,16 @@ namespace Metin2SpeechToData {
 								break;
 							}
 							case "chest": {
-								//TODO: Reimplement chests
+								parser = new DefinitionParser(new System.Text.RegularExpressions.Regex(@"\w+\ (C|c)hest[+-]?\.definition"));
+								ChestRecognizer chestRecognizer = new ChestRecognizer();
+								chestRecognizer.helper.AcquireControl();
+								Console.WriteLine("Returned to Main control!");
+								mapper.FreeGame();
+								mapper.AssignToHotkey(Keys.F1, "voice");
+								mapper.AssignToHotkey(Keys.F2, "chest");
+								mapper.AssignToHotkey(Keys.F3, "help");
+								mapper.AssignToHotkey(Keys.F4, "quit");
+								mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
 								break;
 							}
 							case "clear": {
