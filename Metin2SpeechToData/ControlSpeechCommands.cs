@@ -18,6 +18,7 @@ namespace Metin2SpeechToData {
 		public string getUndoCommand { get; private set; }
 
 		public string getHotkeyAssignCommand { get; private set; }
+		public string getRemoveTargetCommand { get; private set; }
 
 		public ControlSpeechCommands(string relativeFilePath) {
 			if (!File.Exists(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + relativeFilePath)) {
@@ -63,6 +64,10 @@ namespace Metin2SpeechToData {
 						}
 						case "TARGET_KILLED": {
 							getTargetKilledCommand = modified;
+							break;
+						}
+						case "REMOVE_TARGET": {
+							getRemoveTargetCommand = modified;
 							break;
 						}
 						case "UNDO": {

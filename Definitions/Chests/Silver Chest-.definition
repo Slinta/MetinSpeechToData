@@ -1,0 +1,51 @@
+Groups{
+	Rods
+	Veins
+	Chests
+	Runes
+	Books
+	Herbs
+	Goodies
+}
+
+Gold rod 500K/ Half a million, 500000, Rods
+Gold rod 1kk/ Million/ Gold rod 1 million, 1000000, Rods
+Gold rod 2kk/ Two million, 2000000, Rods
+
+Silver Chest, 800000, Chests
+Silver Chest +, 600000, Chests
+Golden Chest/ Gold Chest, 500000, Chests
+Golden Key/ Gold Key, 500000, Chests
+
+Gold Vein, 100000, Veins
+Silver Vein, 100000, Veins
+God tear Vein, 100000, Veins
+Silica Vein, 100000, Veins
+
+Enchanted Parchment/ Enchanted pergamen, 1000000, Goodies
+Empower item/ Zesílit předmět, 750000, Goodies
+Cursed thing/ Uhranutá, 1000000, Goodies
+Experience Ring/ Expák/ Exp Ring, 1000000, Goodies
+Theie's Gloves/ Zoldějky/ Zlodějské Rukavice, 1000000, Goodies
+Orb of Transformation/ Orb/ Kulička/ Kulička proměny, 4000000, Goodies
+Meteor Easy, 100000, Goodies
+Meteor Medium, 200000, Goodies
+ 
+Seed/ Semínko/ Semeno, 1000000, Herbs
+Blue Herb/ Blue Flower, 10000, Herbs
+Mushroom Tue, 10000, Herbs
+
+Book of Mining, 200, Books
+
+Rune bow/ Rune hwal, 400000, Runes
+Rune shoes/ Rune boots/ Rune gudu, 500000, Runes
+Rune armour/ Rune armor/Rune gabos, 1000000, Runes
+Rune earrings/Rune gwi, 500000, Runes
+Rune dagger/Rune kal, 400000, Runes
+Rune hat/ Rune helmes, 500000, Runes
+Rune sword/ Rune geom, 600000, Runes
+Rune bell/ Rune jong, 400000, Runes
+Rune double handed sword/ Rune chang, 500000, Runes
+Rune bracelet/Rune pai/ Rune paji/ Rune palji, 500000, Runes
+Rune necklace/Rune mog, 500000, Runes
+Rune shield/Rune bangpae, 500000, Runes

@@ -72,10 +72,6 @@ namespace Metin2SpeechToData {
 				getMobDefinitions = new MobParserData().Parse(d);
 			}
 		}
-
-		~DefinitionParser() {
-			Console.WriteLine("Destructor of definition parser");
-		}
 		#endregion
 
 		#region FileParsing base

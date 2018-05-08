@@ -17,38 +17,62 @@ Silver Chest +, 600000, Chests
 Golden Chest/ Gold Chest, 500000, Chests
 Golden Key/ Gold Key, 500000, Chests
 
+
 Gold Vein, 100000, Veins
 Silver Vein, 100000, Veins
 God tear Vein, 100000, Veins
 Silica Vein, 100000, Veins
+Ebony Vein, 100000, Veins
+Nephrite Vein, 100000, Veins
+Fossil Wood Vein, 100000, Veins
+Pearl Vein, 100000, Veins
+Copper Vein, 100000, Veins
+White gold Vein, 100000, Veins
+Crystal vein, 100000, Veins
+Seashell vein/ shells vein, 100000, Veins
+ 
 
 Enchanted Parchment/ Enchanted pergamen, 1000000, Goodies
 Empower item/ Zesílit předmět, 750000, Goodies
 Cursed thing/ Uhranutá, 1000000, Goodies
 Experience Ring/ Expák/ Exp Ring, 1000000, Goodies
-Theie's Gloves/ Zoldějky/ Zlodějské Rukavice, 1000000, Goodies
+Thieve's Gloves/ Zoldějky/ Zlodějské Rukavice, 1000000, Goodies
 Orb of Transformation/ Orb/ Kulička/ Kulička proměny, 4000000, Goodies
 Meteor Easy, 100000, Goodies
 Meteor Medium, 200000, Goodies
  
+ 
 Seed/ Semínko/ Semeno, 1000000, Herbs
 Blue Herb/ Blue Flower, 10000, Herbs
 Mushroom Tue, 10000, Herbs
+Kakiflower, 10000, Herbs
+Bell flower, 10000, Herbs
+Moruše, 10000, Herbs
+Dates/ Datle, 10000, Herbs
+Rhododendron, 10000, Herbs
+
 
 Book of Mining, 200, Books
-Book WeiLiao Zi, 200, Books
-Book of Change Advanced, 200, Books
+Book of change beginner/ Book of change easy, 200, Books
+Book of change advanced/ Book of change medium, 200, Books
+Book of change expert/ Book of change hard, 200, Books
+Book of fishing, 200, Books
+Fishing manual, 200, Books
+Book of equestrian arts beginner/ Book of equestrian arts easy, 200, Books
+Book of equestrian arts advanced/ Book of equestrian arts medium, 200, Books
+Book of equestrian arts expert/ Book of equestrian arts hard, 200, Books
+Equestrian Medal, 200000, Goodies
 
-
-Rune bow/ Rune hwal, 400000, Runes
-Rune shoes/ Rune boots/ Rune gudu, 500000, Runes
-Rune armour/ Rune armor/Rune gabos, 1000000, Runes
-Rune earrings/Rune gwi, 500000, Runes
-Rune dagger/Rune kal, 400000, Runes
-Rune hat/ Rune helmes, 500000, Runes
-Rune sword/ Rune geom, 600000, Runes
-Rune bell/ Rune jong, 400000, Runes
-Rune double handed sword/ Rune chang, 500000, Runes
-Rune bracelet/Rune pai/ Rune paji, 500000, Runes
-Rune necklace/Rune mog, 500000, Runes
-Rune shield/ Rune bangpae, 500000, Runes
+Rune hwal/ Rune bow, 400000, Runes
+Rune gudu/ Rune shoes/ Rune boots, 500000, Runes
+Rune gab-os/ Rune armour/ Rune armor, 1000000, Runes
+Rune gwi/ Rune earrings, 500000, Runes
+Rune kal/ Rune dagger, 400000, Runes
+Rune helmes/ Rune helmet, 500000, Runes
+Rune geom/ Rune sword, 600000, Runes
+Rune jong/ Rune bell, 400000, Runes
+Rune chang/ Rune two handed, 500000, Runes
+Rune paji/ Rune bracelet/ Rune pai, 500000, Runes
+Rune mog/ Rune necklace, 500000, Runes
+Rune bangpae/ Rune shield, 500000, Runes
+Rune buchae/ Rune fans, 400000, Runes

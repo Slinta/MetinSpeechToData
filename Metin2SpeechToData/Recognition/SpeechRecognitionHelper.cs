@@ -11,6 +11,7 @@ namespace Metin2SpeechToData {
 		public enum ModifierWords {
 			NONE,
 			NEW_TARGET,
+			REMOVE_TARGET,
 			UNDO,
 			TARGET_KILLED,
 			ASSIGN_HOTKEY_TO_ITEM
@@ -21,12 +22,14 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		public static IReadOnlyDictionary<ModifierWords, string> modifierDict = new Dictionary<ModifierWords, string>() {
 			{ ModifierWords.NEW_TARGET , Program.controlCommands.getNewTargetCommand },
+			{ ModifierWords.REMOVE_TARGET, Program.controlCommands.getRemoveTargetCommand },
 			{ ModifierWords.TARGET_KILLED, Program.controlCommands.getTargetKilledCommand },
 			{ ModifierWords.UNDO, Program.controlCommands.getUndoCommand },
 			{ ModifierWords.ASSIGN_HOTKEY_TO_ITEM, Program.controlCommands.getHotkeyAssignCommand }
 		};
 		public static IReadOnlyDictionary<string, ModifierWords> reverseModifierDict = new Dictionary<string, ModifierWords>() {
 			{ Program.controlCommands.getNewTargetCommand , ModifierWords.NEW_TARGET },
+			{ Program.controlCommands.getRemoveTargetCommand, ModifierWords.REMOVE_TARGET  },
 			{ Program.controlCommands.getTargetKilledCommand, ModifierWords.TARGET_KILLED },
 			{ Program.controlCommands.getUndoCommand, ModifierWords.UNDO },
 			{ Program.controlCommands.getHotkeyAssignCommand, ModifierWords.ASSIGN_HOTKEY_TO_ITEM },
@@ -47,7 +50,7 @@ namespace Metin2SpeechToData {
 
 		private void InitializeControl() {
 			control = new SpeechRecognitionEngine();
-			Grammar controlGrammar = new Grammar(new Choices( Program.controlCommands.getStartCommand, Program.controlCommands.getPauseCommand,
+			Grammar controlGrammar = new Grammar(new Choices(Program.controlCommands.getStartCommand, Program.controlCommands.getPauseCommand,
 															  Program.controlCommands.getStopCommand, Program.controlCommands.getSwitchGrammarCommand)) { Name = "Controler Grammar" };
 
 			control.LoadGrammar(controlGrammar);
@@ -81,7 +84,7 @@ namespace Metin2SpeechToData {
 
 			if (e.text == Program.controlCommands.getStartCommand) {
 				Console.Write("Starting Recognition... ");
-				if (masterRecognizer.getCurrentGrammars.Keys.Count == 0) {
+				if (masterRecognizer.getCurrentGrammars.Keys.Count <= modifierDict.Count - 1) {
 					Console.WriteLine("Current grammar: NOT INITIALIZED!");
 					Console.WriteLine("Set grammar first with " + Program.controlCommands.getSwitchGrammarCommand);
 					return;
@@ -103,15 +106,12 @@ namespace Metin2SpeechToData {
 				}
 			}
 			else if (e.text == Program.controlCommands.getStopCommand) {
-				Program.mapper.FreeCustom();
+				ReturnControl();
 				Console.WriteLine("Stopping Recognition!");
 			}
 			else if (e.text == Program.controlCommands.getPauseCommand) {
-				Console.WriteLine("Pausing Recognition!");
+				OnRecognitionChange(this, GameRecognizer.RecognitionState.PAUSED);
 				LoadNewControlGrammar(MenuGrammarWithout(new string[1] { Program.controlCommands.getPauseCommand }));
-				OnRecognitionChange(this, GameRecognizer.RecognitionState.INACTIVE);
-				DefinitionParser.instance.hotkeyParser.SetKeysActiveState(false);
-				Program.mapper.Free(Keys.F4, true);
 			}
 			else if (e.text == Program.controlCommands.getSwitchGrammarCommand) {
 				Choices definitions = new Choices();
@@ -170,18 +170,22 @@ namespace Metin2SpeechToData {
 			Console.WriteLine("(F1) or '" + Program.controlCommands.getStartCommand + "' to start");
 		}
 
+
+
+		private ManualResetEventSlim signal = new ManualResetEventSlim();
+		private EventHandler<SpeechRecognizedEventArgs> handle;
+
 		/// <summary>
 		/// Prevents Console.ReadLine() from Main from consuming lines meant for different prompt
 		/// </summary>
 		public void AcquireControl() {
-			ManualResetEventSlim signal = new ManualResetEventSlim();
-			EventHandler<SpeechRecognizedEventArgs> handle = new EventHandler<SpeechRecognizedEventArgs>(
-				(object o, SpeechRecognizedEventArgs e) => {
-					if (e.Result.Text == Program.controlCommands.getStopCommand) {
-						signal.Set();
-					}
+			handle = new EventHandler<SpeechRecognizedEventArgs>(
+			(object o, SpeechRecognizedEventArgs e) => {
+				if (e.Result.Text == Program.controlCommands.getStopCommand) {
+					signal.Set();
 				}
-			);
+			});
+
 			if (control == null) {
 				InitializeControl();
 			}
@@ -196,6 +200,9 @@ namespace Metin2SpeechToData {
 			}
 		}
 
+		private void ReturnControl() {
+			signal.Set();
+		}
 
 		private void LoadNewControlGrammar(Grammar grammar) {
 			control.UnloadGrammar(control.Grammars[0]);

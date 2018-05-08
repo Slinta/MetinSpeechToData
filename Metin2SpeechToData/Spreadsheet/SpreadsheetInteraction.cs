@@ -200,8 +200,8 @@ namespace Metin2SpeechToData {
 			try { 
 				xlsxFile.Save();
 			}
-			catch {
-				Console.WriteLine("Could not update. Ignoring.");
+			catch(Exception e) {
+				Console.WriteLine("Could not update. IS the file already open ?\n" + e.Message);
 			}
 		}
 

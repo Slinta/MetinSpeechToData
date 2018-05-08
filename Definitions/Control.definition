@@ -2,7 +2,18 @@
 # lines with '#' are ignored
 # !DO NOT MODIFY KEYWORDS BEFORE ':' YOU HAVE BEEN WARNED!
 
-START: Computer begin recognition
+START: Computer start recognition
 PAUSE: Computer pause recognition
-STOP: Computer stop and quit recognition
+STOP: Computer stop and quit
 SWITCH: Computer switch grammar
+CONFIRM: Confirm
+REFUSE: Refuse
+
+# Below this line, commands are used as modifiers, and can be said while playing
+
+NEW_TARGET: New target
+TARGET_KILLED: Target killed
+REMOVE_TARGET: Remove target
+UNDO: Undo
+
+HOTKEY_ASSIGN: Assign hotkey

@@ -45,9 +45,12 @@ namespace Metin2SpeechToData {
 			mainGameRecognizer.LoadGrammar(new Grammar(new Choices(Program.controlCommands.getNewTargetCommand)));
 			mainGameRecognizer.LoadGrammar(new Grammar(new Choices(Program.controlCommands.getTargetKilledCommand)));
 			mainGameRecognizer.LoadGrammar(new Grammar(new Choices(Program.controlCommands.getUndoCommand)));
+			mainGameRecognizer.LoadGrammar(new Grammar(new Choices(Program.controlCommands.getRemoveTargetCommand)));
+			
 			getCurrentGrammars.Add(Program.controlCommands.getNewTargetCommand, 0);
 			getCurrentGrammars.Add(Program.controlCommands.getTargetKilledCommand, 1);
 			getCurrentGrammars.Add(Program.controlCommands.getUndoCommand, 2);
+			getCurrentGrammars.Add(Program.controlCommands.getRemoveTargetCommand, 3);
 		}
 
 		public void SwitchGrammar(string grammarID) {
@@ -88,11 +91,22 @@ namespace Metin2SpeechToData {
 					if (Program.debug) {
 						Console.WriteLine("Currently paused");
 					}
+					if (currentState == RecognitionState.ACTIVE) {
+						DefinitionParser.instance.hotkeyParser.SetKeysActiveState(false);
+						Console.WriteLine("Pausing Recognition");
+					}
+					else {
+						Console.WriteLine("Recognition not running!");
+						return;
+					}
 					break;
 				}
 				case RecognitionState.STOPPED: {
 					if (Program.debug) {
 						Console.WriteLine("Currently stoped");
+					}
+					if(currentState == RecognitionState.PAUSED) {
+						Program.mapper.FreeCustom();
 					}
 					break;
 				}
@@ -103,6 +117,7 @@ namespace Metin2SpeechToData {
 					break;
 				}
 			}
+			currentState = state;
 		}
 
 		private void Game_ModifierRecognized(object sender, SpeechRecognizedArgs e) {

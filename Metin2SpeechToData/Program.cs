@@ -103,6 +103,7 @@ namespace Metin2SpeechToData {
 								gameRecognizer = new GameRecognizer();
 								gameRecognizer.helper.AcquireControl();
 								Console.WriteLine("Returned to Main control!");
+								mapper.FreeGame();
 								mapper.AssignToHotkey(Keys.F1, "voice");
 								mapper.AssignToHotkey(Keys.F2, "chest");
 								mapper.AssignToHotkey(Keys.F3, "help");

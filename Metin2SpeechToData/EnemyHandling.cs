@@ -27,6 +27,7 @@ namespace Metin2SpeechToData {
 			masterMobRecognizer = new SpeechRecognitionEngine();
 			masterMobRecognizer.SetInputToDefaultAudioDevice();
 			masterMobRecognizer.SpeechRecognized += MasterMobRecognizer_SpeechRecognized;
+			masterMobRecognizer.LoadGrammar(new Grammar(new Choices(Program.controlCommands.getRemoveTargetCommand)));
 		}
 
 		/// <summary>
@@ -63,6 +64,10 @@ namespace Metin2SpeechToData {
 					case EnemyState.NO_ENEMY: {
 						string enemy = GetEnemy();
 						evnt.Reset();
+						if (enemy == Program.controlCommands.getRemoveTargetCommand) {
+							Console.WriteLine("Targetting calcelled!");
+							return;
+						}
 						string actualEnemyName = DefinitionParser.instance.currentMobGrammarFile.GetMainPronounciation(enemy);
 						state = EnemyState.FIGHTING;
 						Program.interaction.OpenWorksheet(actualEnemyName);
@@ -83,9 +88,19 @@ namespace Metin2SpeechToData {
 				}
 			}
 			else if (args.modifier == SpeechRecognitionHelper.ModifierWords.TARGET_KILLED) {
+				Console.WriteLine("Killed " + currentEnemy + ", the death count increased");
+				Program.interaction.AddNumberTo(new ExcelCellAddress(1, 5), 1);
+				currentEnemy = "";
+				currentItem = "";
+				state = EnemyState.NO_ENEMY;
+				stack.Clear();
+			}
+			else if (args.modifier == SpeechRecognitionHelper.ModifierWords.REMOVE_TARGET) {
 				Program.interaction.OpenWorksheet(DefinitionParser.instance.currentGrammarFile.ID);
 				currentEnemy = "";
 				currentItem = "";
+				state = EnemyState.NO_ENEMY;
+				Console.WriteLine("Reset current target to NONE");
 			}
 			else if (args.modifier == SpeechRecognitionHelper.ModifierWords.UNDO) {
 				ItemInsertion action = stack.Peek();
