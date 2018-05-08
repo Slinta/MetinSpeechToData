@@ -54,6 +54,7 @@ namespace Metin2SpeechToData {
 			for (int i = 0; i < filesPresent.Length; i++) {
 				if (filesPresent[i].Name.StartsWith("Mob_")) {
 					Mob_indexes.Add(i);
+
 					continue;
 				}
 				DefinitionParserData data = new DefinitionParserData();
@@ -70,6 +71,13 @@ namespace Metin2SpeechToData {
 
 			if(Mob_indexes.Count != 0) {
 				getMobDefinitions = new MobParserData().Parse(d);
+				for (int i = 0; i < getMobDefinitions.Length; i++) {
+					for (int j = 0; j < getDefinitions.Length; j++) {
+						if(getMobDefinitions[i].ID == "Mob_" + getDefinitions[j].ID) {
+							getDefinitions[j].hasEnemyCompanionGrammar = true;
+						}
+					}
+				}
 			}
 		}
 		#endregion

@@ -4,8 +4,6 @@ using System.Speech.Recognition;
 
 namespace Metin2SpeechToData {
 	public abstract class RecognitionBase: IDisposable {
-
-
 		/// <summary>
 		/// Available recognizer states
 		/// </summary>
@@ -21,6 +19,7 @@ namespace Metin2SpeechToData {
 		public delegate void Modifier(object sender, ModiferRecognizedEventArgs args);
 		protected Dictionary<string, int> _currentGrammars;
 
+		public bool isPrimaryDefinitionLoaded { get; set; }
 
 		/// <summary>
 		/// Get currently loded grammars by name with indexes
@@ -73,7 +72,9 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		protected abstract void ModifierRecognized(object sender, SpeechRecognizedArgs args);
 
-
+		/// <summary>
+		/// Handler for changing recognition state, 
+		/// </summary>
 		public virtual void OnRecognitionStateChanged(object sender, RecognitionState state) {
 			switch (state) {
 				case RecognitionState.INACTIVE: {

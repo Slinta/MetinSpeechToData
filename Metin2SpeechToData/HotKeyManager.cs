@@ -230,15 +230,15 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Removes all stored hotkeys
 		/// </summary>
-		public void FreeAll() {
-			FreeControl();
-			FreeGame();
+		public void FreeAllHotkeys() {
+			FreeControlHotkeys();
+			FreeGameHotkeys();
 		}
 
 		/// <summary>
 		/// Removes all control hotkeys
 		/// </summary>
-		public void FreeControl() {
+		public void FreeControlHotkeys() {
 			foreach (KeyValuePair<Keys, ActionStashString> item in controlHotkeys) {
 				HotKeyManager.UnregisterHotKey(item.Value._unregID);
 			}
@@ -248,7 +248,7 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Removes all game hotkeys
 		/// </summary>
-		public void FreeGame() {
+		public void FreeGameHotkeys() {
 			foreach (KeyValuePair<Keys, ActionStashSpeechArgs> item in voiceHotkeys) {
 				HotKeyManager.UnregisterHotKey(item.Value._unregID);
 			}
@@ -258,7 +258,7 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Removes all custom hotkeys
 		/// </summary>
-		public void FreeCustom() {
+		public void FreeCustomHotkeys() {
 			foreach (int key in DefinitionParser.instance.hotkeyParser.activeKeyIDs) {
 				HotKeyManager.UnregisterHotKey(key);
 			}
@@ -267,7 +267,7 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Selectively remove a hotkey
 		/// </summary>
-		public void Free(Keys hotkey, bool unsubscribe, bool debug = false) {
+		public void FreeSpecific(Keys hotkey, bool unsubscribe, bool debug = false) {
 			if (voiceHotkeys.ContainsKey(hotkey)) {
 				if (unsubscribe) {
 					HotKeyManager.UnregisterHotKey(voiceHotkeys[hotkey]._unregID);
@@ -289,7 +289,7 @@ namespace Metin2SpeechToData {
 		#endregion
 
 		public void RemapHotkey(Keys key, Action<SpeechRecognizedArgs> action, SpeechRecognizedArgs arguments) {
-			Free(key, false);
+			FreeSpecific(key, false);
 			AssignToHotkey(key, action, arguments);
 		}
 

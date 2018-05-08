@@ -103,12 +103,12 @@ namespace Metin2SpeechToData {
 								gameRecognizer = new GameRecognizer();
 								gameRecognizer.helper.AcquireControl();
 								Console.WriteLine("Returned to Main control!");
-								mapper.FreeGame();
+								mapper.FreeGameHotkeys();
 								mapper.AssignToHotkey(Keys.F1, "voice");
 								mapper.AssignToHotkey(Keys.F2, "chest");
 								mapper.AssignToHotkey(Keys.F3, "help");
 								mapper.AssignToHotkey(Keys.F4, "quit");
-								mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
+								//mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
 								break;
 							}
 							case "chest": {
@@ -116,12 +116,12 @@ namespace Metin2SpeechToData {
 								ChestRecognizer chestRecognizer = new ChestRecognizer();
 								chestRecognizer.helper.AcquireControl();
 								Console.WriteLine("Returned to Main control!");
-								mapper.FreeGame();
+								mapper.FreeGameHotkeys();
 								mapper.AssignToHotkey(Keys.F1, "voice");
 								mapper.AssignToHotkey(Keys.F2, "chest");
 								mapper.AssignToHotkey(Keys.F3, "help");
 								mapper.AssignToHotkey(Keys.F4, "quit");
-								mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
+								//mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
 								break;
 							}
 							case "clear": {
@@ -235,7 +235,7 @@ namespace Metin2SpeechToData {
 					}
 				}
 				currCommand = "";
-				mapper.FreeGame();
+				mapper.FreeGameHotkeys();
 			}
 		}
 	}

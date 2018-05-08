@@ -16,8 +16,6 @@ namespace Metin2SpeechToData {
 		public MobAsociatedDrops() {
 			try {
 				getAllDropsFile = File.ReadAllLines(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + MOB_DROPS_FILE);
-				InitialiseDictionary();
-
 			}
 			catch {
 				using (StreamWriter sw = File.CreateText(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + MOB_DROPS_FILE)) {
@@ -25,10 +23,6 @@ namespace Metin2SpeechToData {
 				}
 				getAllDropsFile = File.ReadAllLines(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + MOB_DROPS_FILE);
 			}
-		}
-
-		void InitialiseDictionary() {
-			
 		}
 
 		public void UpdateDrops(string mobName, DefinitionParserData.Item item) {

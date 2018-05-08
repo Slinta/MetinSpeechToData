@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Speech.Recognition;
 using System.Threading;
+using static Metin2SpeechToData.SpeechRecognitionHelper;
 using OfficeOpenXml;
 
 namespace Metin2SpeechToData {
@@ -56,8 +57,8 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		/// <param name="keyWord">"NEW_TARGET" // "UNDO" // "REMOVE_TARGET" // TARGET_KILLED</param>
 		/// <param name="args">Always supply at least string.Empty as args!</param>
-		public void EnemyTargetingModifierRecognized(object sender, ModiferRecognizedEventArgs args) {
-			if (args.modifier == SpeechRecognitionHelper.ModifierWords.NEW_TARGET) {
+		private void EnemyTargetingModifierRecognized(object sender, ModiferRecognizedEventArgs args) {
+			if (args.modifier == ModifierWords.NEW_TARGET) {
 
 				switch (state) {
 					case EnemyState.NO_ENEMY: {
@@ -86,22 +87,20 @@ namespace Metin2SpeechToData {
 					}
 				}
 			}
-			else if (args.modifier == SpeechRecognitionHelper.ModifierWords.TARGET_KILLED) {
+			else if (args.modifier == ModifierWords.TARGET_KILLED) {
 				Console.WriteLine("Killed " + currentEnemy + ", the death count increased");
 				Program.interaction.AddNumberTo(new ExcelCellAddress(1, 5), 1);
-				currentEnemy = "";
-				currentItem = "";
-				state = EnemyState.NO_ENEMY;
-				stack.Clear();
+				EnemyTargetingModifierRecognized(this, new ModiferRecognizedEventArgs() { modifier = ModifierWords.REMOVE_TARGET });
 			}
-			else if (args.modifier == SpeechRecognitionHelper.ModifierWords.REMOVE_TARGET) {
+			else if (args.modifier == ModifierWords.REMOVE_TARGET) {
 				Program.interaction.OpenWorksheet(DefinitionParser.instance.currentGrammarFile.ID);
 				currentEnemy = "";
 				currentItem = "";
 				state = EnemyState.NO_ENEMY;
-				Console.WriteLine("Reset current target to NONE");
+				stack.Clear();
+				Console.WriteLine("Reset current target to 'None', switching to " + DefinitionParser.instance.currentGrammarFile.ID + " sheet.");
 			}
-			else if (args.modifier == SpeechRecognitionHelper.ModifierWords.UNDO) {
+			else if (args.modifier == ModifierWords.UNDO) {
 				ItemInsertion action = stack.Peek();
 				if (action.addr == null) {
 					Console.WriteLine("Nothing else to undo!");
@@ -147,6 +146,9 @@ namespace Metin2SpeechToData {
 			mobDrops = null;
 			stack.Clear();
 			GameRecognizer.OnModifierRecognized -= EnemyTargetingModifierRecognized;
+			evnt.Dispose();
+			masterMobRecognizer.SpeechRecognized -= MasterMobRecognizer_SpeechRecognized;
+			masterMobRecognizer.Dispose();
 		}
 
 		private struct ItemInsertion {

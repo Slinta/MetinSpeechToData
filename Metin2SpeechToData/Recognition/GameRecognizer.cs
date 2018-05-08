@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Speech.Recognition;
-
 
 namespace Metin2SpeechToData {
 	public class GameRecognizer: RecognitionBase {
@@ -55,7 +53,7 @@ namespace Metin2SpeechToData {
 				}
 				case RecognitionState.STOPPED: {
 					if (currentState == RecognitionState.PAUSED) {
-						Program.mapper.FreeCustom();
+						Program.mapper.FreeCustomHotkeys();
 					}
 					break;
 				}

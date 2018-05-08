@@ -14,7 +14,7 @@ namespace Metin2SpeechToData {
 		public SpeechRecognitionHelper helper;
 
 
-		public ChestRecognizer() {
+		public ChestRecognizer(): base() {
 			helper = new SpeechRecognitionHelper(this);
 			stack = new DropOutStack<ItemInsertion>(5);
 			evnt = new ManualResetEventSlim(false);
@@ -26,10 +26,14 @@ namespace Metin2SpeechToData {
 				strs[i] = i.ToString();
 			}
 			numbers.LoadGrammar(new Grammar(new Choices(strs)));
+			mainRecognizer.LoadGrammar(new Grammar(new Choices(Program.controlCommands.getUndoCommand)));
+			getCurrentGrammars.Add(Program.controlCommands.getUndoCommand, 2);
 		}
 
 
 		public override void SwitchGrammar(string grammarID) {
+			Grammar selected = DefinitionParser.instance.GetGrammar(grammarID);
+			mainRecognizer.LoadGrammar(selected);
 			base.SwitchGrammar(grammarID);
 		}
 
@@ -39,9 +43,10 @@ namespace Metin2SpeechToData {
 				return;
 			}
 			Console.WriteLine(args.text + " -- " + args.confidence);
-			ExcelCellAddress address = Program.interaction.GetAddress(args.text);
+			string mainPronounciation =  DefinitionParser.instance.currentGrammarFile.GetMainPronounciation(args.text);
+			ExcelCellAddress address = Program.interaction.GetAddress(mainPronounciation);
 			StopRecognition();
-			numbers.RecognizeAsync(RecognizeMode.Single);
+			numbers.RecognizeAsync(RecognizeMode.Multiple);
 			evnt.Wait();
 			//Now we have an address and how many items they received
 			Console.WriteLine("Parsed: " + _count);
@@ -93,6 +98,7 @@ namespace Metin2SpeechToData {
 		private void Numbers_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {
 			if (int.TryParse(e.Result.Text, out _count)) {
 				evnt.Set();
+				numbers.RecognizeAsyncStop();
 				BeginRecognition();
 				return;
 			}

@@ -8,6 +8,11 @@ namespace Metin2SpeechToData {
 		public string ID;
 
 		/// <summary>
+		/// Does this grammar have a companion Mob_'ID'.definition file
+		/// </summary>
+		public bool hasEnemyCompanionGrammar;
+
+		/// <summary>
 		/// Groups defined at the top of the file
 		/// </summary>
 		public string[] groups;

@@ -90,7 +90,7 @@ namespace Metin2SpeechToData {
 		}
 
 		public void Load(string area) {
-			FileInfo[] validForArea = hotkeyFiles.Where(file => new Regex(area + @"\ \d+\.definition").IsMatch(file.Name)).ToArray();
+			FileInfo[] validForArea = hotkeyFiles.Where(file => new Regex(Regex.Escape(area) + @"\ \d+\.definition").IsMatch(file.Name)).ToArray();
 			if (validForArea.Length > 0) {
 				Console.WriteLine("Found some hotkey definitions for " + area + ", load them ?");
 				for (int i = 0; i < validForArea.Length; i++) {
