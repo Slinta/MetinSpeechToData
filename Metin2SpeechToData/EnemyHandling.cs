@@ -12,10 +12,10 @@ namespace Metin2SpeechToData {
 		}
 
 		public EnemyState state { get; set; }
-		private SpeechRecognitionEngine masterMobRecognizer;
-		private ManualResetEventSlim evnt;
-		public MobAsociatedDrops mobDrops;
-		private DropOutStack<ItemInsertion> stack;
+		private readonly SpeechRecognitionEngine masterMobRecognizer;
+		private readonly ManualResetEventSlim evnt;
+		public MobAsociatedDrops mobDrops { get; private set; }
+		private readonly DropOutStack<ItemInsertion> stack;
 		private string currentEnemy = "";
 		private string currentItem = "";
 

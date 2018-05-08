@@ -26,16 +26,16 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Current major grammar file files
 		/// </summary>
-		public DefinitionParserData currentGrammarFile;
+		public DefinitionParserData currentGrammarFile { get; private set; }
 		/// <summary>
 		/// Current major grammar file files
 		/// </summary>
-		public MobParserData currentMobGrammarFile;
+		public MobParserData currentMobGrammarFile { get; private set; }
 
 		/// <summary>
 		/// Hotkey parser to assign saved hotkeys for items
 		/// </summary>
-		public HotkeyPresetParser hotkeyParser;
+		public HotkeyPresetParser hotkeyParser { get; private set; }
 
 		#region Constructor/Destructor
 		/// <summary>
@@ -54,14 +54,11 @@ namespace Metin2SpeechToData {
 			for (int i = 0; i < filesPresent.Length; i++) {
 				if (filesPresent[i].Name.StartsWith("Mob_")) {
 					Mob_indexes.Add(i);
-
 					continue;
 				}
-				DefinitionParserData data = new DefinitionParserData();
+				
 				using (StreamReader s = filesPresent[i].OpenText()) {
-					data.ID = filesPresent[i].Name.Split('.')[0];
-					data.groups = ParseHeader(s);
-					data.entries = ParseEntries(s);
+					DefinitionParserData data = new DefinitionParserData(filesPresent[i].Name.Split('.')[0], ParseHeader(s), ParseEntries(s));
 					data.ConstructGrammar();
 					definitions.Add(data);
 				}
@@ -110,12 +107,10 @@ namespace Metin2SpeechToData {
 				for (int i = 0; i < same.Length; i++) {
 					same[i] = same[i].TrimStart(' ');
 				}
-				entries.Add(new DefinitionParserData.Item {
-					mainPronounciation = same[0],
-					group = split[2].TrimStart(' '),
-					yangValue = uint.Parse(split[1].TrimStart(' ')),
-					ambiguous = same.Where(a => a != same[0]).ToArray()
-				});
+				entries.Add(new DefinitionParserData.Item(same[0],
+														  same.Where(a => a != same[0]).ToArray(),
+														  uint.Parse(split[1].TrimStart(' ')),
+														  split[2].TrimStart(' ')));
 			}
 			return entries.ToArray();
 		}
@@ -179,6 +174,13 @@ namespace Metin2SpeechToData {
 				}
 			}
 			throw new CustomException("Definiton not found");
+		}
+
+		public void UpdateCurrents(string grammar) {
+			currentGrammarFile = GetDefinitionByName(grammar);
+			if (currentGrammarFile.hasEnemyCompanionGrammar) {
+				currentMobGrammarFile = GetMobDefinitionByName(grammar);
+			}
 		}
 
 		/// <summary>

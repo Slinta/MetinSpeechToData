@@ -8,15 +8,17 @@ using System.Collections.Generic;
 namespace Metin2SpeechToData {
 	public class HotkeyPresetParser {
 
-		private FileInfo[] hotkeyFiles;
+		private readonly FileInfo[] hotkeyFiles;
 
-		public List<int> activeKeyIDs = new List<int>();
+		public List<int> activeKeyIDs { get; private set; }
 
-		private List<Keys> currKeys = new List<Keys>();
+		private readonly List<Keys> currKeys;
 
 		public HotkeyPresetParser(string selectedArea) {
 			DirectoryInfo directory = new DirectoryInfo(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Hotkeys");
 			hotkeyFiles = directory.GetFiles("* *.definition");
+			activeKeyIDs = new List<int>();
+			currKeys = new List<Keys>();
 			Load(selectedArea);
 		}
 

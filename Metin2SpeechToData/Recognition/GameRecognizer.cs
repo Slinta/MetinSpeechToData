@@ -8,8 +8,8 @@ namespace Metin2SpeechToData {
 
 		public RecognitionState currentState { get; private set; }
 
-		public SpeechRecognitionHelper helper;
-		public EnemyHandling enemyHandling;
+		public SpeechRecognitionHelper helper { get; }
+		public EnemyHandling enemyHandling { get; }
 
 		public GameRecognizer(): base() {
 			enemyHandling = new EnemyHandling();

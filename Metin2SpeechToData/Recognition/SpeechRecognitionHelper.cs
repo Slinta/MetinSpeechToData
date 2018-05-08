@@ -18,7 +18,7 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Modifiers dictionary, used to convert enum values to spoken word
 		/// </summary>
-		public static IReadOnlyDictionary<ModifierWords, string> modifierDict = new Dictionary<ModifierWords, string>() {
+		public static readonly IReadOnlyDictionary<ModifierWords, string> modifierDict = new Dictionary<ModifierWords, string>() {
 			{ ModifierWords.NEW_TARGET , Program.controlCommands.getNewTargetCommand },
 			{ ModifierWords.REMOVE_TARGET, Program.controlCommands.getRemoveTargetCommand },
 			{ ModifierWords.TARGET_KILLED, Program.controlCommands.getTargetKilledCommand },
@@ -29,7 +29,7 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Reverse dictionary for converting spoken word to enum entries
 		/// </summary>
-		public static IReadOnlyDictionary<string, ModifierWords> reverseModifierDict = new Dictionary<string, ModifierWords>() {
+		public static readonly IReadOnlyDictionary<string, ModifierWords> reverseModifierDict = new Dictionary<string, ModifierWords>() {
 			{ Program.controlCommands.getNewTargetCommand , ModifierWords.NEW_TARGET },
 			{ Program.controlCommands.getRemoveTargetCommand, ModifierWords.REMOVE_TARGET  },
 			{ Program.controlCommands.getTargetKilledCommand, ModifierWords.TARGET_KILLED },
@@ -40,7 +40,7 @@ namespace Metin2SpeechToData {
 		private Dictionary<string, (int index, bool isActive)> _currentGrammars;
 		private SpeechRecognitionEngine controlingRecognizer;
 
-		private RecognitionBase baseRecognizer;
+		private readonly RecognitionBase baseRecognizer;
 
 		#region Constructor
 		public SpeechRecognitionHelper(RecognitionBase master) {
@@ -135,6 +135,8 @@ namespace Metin2SpeechToData {
 			else if (e.text == Program.controlCommands.getPauseCommand) {
 				baseRecognizer.OnRecognitionStateChanged(this, RecognitionBase.RecognitionState.PAUSED);
 				SetGrammarActive(Program.controlCommands.getPauseCommand, false);
+				SetGrammarActive(Program.controlCommands.getStopCommand, true);
+				SetGrammarActive(Program.controlCommands.getStartCommand, true);
 			}
 			else if (e.text == Program.controlCommands.getSwitchGrammarCommand) {
 				Choices definitions = new Choices();
@@ -181,11 +183,7 @@ namespace Metin2SpeechToData {
 				Program.mapper.FreeSpecific((Keys)i, true);
 			}
 
-			DefinitionParser.instance.currentGrammarFile = DefinitionParser.instance.GetDefinitionByName(e.text);
-
-			if (DefinitionParser.instance.currentGrammarFile.hasEnemyCompanionGrammar) {
-				DefinitionParser.instance.currentMobGrammarFile = DefinitionParser.instance.GetMobDefinitionByName(e.text);
-			}
+			DefinitionParser.instance.UpdateCurrents(e.text);
 
 			baseRecognizer.SwitchGrammar(e.text);
 			baseRecognizer.isPrimaryDefinitionLoaded = true;

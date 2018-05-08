@@ -36,7 +36,7 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Create and configure the base recognition engine
 		/// </summary>
-		public RecognitionBase() {
+		protected RecognitionBase() {
 			mainRecognizer = new SpeechRecognitionEngine();
 			mainRecognizer.SetInputToDefaultAudioDevice();
 			mainRecognizer.InitialSilenceTimeout = new TimeSpan(500);
@@ -58,7 +58,7 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Base speech recognized event handler
 		/// </summary>
-		private void Game_SpeechRecognized_Wrapper(object sender, SpeechRecognizedEventArgs e) {
+		private void Main_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {
 			SpeechRecognized(sender, new SpeechRecognizedArgs(e.Result.Text, e.Result.Confidence));
 		}
 
@@ -138,7 +138,7 @@ namespace Metin2SpeechToData {
 		public virtual void BeginRecognition(bool preformSetup = false) {
 			if (preformSetup) {
 				mainRecognizer.SetInputToDefaultAudioDevice();
-				mainRecognizer.SpeechRecognized += Game_SpeechRecognized_Wrapper;
+				mainRecognizer.SpeechRecognized += Main_SpeechRecognized;
 			}
 			mainRecognizer.RecognizeAsync(RecognizeMode.Multiple);
 		}
@@ -148,13 +148,30 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		public virtual void StopRecognition(bool preformCleanup = false) {
 			if (preformCleanup) {
-				mainRecognizer.SpeechRecognized -= Game_SpeechRecognized_Wrapper;
+				mainRecognizer.SpeechRecognized -= Main_SpeechRecognized;
 			}
 			mainRecognizer.RecognizeAsyncStop();
 		}
 
-		public void Dispose() {
-			((IDisposable)mainRecognizer).Dispose();
+		#region IDisposable Support
+		private bool disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing) {
+			if (!disposedValue) {
+				if (disposing) {
+					return;
+				}
+				mainRecognizer.SpeechRecognized -= Main_SpeechRecognized;
+				mainRecognizer.Dispose();
+				disposedValue = true;
+			}
 		}
+
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+		#endregion
+
 	}
 }

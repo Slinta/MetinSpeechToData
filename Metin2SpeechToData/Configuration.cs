@@ -58,10 +58,9 @@ namespace Metin2SpeechToData {
 			using (StreamReader sr = File.OpenText(filePath)) {
 				while (!sr.EndOfStream) {
 					string line = sr.ReadLine();
-					if(line.Contains("#") || string.IsNullOrWhiteSpace(line)) {
+					if (string.IsNullOrWhiteSpace(line) || line.Contains("#")) {
 						continue;
 					}
-
 					if (line.Contains("{")) {
 						string[] seg = line.Split('{');
 						switch (seg[0]) {

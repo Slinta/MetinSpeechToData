@@ -51,8 +51,8 @@ namespace Metin2SpeechToData {
 		}
 
 
-		private static void RegisterHotKeyInternal(IntPtr hwnd, int id, uint modifiers, uint key) {
-			RegisterHotKey(hwnd, id, modifiers, key);
+		private static void RegisterHotKeyInternal(IntPtr windowHandle, int id, uint modifiers, uint key) {
+			RegisterHotKey(windowHandle, id, modifiers, key);
 		}
 
 		private static void UnRegisterHotKeyInternal(IntPtr hwnd, int id) {
@@ -117,8 +117,8 @@ namespace Metin2SpeechToData {
 		private static extern bool PostMessage(IntPtr hWnd, uint msg, int wParam, int lParam);
 
 
-		private Dictionary<Keys, ActionStashSpeechArgs> voiceHotkeys = new Dictionary<Keys, ActionStashSpeechArgs>();
-		private Dictionary<Keys, ActionStashString> controlHotkeys = new Dictionary<Keys, ActionStashString>();
+		private readonly Dictionary<Keys, ActionStashSpeechArgs> voiceHotkeys = new Dictionary<Keys, ActionStashSpeechArgs>();
+		private readonly Dictionary<Keys, ActionStashString> controlHotkeys = new Dictionary<Keys, ActionStashString>();
 
 		public HotKeyMapper() {
 			HotKeyManager.HotKeyPressed += new EventHandler<HotKeyEventArgs>(HotKeyManager_HotKeyPressed);
@@ -306,7 +306,7 @@ namespace Metin2SpeechToData {
 			}
 		}
 
-		private void AbortReadLine(string command) {
+		private static void AbortReadLine(string command) {
 			Program.currCommand = command;
 			Thread.Sleep(250);
 			PostMessage(Process.GetCurrentProcess().MainWindowHandle, 0x100, 0x0D, 0);

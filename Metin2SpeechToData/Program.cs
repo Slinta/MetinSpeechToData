@@ -4,20 +4,20 @@ using System.Windows.Forms;
 using OfficeOpenXml;
 
 namespace Metin2SpeechToData {
-	public class Program {
+	public static class Program {
 
-		public static bool debug = false;
+		public static bool debug { get; private set; } = false;
 
 		public static GameRecognizer gameRecognizer { get; private set; }
-		private static DefinitionParser parser;
+		private static DefinitionParser parser { get; set; }
 
-		public static SpreadsheetInteraction interaction;
-		public static Configuration config;
-		public static ControlSpeechCommands controlCommands;
+		public static SpreadsheetInteraction interaction { get; private set; }
+		public static Configuration config { get; private set; }
+		public static ControlSpeechCommands controlCommands { get; private set; }
 
-		public static HotKeyMapper mapper;
+		public static HotKeyMapper mapper { get; private set; }
 
-		public static string currCommand = "";
+		public static string currCommand { get; set; } = "";
 
 		/* NIY List:
 		 * TODO: Sessions
@@ -65,13 +65,7 @@ namespace Metin2SpeechToData {
 				switch (commandBlocks.Length) {
 					case 1: {
 						switch (commandBlocks[0]) {
-							case "quit": {
-								Console.WriteLine("Do you want to quit? y/n");
-								if (Console.ReadKey().Key == ConsoleKey.Y) {
-									continueRunning = false;
-								}
-								break;
-							}
+							case "quit":
 							case "exit": {
 								Console.WriteLine("Do you want to quit? y/n");
 								if (Console.ReadKey().Key == ConsoleKey.Y) {

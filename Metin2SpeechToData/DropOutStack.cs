@@ -4,7 +4,7 @@
 	 */
 
 	class DropOutStack<T> {
-		private T[] items;
+		private readonly T[] items;
 		private int top = 0;
 
 		/// <summary>

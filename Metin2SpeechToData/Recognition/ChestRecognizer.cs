@@ -6,12 +6,12 @@ using System.Threading;
 namespace Metin2SpeechToData {
 	public class ChestRecognizer : RecognitionBase {
 
-		private SpeechRecognitionEngine numbers;
+		private readonly SpeechRecognitionEngine numbers;
 
-		private DropOutStack<ItemInsertion> stack;
-		private ManualResetEventSlim evnt;
+		private readonly DropOutStack<ItemInsertion> stack;
+		private readonly ManualResetEventSlim evnt;
 
-		public SpeechRecognitionHelper helper;
+		public SpeechRecognitionHelper helper { get; }
 
 
 		public ChestRecognizer(): base() {
@@ -80,18 +80,6 @@ namespace Metin2SpeechToData {
 					return;
 				}
 			}
-		}
-
-		public override void OnRecognitionStateChanged(object sender, RecognitionState state) {
-			base.OnRecognitionStateChanged(sender, state);
-		}
-
-		protected override void PreModiferEvaluation(SpeechRecognitionHelper.ModifierWords current) {
-			base.PreModiferEvaluation(current);
-		}
-
-		protected override void PostModiferEvaluation(SpeechRecognitionHelper.ModifierWords current) {
-			base.PostModiferEvaluation(current);
 		}
 
 		private int _count = 0;

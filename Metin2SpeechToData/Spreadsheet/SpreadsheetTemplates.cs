@@ -12,7 +12,7 @@ namespace Metin2SpeechToData {
 			ENEMY
 		}
 
-		private SpreadsheetInteraction interaction;
+		private readonly SpreadsheetInteraction interaction;
 
 		public SpreadsheetTemplates(SpreadsheetInteraction interaction) {
 			this.interaction = interaction;
@@ -20,16 +20,13 @@ namespace Metin2SpeechToData {
 
 		public SpreadsheetHelper.Dicts InitializeMobSheet(string mobName, MobAsociatedDrops data) {
 
-			SpreadsheetHelper.Dicts d = new SpreadsheetHelper.Dicts() {
-				addresses = new Dictionary<string, ExcelCellAddress>(),
-				groups = new Dictionary<string, SpreadsheetInteraction.Group>()
-			};
+			SpreadsheetHelper.Dicts d = new SpreadsheetHelper.Dicts(true);
 
 			interaction.InsertValue(new ExcelCellAddress(1, 1), "Spreadsheet for enemy: " + interaction.currentSheet.Name);
 			interaction.InsertValue(new ExcelCellAddress(1, 4), "Num killed:");
 			interaction.InsertValue(new ExcelCellAddress(1, 5), 0);
 
-			Dictionary<string,string[]> itemEntries = Program.gameRecognizer.enemyHandling.mobDrops.GetDropsForMob(mobName);
+			Dictionary<string, string[]> itemEntries = Program.gameRecognizer.enemyHandling.mobDrops.GetDropsForMob(mobName);
 
 			ExcelCellAddress startAddr = new ExcelCellAddress("A2");
 			foreach (string key in itemEntries.Keys) {
@@ -56,10 +53,7 @@ namespace Metin2SpeechToData {
 		}
 
 		public SpreadsheetHelper.Dicts InitializeAreaSheet(DefinitionParserData data) {
-			SpreadsheetHelper.Dicts d = new SpreadsheetHelper.Dicts {
-				addresses = new Dictionary<string, ExcelCellAddress>(),
-				groups = new Dictionary<string, SpreadsheetInteraction.Group>()
-			};
+			SpreadsheetHelper.Dicts d = new SpreadsheetHelper.Dicts(true);
 
 			interaction.InsertValue(new ExcelCellAddress(1, 1), "Spreadsheet for zone: " + interaction.currentSheet.Name);
 
@@ -76,12 +70,9 @@ namespace Metin2SpeechToData {
 				r.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
 				interaction.InsertValue(address, group);
 				groupcounter += 1;
-				SpreadsheetInteraction.Group g = new SpreadsheetInteraction.Group {
-					groupName = address,
-					elementNameFirstIndex = new ExcelCellAddress(address.Row + 1, address.Column),
-					yangValueFirstIndex = new ExcelCellAddress(address.Row + 1, address.Column + 1),
-					totalCollectedFirstIndex = new ExcelCellAddress(address.Row + 1, address.Column + 2),
-				};
+				SpreadsheetInteraction.Group g = new SpreadsheetInteraction.Group(address, new ExcelCellAddress(address.Row + 1, address.Column),
+																				  new ExcelCellAddress(address.Row + 1, address.Column + 1),
+																				  new ExcelCellAddress(address.Row + 1, address.Column + 2));
 				d.groups.Add(group, g);
 			}
 			foreach (DefinitionParserData.Item entry in data.entries) {

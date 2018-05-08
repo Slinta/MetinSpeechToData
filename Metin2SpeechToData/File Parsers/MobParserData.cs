@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 using System.Speech.Recognition;
@@ -8,9 +7,9 @@ namespace Metin2SpeechToData {
 
 	public class MobParserData {
 
-		public string ID;
-		public Enemy[] enemies;
-		public Grammar grammar;
+		public string ID { get; private set; }
+		public Enemy[] enemies { get; private set; }
+		public Grammar grammar { get; private set; }
 
 		public enum MobClass {
 			COMMON,
@@ -45,15 +44,12 @@ namespace Metin2SpeechToData {
 						for (int k = 0; k < split.Length; k++) {
 							split[k] = split[k].Trim(' ');
 						}
-						Enemy parsed = new Enemy() {
-							mobMainPronounciation = same[0],
-							ambiguous = same.Where(a => a != same[0]).ToArray(),
-							mobLevel = ushort.Parse(split[1]),
-							mobClass = ParseClass(split[2]),
-							asociatedDrops = GetAsociatedDrops(same[0])
-						};
+						Enemy parsed = new Enemy(same[0],
+												 same.Where(a => a != same[0]).ToArray(),
+												 ushort.Parse(split[1]),
+												 GetAsociatedDrops(same[0]),
+												 ParseClass(split[2]));
 						mobs.Add(parsed);
-
 					}
 					data.enemies = mobs.ToArray();
 					data.grammar = ConstructGrammar(data.enemies);
@@ -84,27 +80,27 @@ namespace Metin2SpeechToData {
 		private string[] GetAsociatedDrops(string mobMainPronounciation) {
 			string path = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Mob Asociated Drops.definition";
 			if (File.Exists(path)) {
-				using(StreamReader r = File.OpenText(path)) {
+				using (StreamReader r = File.OpenText(path)) {
 					while (!r.EndOfStream) {
 						string line = r.ReadLine();
-						if(line.StartsWith("#") || string.IsNullOrWhiteSpace(line)) {
+						if (line.StartsWith("#")) {
 							continue;
 						}
 						if (line.Contains("{")) {
 							string[] split = line.Split('{');
-							if(split[0] == mobMainPronounciation) {
+							if (split[0] == mobMainPronounciation) {
 								return ParseMobDropLine(r);
 							}
 						}
 					}
 				}
 			}
-			return null;
+			return new string[0];
 		}
 
 		private string[] ParseMobDropLine(StreamReader r) {
 			string[] drops = r.ReadLine().Split(',');
-			for(int i = 0; i < drops.Length; i++) { 
+			for (int i = 0; i < drops.Length; i++) {
 				drops[i] = drops[i].Trim('\n', ' ', '\t');
 			}
 			return drops;
@@ -145,11 +141,19 @@ namespace Metin2SpeechToData {
 		}
 
 		public struct Enemy {
-			public string mobMainPronounciation;
-			public string[] ambiguous;
-			public ushort mobLevel;
-			public string[] asociatedDrops;
-			public MobClass mobClass;
+			public Enemy(string mobMainPronounciation, string[] ambiguous, ushort mobLevel, string[] asociatedDrops, MobClass mobClass) {
+				this.mobMainPronounciation = mobMainPronounciation;
+				this.ambiguous = ambiguous;
+				this.mobLevel = mobLevel;
+				this.asociatedDrops = asociatedDrops;
+				this.mobClass = mobClass;
+			}
+
+			public string mobMainPronounciation { get; }
+			public string[] ambiguous { get; }
+			public ushort mobLevel { get; }
+			public string[] asociatedDrops { get; }
+			public MobClass mobClass { get; }
 		}
 	}
 }

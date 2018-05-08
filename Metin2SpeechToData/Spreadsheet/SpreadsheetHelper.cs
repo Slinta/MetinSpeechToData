@@ -6,7 +6,7 @@ namespace Metin2SpeechToData {
 	public class SpreadsheetHelper {
 
 		public const string DEFAULT_SHEET = "Metin2 Drop Analyzer";
-		private SpreadsheetInteraction main;
+		private readonly SpreadsheetInteraction main;
 
 
 		public SpreadsheetHelper(SpreadsheetInteraction interaction) {
@@ -55,10 +55,7 @@ namespace Metin2SpeechToData {
 					return default(Dicts);
 				}
 				case SpreadsheetTemplates.SpreadsheetPresetType.AREA: {
-					Dicts d = new Dicts {
-						addresses = new Dictionary<string, ExcelCellAddress>(),
-						groups = new Dictionary<string, SpreadsheetInteraction.Group>()
-					};
+					Dicts d = new Dicts(true);
 					DefinitionParserData data = DefinitionParser.instance.currentGrammarFile;
 					int[] rowOfEachGroup = new int[data.groups.Length];
 					int[] columnOfEachGroup = new int[data.groups.Length];
@@ -69,12 +66,9 @@ namespace Metin2SpeechToData {
 						columnOfEachGroup[groupcounter] = groupcounter * columnOffset + 1;
 						ExcelCellAddress address = new ExcelCellAddress(rowOfEachGroup[groupcounter], columnOfEachGroup[groupcounter]);
 						groupcounter += 1;
-						SpreadsheetInteraction.Group g = new SpreadsheetInteraction.Group {
-							groupName = address,
-							elementNameFirstIndex = new ExcelCellAddress(address.Row + 1, address.Column),
-							yangValueFirstIndex = new ExcelCellAddress(address.Row + 1, address.Column + 1),
-							totalCollectedFirstIndex = new ExcelCellAddress(address.Row + 1, address.Column + 2),
-						};
+						SpreadsheetInteraction.Group g = new SpreadsheetInteraction.Group(address, new ExcelCellAddress(address.Row + 1, address.Column),
+																						  new ExcelCellAddress(address.Row + 1, address.Column + 1),
+																						  new ExcelCellAddress(address.Row + 1, address.Column + 2));
 						d.groups.Add(group, g);
 					}
 					foreach (DefinitionParserData.Item entry in data.entries) {
@@ -94,11 +88,8 @@ namespace Metin2SpeechToData {
 					return d;
 				}
 				case SpreadsheetTemplates.SpreadsheetPresetType.ENEMY: {
-					Dicts d = new Dicts {
-						addresses = new Dictionary<string, ExcelCellAddress>(),
-						groups = new Dictionary<string, SpreadsheetInteraction.Group>()
-					};
-					// St item entry at A2
+					Dicts d = new Dicts(true);
+					// First item entry at A2
 					ExcelCellAddress baseAddr = new ExcelCellAddress("A2");
 					ExcelCellAddress current = baseAddr;
 
@@ -195,7 +186,7 @@ namespace Metin2SpeechToData {
 		/// Preforms a Sum of 'numerator' and divides it by a value in 'denominator' puts the result into 'result'
 		/// </summary>
 		public void DivideBy(ExcelCellAddress result, ExcelRange numerator, ExcelCellAddress denominator) {
-			main.currentSheet.Cells[result.Address].Formula = "SUM(" + numerator.Start.Address + ':' + numerator.End.Address +  ")/" + denominator.Address;
+			main.currentSheet.Cells[result.Address].Formula = "SUM(" + numerator.Start.Address + ':' + numerator.End.Address + ")/" + denominator.Address;
 		}
 
 		/// <summary>
@@ -220,8 +211,13 @@ namespace Metin2SpeechToData {
 		#endregion
 
 		public struct Dicts {
-			public Dictionary<string, ExcelCellAddress> addresses;
-			public Dictionary<string, SpreadsheetInteraction.Group> groups;
+			public Dicts(bool initialize) {
+				addresses = new Dictionary<string, ExcelCellAddress>();
+				groups = new Dictionary<string, SpreadsheetInteraction.Group>();
+			}
+
+			public Dictionary<string, ExcelCellAddress> addresses { get; }
+			public Dictionary<string, SpreadsheetInteraction.Group> groups { get; }
 		}
 	}
 }

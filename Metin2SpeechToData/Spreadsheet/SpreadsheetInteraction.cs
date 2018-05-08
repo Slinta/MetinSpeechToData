@@ -7,19 +7,19 @@ using OfficeOpenXml;
 namespace Metin2SpeechToData {
 	public class SpreadsheetInteraction : IDisposable {
 
-		private ExcelPackage xlsxFile;
-		private ExcelWorkbook content;
+		private readonly ExcelPackage xlsxFile;
+		private readonly ExcelWorkbook content;
 
-		private SpreadsheetTemplates templates;
-		private SpreadsheetHelper helper;
+		private readonly SpreadsheetTemplates templates;
+		private readonly SpreadsheetHelper helper;
 		private ExcelWorksheet _currentSheet;
 		private Dictionary<string, ExcelCellAddress> currentNameToConutAddress;
-		private Dictionary<string, Group> currentGroupsByName;
+		private Dictionary<string, Group> currentGroupsByName; 
 
-		private Dictionary<string, Dictionary<string, ExcelCellAddress>> sheetToAdresses = new Dictionary<string, Dictionary<string, ExcelCellAddress>>();
-		private Dictionary<string, Dictionary<string, Group>> sheetToGroups = new Dictionary<string, Dictionary<string, Group>>();
+		private readonly Dictionary<string, Dictionary<string, ExcelCellAddress>> sheetToAdresses;
+		private readonly Dictionary<string, Dictionary<string, Group>> sheetToGroups;
 
-		#region Constructor / Destructor
+		#region Constructor
 		/// <summary>
 		/// Initializes spreadsheet control with given file
 		/// </summary>
@@ -32,11 +32,8 @@ namespace Metin2SpeechToData {
 
 			templates = new SpreadsheetTemplates(this);
 			templates.InitializeMainSheet();
-		}
-
-		~SpreadsheetInteraction() {
-			Dispose(false);
-			return;
+			sheetToAdresses = new Dictionary<string, Dictionary<string, ExcelCellAddress>>();
+			sheetToGroups = new Dictionary<string, Dictionary<string, Group>>();
 		}
 		#endregion
 
@@ -139,7 +136,7 @@ namespace Metin2SpeechToData {
 			int maxDetph = 10;
 
 			//Add the group if it does't exist
-			if (_currentSheet.Cells[current.Row, current.Column, current.Row, current.Column + 2].Merge == false) {
+			if (!_currentSheet.Cells[current.Row, current.Column, current.Row, current.Column + 2].Merge) {
 				_currentSheet.Cells[current.Row, current.Column, current.Row, current.Column + 2].Merge = true;
 			}
 			_currentSheet.Cells[current.Row, current.Column, current.Row, current.Column + 2].Value = entry.group;
@@ -157,7 +154,7 @@ namespace Metin2SpeechToData {
 			InsertValue(current, entry.mainPronounciation);
 			InsertValue(new ExcelCellAddress(current.Row, current.Column + 1), entry.yangValue);
 			InsertValue(new ExcelCellAddress(current.Row, current.Column + 2), 0);
-			sheetToAdresses[_currentSheet.Name].Add(entry.mainPronounciation, new ExcelCellAddress(current.Row, current.Column +2));
+			sheetToAdresses[_currentSheet.Name].Add(entry.mainPronounciation, new ExcelCellAddress(current.Row, current.Column + 2));
 			Save();
 		}
 
@@ -197,10 +194,10 @@ namespace Metin2SpeechToData {
 		/// Saves current changes to the .xlsx file
 		/// </summary>
 		public void Save() {
-			try { 
+			try {
 				xlsxFile.Save();
 			}
-			catch(Exception e) {
+			catch (Exception e) {
 				Console.WriteLine("Could not update. IS the file already open ?\n" + e.Message);
 			}
 		}
@@ -218,11 +215,21 @@ namespace Metin2SpeechToData {
 		}
 
 		public struct Group {
-			public ExcelCellAddress groupName;
-			public ExcelCellAddress elementNameFirstIndex;
-			public ExcelCellAddress yangValueFirstIndex;
-			public ExcelCellAddress totalCollectedFirstIndex;
-			public int totalEntries;
+
+			public Group(ExcelCellAddress groupName, ExcelCellAddress elementNameFirstIndex,
+						 ExcelCellAddress yangValueFirstIndex, ExcelCellAddress totalCollectedFirstIndex) {
+				this.groupName = groupName;
+				this.elementNameFirstIndex = elementNameFirstIndex;
+				this.yangValueFirstIndex = yangValueFirstIndex;
+				this.totalCollectedFirstIndex = totalCollectedFirstIndex;
+				this.totalEntries = 0;
+			}
+
+			public ExcelCellAddress groupName { get; }
+			public ExcelCellAddress elementNameFirstIndex { get; }
+			public ExcelCellAddress yangValueFirstIndex { get; }
+			public ExcelCellAddress totalCollectedFirstIndex { get; }
+			public int totalEntries { get; set; }
 		}
 
 		#region IDisposable Support
@@ -232,10 +239,11 @@ namespace Metin2SpeechToData {
 			if (!disposedValue) {
 				Save();
 				if (disposing) {
-					xlsxFile.Dispose();
-					content.Dispose();
-					currentSheet.Dispose();
+					return;
 				}
+				xlsxFile.Dispose();
+				content.Dispose();
+				currentSheet.Dispose();
 				disposedValue = true;
 			}
 		}

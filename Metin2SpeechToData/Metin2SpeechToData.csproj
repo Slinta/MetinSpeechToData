@@ -53,7 +53,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Recognition\ChestRecognizer.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="Confirmation.cs" />

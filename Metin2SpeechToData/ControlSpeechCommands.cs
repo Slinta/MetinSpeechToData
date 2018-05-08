@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 namespace Metin2SpeechToData {
 	public class ControlSpeechCommands {
@@ -28,7 +27,7 @@ namespace Metin2SpeechToData {
 			using (StreamReader sr = File.OpenText(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + relativeFilePath)) {
 				while (!sr.EndOfStream) {
 					string line = sr.ReadLine();
-					if (line.StartsWith("#") || string.IsNullOrWhiteSpace(line)) {
+					if ( string.IsNullOrWhiteSpace(line) || line.StartsWith("#")) {
 						continue;
 					}
 					string[] split = line.Split(':');

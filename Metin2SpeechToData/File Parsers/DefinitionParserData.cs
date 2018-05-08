@@ -5,33 +5,61 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Name of this definition --> file name that was used to parse this data
 		/// </summary>
-		public string ID;
+		public string ID { get; }
 
 		/// <summary>
 		/// Does this grammar have a companion Mob_'ID'.definition file
 		/// </summary>
-		public bool hasEnemyCompanionGrammar;
+		public bool hasEnemyCompanionGrammar { get; set; }
 
 		/// <summary>
 		/// Groups defined at the top of the file
 		/// </summary>
-		public string[] groups;
+		public string[] groups { get; }
 
 		/// <summary>
 		/// All items that are described in the file
 		/// </summary>
-		public Item[] entries;
+		public Item[] entries { get; }
 
 		/// <summary>
 		/// Grammar created from all the item names and ambiguities
 		/// </summary>
-		public Grammar grammar;
+		public Grammar grammar { get; private set; }
+
+		public DefinitionParserData(string ID, string[] groups, Item[] entries) {
+			this.ID = ID;
+			this.groups = groups;
+			this.entries = entries;
+		}
 
 		public struct Item {
-			public string mainPronounciation;
-			public string[] ambiguous;
-			public uint yangValue;
-			public string group;
+			public Item(string mainPronounciation, string[] ambiguous, uint yangValue, string group) {
+				this.mainPronounciation = mainPronounciation;
+				this.ambiguous = ambiguous;
+				this.yangValue = yangValue;
+				this.group = group;
+			}
+
+			/// <summary>
+			/// This items main pronounciation
+			/// </summary>
+			public string mainPronounciation { get; }
+
+			/// <summary>
+			/// All the ways you can call this item
+			/// </summary>
+			public string[] ambiguous { get; }
+
+			/// <summary>
+			/// How much is this item worth
+			/// </summary>
+			public uint yangValue { get; }
+
+			/// <summary>
+			/// Which group this item belongs to
+			/// </summary>
+			public string group { get; }
 		}
 
 		/// <summary>

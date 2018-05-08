@@ -4,7 +4,7 @@ using System.Speech.Recognition;
 using System.Collections.Generic;
 
 namespace Metin2SpeechToData {
-	class Confirmation {
+	static class Confirmation {
 		private static SpeechRecognitionEngine _confimer = new SpeechRecognitionEngine();
 		private static ManualResetEventSlim evnt = new ManualResetEventSlim(false);
 
