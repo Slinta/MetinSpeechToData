@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 using OfficeOpenXml;
+using static Metin2SpeechToData.Configuration;
 
 namespace Metin2SpeechToData {
 	public class SpreadsheetInteraction : IDisposable {
@@ -18,6 +18,8 @@ namespace Metin2SpeechToData {
 
 		private readonly Dictionary<string, Dictionary<string, ExcelCellAddress>> sheetToAdresses;
 		private readonly Dictionary<string, Dictionary<string, Group>> sheetToGroups;
+
+		private uint currModificationsToXlsx = 0;
 
 		#region Constructor
 		/// <summary>
@@ -75,21 +77,22 @@ namespace Metin2SpeechToData {
 			if (_currentSheet == null) {
 				throw new CustomException("No sheet open!");
 			}
+			int numberInCell = 0;
 			//If the cell is empty set its value
 			if (_currentSheet.Cells[address.Row, address.Column].Value == null) {
 				_currentSheet.SetValue(address.Address, number);
-				Console.WriteLine("Cell[" + address.Address + "] = " + number + " (Was empty)");
-				Save();
-				return;
 			}
 			//if the cell already has a number add the value
-			else if (int.TryParse(_currentSheet.Cells[address.Row, address.Column].Value.ToString(), out int numberInCell)) {
+			else if (int.TryParse(_currentSheet.Cells[address.Row, address.Column].Value.ToString(), out numberInCell)) {
 				_currentSheet.SetValue(address.Address, number + numberInCell);
-				Console.WriteLine("Cell[" + address.Address + "] = " + (number + numberInCell));
-				Save();
+			}
+			else {
+				Console.WriteLine("Unable to change cell at:" + address.Address + " containing " + _currentSheet.GetValue(address.Row, address.Column));
 				return;
 			}
-			Console.WriteLine("Unable to change cell at:" + address.Address + " containing " + _currentSheet.GetValue(address.Row, address.Column));
+			currModificationsToXlsx++;
+			Console.WriteLine("Cell[" + address.Address + "] = " + (number + numberInCell));
+			Save();
 		}
 
 		/// <summary>
@@ -190,15 +193,32 @@ namespace Metin2SpeechToData {
 			}
 		}
 
+
+		/// <summary>
+		/// Gets group stuct with 'identifier' name
+		/// </summary>
+		public Group GetGroup(string identifier) {
+			try {
+				return currentGroupsByName[identifier];
+			}
+			catch {
+				throw new CustomException("Item not present in currentNameToConutAddress!");
+			}
+		}
+
 		/// <summary>
 		/// Saves current changes to the .xlsx file
 		/// </summary>
 		public void Save() {
 			try {
-				xlsxFile.Save();
+				currModificationsToXlsx++;
+				if (currModificationsToXlsx == sheetChangesBeforeSaving) {
+					xlsxFile.Save();
+					currModificationsToXlsx = 0;
+				}
 			}
 			catch (Exception e) {
-				Console.WriteLine("Could not update. IS the file already open ?\n" + e.Message);
+				Console.WriteLine("Could not update. Is the file already open ?\n" + e.Message);
 			}
 		}
 

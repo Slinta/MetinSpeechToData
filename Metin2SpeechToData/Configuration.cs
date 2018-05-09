@@ -8,7 +8,11 @@ namespace Metin2SpeechToData {
 		public FileInfo xlsxFile { get; private set; }
 
 		public const string FILE_NAME = "Metin2 Drop Speadsheet.xlsx";
-		public static int undoHistoryLength { get; private set; } = 5;
+		public const uint DEFAULT_STACK_DEPHT = 5;
+		public const uint DEFAULT_INTERNAL_MODIFICATION_COUNT = 1;
+
+		public static uint undoHistoryLength { get; private set; } =  DEFAULT_STACK_DEPHT;
+		public static uint sheetChangesBeforeSaving { get; private set; } = DEFAULT_INTERNAL_MODIFICATION_COUNT;
 
 		public Configuration(string filePath) {
 			if (!File.Exists(filePath)) {
@@ -36,10 +40,13 @@ namespace Metin2SpeechToData {
 					folderBrowser.ShowNewFolderButton = true;
 					folderBrowser.ShowDialog();
 					if (string.IsNullOrWhiteSpace(folderBrowser.SelectedPath)) {
-						folderBrowser.ShowDialog();
-					}
-					if (string.IsNullOrWhiteSpace(folderBrowser.SelectedPath)) {
-						Environment.Exit(0);
+						Console.WriteLine("No path selected, quitting...\nPress 'Enter' to close the window");
+						sw.Close();
+						sw.Dispose();
+						File.Delete(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
+						Console.ReadLine();
+						Environment.Exit(1);
+						return;
 					}
 					xlsxFile = new FileInfo(folderBrowser.SelectedPath + Path.DirectorySeparatorChar + FILE_NAME);
 					OfficeOpenXml.ExcelPackage package = new OfficeOpenXml.ExcelPackage(xlsxFile);
@@ -48,8 +55,12 @@ namespace Metin2SpeechToData {
 				}
 				sw.Write("# Path to the file\n");
 				sw.Write("PATH{\n\t" + xlsxFile + "\n}\n");
-				sw.Write("\n# Undo stack depth, the amout of \"undos\" you can make\n");
-				sw.Write("UNDO_HISTORY_LENGTH= " + 5 + "\n");
+				sw.WriteLine();
+				sw.Write("# Undo stack depth, the amout of \"undos\" you can make | DEAFULT=5\n");
+				sw.Write("UNDO_HISTORY_LENGTH= " + DEFAULT_STACK_DEPHT + "\n");
+				sw.WriteLine();
+				sw.Write("# How many changes are made internally before writing into the file, lower is better for stability reasons, higher is less CPU intesive | DEAFULT=1\n");
+				sw.Write("WRITE_XSLX_AFTER_NO_OF_MODIFICATIONS= " + DEFAULT_INTERNAL_MODIFICATION_COUNT + "\n");
 			}
 		}
 
@@ -62,18 +73,18 @@ namespace Metin2SpeechToData {
 						continue;
 					}
 					if (line.Contains("{")) {
-						string[] seg = line.Split('{');
-						switch (seg[0]) {
+						string[] split = line.Split('{');
+						switch (split[0]) {
 							case "PATH": {
 								line = sr.ReadLine();
 								line = line.Trim(' ', '\t', '\n');
 								if (!File.Exists(line)) {
 									Console.WriteLine("The file " + line + " was not found!\n" +
-													  "You have to raplace the path to it in 'config.cfg' or delete the config,\n" +
-													  "and new cfg + sheet will be generated on restart.");
+													  "You have to raplace the path to it in 'config.cfg' in this apps folder, or delete the configuration,\n" +
+													  "new one, along with the sheet will be generated on restart.");
 									Console.ReadKey();
 									Environment.Exit(0);
-									break;
+									return;
 								}
 								xlsxFile = new FileInfo(line);
 								parseSuccess = true;
@@ -83,7 +94,12 @@ namespace Metin2SpeechToData {
 					}
 					if (line.Contains("=")) {
 						string[] split = line.Split('=');
-						undoHistoryLength = int.Parse(split[1].Trim('\n', ' ', '\t'));
+						if (split[0] == "UNDO_HISTORY_LENGTH") {
+							undoHistoryLength = uint.Parse(split[1].Trim('\n', ' ', '\t'));
+						}
+						else if (split[0] == "WRITE_XSLX_AFTER_NO_OF_MODIFICATIONS") {
+							sheetChangesBeforeSaving = uint.Parse(split[1].Trim('\n', ' ', '\t'));
+						}
 					}
 				}
 				if (parseSuccess) {

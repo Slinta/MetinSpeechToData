@@ -10,7 +10,7 @@
 		/// <summary>
 		/// Creates a stack with 'capacity' depth, items added beyond this capacity will overwrite oldest entry
 		/// </summary>
-		public DropOutStack(int capacity) {
+		public DropOutStack(uint capacity) {
 			items = new T[capacity];
 		}
 
