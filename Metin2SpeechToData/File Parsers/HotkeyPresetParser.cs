@@ -12,7 +12,7 @@ namespace Metin2SpeechToData {
 
 		public List<int> activeKeyIDs { get; private set; }
 
-		private readonly List<Keys> currKeys;
+		public List<Keys> currKeys { get; private set; }
 
 		public HotkeyPresetParser(string selectedArea) {
 			DirectoryInfo directory = new DirectoryInfo(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Hotkeys");
@@ -83,7 +83,15 @@ namespace Metin2SpeechToData {
 						bool two = Enum.TryParse(curr[1], out KeyModifiers mod2);
 						bool three = Enum.TryParse(curr[2], out KeyModifiers mod3);
 						Keys key = (Keys)Enum.Parse(typeof(Keys), curr[3]);
-						//TODO add AssignToHotkey for 3 modifiers
+						if (one && two && three) {
+							int ID = Program.mapper.AssignToHotkey(key, mod1, mod2, mod3, Program.mapper.EnemyHandlingItemDroppedWrapper, new SpeechRecognizedArgs(itemName, 100));
+							Console.WriteLine("Assigning - " + mod1 + " + " + mod2 + " + " + mod3 + " + " + key + " for item " + itemName);
+							activeKeyIDs.Add(ID);
+							currKeys.Add(key);
+						}
+						else {
+							Console.WriteLine("Unable to parse one of '" + curr[0] +" | "+ curr[1] +" | "+ curr[2] + "'");
+						}
 						break;
 					}
 				}

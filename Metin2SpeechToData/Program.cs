@@ -24,6 +24,7 @@ namespace Metin2SpeechToData {
 		 * TODO: Error check and speech recognition overlaps
 		 * 
 		 * 
+		 * 
 		 */
 
 		[STAThread]
@@ -74,22 +75,12 @@ namespace Metin2SpeechToData {
 								break;
 							}
 							case "help": {
-								//TODO Update help print
 								Console.WriteLine("Existing commands:");
 								Console.WriteLine("quit / exit --> Close the application\n");
 								Console.WriteLine("clear --> Clears the console\n");
 								Console.WriteLine("voice / voice debug --> Enables voice control without/with debug prints\n");
 								Console.WriteLine("chest --> Opens speech recognition for chest drops (Gold/Silver[+-])\n");
-								Console.WriteLine("sheet 'sheet name' --> Swithches current working sheet to 'sheet name'" +
-												  "\n'sheet name' = sheet name, sheet MUST already exist!\n");
-								Console.WriteLine("sheet add 'name' --> adds a sheet with name 'name'\n");
-								Console.WriteLine("[Deprecated for single item addition]\n" +
-												  "add 'row' 'collumn' 'number' --> Adds value to cell\n" +
-												  "'number' = the number to add\n" +
-												  "'row', 'collumn' = indexes of the cell\n" +
-												  "sheet MUST already exist!\n");
-								Console.WriteLine("[Deprecated for dictionary values]\n" +
-												  "val 'row' 'collumn' 'number' --> Same as 'add' but the value is overwritten!");
+								Console.WriteLine("wipe --> removes the sheet and all custom data !CAUTION ADVISED!");
 								break;
 							}
 							case "voice": {
@@ -102,7 +93,7 @@ namespace Metin2SpeechToData {
 								mapper.AssignToHotkey(Keys.F2, "chest");
 								mapper.AssignToHotkey(Keys.F3, "help");
 								mapper.AssignToHotkey(Keys.F4, "quit");
-								//mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
+								mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
 								break;
 							}
 							case "chest": {
@@ -115,7 +106,7 @@ namespace Metin2SpeechToData {
 								mapper.AssignToHotkey(Keys.F2, "chest");
 								mapper.AssignToHotkey(Keys.F3, "help");
 								mapper.AssignToHotkey(Keys.F4, "quit");
-								//mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
+								mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
 								break;
 							}
 							case "clear": {
@@ -151,11 +142,6 @@ namespace Metin2SpeechToData {
 					}
 					case 2: {
 						switch (commandBlocks[0]) {
-							case "sheet": {
-								string sheet = commandBlocks[1];
-								interaction.OpenWorksheet(sheet);
-								break;
-							}
 							case "voice": {
 								if (commandBlocks[1] == "debug") {
 									debug = true;
@@ -164,59 +150,6 @@ namespace Metin2SpeechToData {
 									gameRecognizer = new GameRecognizer();
 									gameRecognizer.helper.AcquireControl();
 									Console.WriteLine("Returned to Main control!");
-								}
-								break;
-							}
-							default: {
-								Console.WriteLine("Not a valid command, type 'help' for more info");
-								break;
-							}
-						}
-						break;
-					}
-					case 3: {
-						switch (commandBlocks[0]) {
-							case "sheet": {
-								if (commandBlocks[1] == "add") {
-									interaction.OpenWorksheet(commandBlocks[2]);
-									Console.WriteLine("Added sheet " + commandBlocks[2]);
-								}
-								break;
-							}
-						}
-						break;
-					}
-					case 4: {
-						switch (commandBlocks[0]) {
-							//Add a number to a cell, args: row, col, number
-							case "add": {
-								int successCounter = 0;
-								if (int.TryParse(commandBlocks[1], out int row)) {
-									successCounter += 1;
-								}
-								if (int.TryParse(commandBlocks[2], out int collum)) {
-									successCounter += 1;
-								}
-								if (int.TryParse(commandBlocks[3], out int numberToAdd)) {
-									successCounter += 1;
-								}
-								if (successCounter == 3) {
-									interaction.AddNumberTo(new ExcelCellAddress(collum, row), numberToAdd);
-									Console.WriteLine("Added " + numberToAdd + " to sheet at [" + row + "," + collum + "]");
-								}
-								break;
-							}
-							case "val": {
-								int successCounter = 0;
-								if (int.TryParse(commandBlocks[1], out int row)) {
-									successCounter += 1;
-								}
-								if (int.TryParse(commandBlocks[2], out int collum)) {
-									successCounter += 1;
-								}
-								if (successCounter == 2) {
-									interaction.InsertValue(new ExcelCellAddress(collum, row), commandBlocks[3]);
-									Console.WriteLine("Added " + commandBlocks[3] + " to sheet at [" + row + "," + collum + "]");
 								}
 								break;
 							}

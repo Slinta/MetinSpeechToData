@@ -112,7 +112,7 @@ namespace Metin2SpeechToData {
 				if (resultUndo) {
 					action = stack.Pop();
 					Program.interaction.AddNumberTo(action.addr, -action.count);
-					if (Program.interaction.currentSheet.Cells[action.addr.Row, action.addr.Column].GetValue<int>() == 0) {
+					if (Program.interaction.currentSheet.Cells[action.addr.Row, action.addr.Column].GetValue<int>() == 0 && currentEnemy != "") {
 						string itemName = Program.interaction.currentSheet.Cells[action.addr.Row, action.addr.Column - 2].Value.ToString();
 						Console.WriteLine("Remove " + currentItem + " from current enemy's (" + currentEnemy + ") item list?");
 						bool resultRemoveFromFile = Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'?");

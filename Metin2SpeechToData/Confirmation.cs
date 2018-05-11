@@ -22,7 +22,7 @@ namespace Metin2SpeechToData {
 			evnt.Reset();
 			_confimer.UnloadAllGrammars();
 			_confimer.LoadGrammar(new Grammar(new Choices(_boolConfirmation)));
-			_confimer.RecognizeAsync(RecognizeMode.Single);
+			_confimer.RecognizeAsync(RecognizeMode.Multiple);
 			_confimer.SpeechRecognized += Confimer_SpeechRecognized;
 			Console.WriteLine(question);
 			evnt.Wait();
@@ -30,15 +30,20 @@ namespace Metin2SpeechToData {
 		}
 
 		private static void Confimer_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {
-			_confimer.SpeechRecognized -= Confimer_SpeechRecognized;
+			bool speechValidated = false;
 			if (e.Result.Text == _boolConfirmation[0]) {
 				_booleanResult = true;
+				speechValidated = true;
 			}
-			else {
+			else if (e.Result.Text == _boolConfirmation[1]) {
 				_booleanResult = false;
+				speechValidated = true;
 			}
-			_confimer.RecognizeAsyncStop();
-			evnt.Set();
+			if (speechValidated) {
+				_confimer.SpeechRecognized -= Confimer_SpeechRecognized;
+				_confimer.RecognizeAsyncStop();
+				evnt.Set();
+			}
 		}
 
 		public static void SelectivelyDisableEnableGrammars(ref SpeechRecognitionEngine engine, bool disable) {
@@ -56,7 +61,6 @@ namespace Metin2SpeechToData {
 				}
 				grammarsThatWereEnabledBefore.Clear();
 			}
-
 		}
 	}
 }

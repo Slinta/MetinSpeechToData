@@ -116,14 +116,15 @@ namespace Metin2SpeechToData {
 					}
 					Console.WriteLine(list.Remove(list.Length - 2, 2));
 					baseRecognizer.OnRecognitionStateChanged(this, RecognitionBase.RecognitionState.ACTIVE);
-					Program.mapper.FreeAllHotkeys();
+					Program.mapper.FreeNonCustomHotkeys();
 
 					SetGrammarActive(Program.controlCommands.getStartCommand, false);
 					SetGrammarActive(Program.controlCommands.getStopCommand, false);
 					SetGrammarActive(Program.controlCommands.getSwitchGrammarCommand, false);
 					SetGrammarActive(Program.controlCommands.getPauseCommand, true);
 
-					Console.WriteLine("Program running... " + KeyModifiers.Control + " + " + KeyModifiers.Shift + " + " + Keys.F4 + " or " + Program.controlCommands.getPauseCommand + " to stop.");
+					Console.WriteLine("To pause: " + KeyModifiers.Control + " + " + KeyModifiers.Shift + " + " + Keys.F4 + " or '" + Program.controlCommands.getPauseCommand+ "'");
+					Console.WriteLine("Pausing will enable the rest of control.");
 					Program.mapper.AssignToHotkey(Keys.F4, KeyModifiers.Control, KeyModifiers.Shift, Control_SpeechRecognized, new SpeechRecognizedArgs(Program.controlCommands.getPauseCommand, 100));
 					DefinitionParser.instance.hotkeyParser.SetKeysActiveState(true);
 				}
@@ -137,6 +138,7 @@ namespace Metin2SpeechToData {
 				SetGrammarActive(Program.controlCommands.getPauseCommand, false);
 				SetGrammarActive(Program.controlCommands.getStopCommand, true);
 				SetGrammarActive(Program.controlCommands.getStartCommand, true);
+				DefinitionParser.instance.hotkeyParser.SetKeysActiveState(false);
 			}
 			else if (e.text == Program.controlCommands.getSwitchGrammarCommand) {
 				Choices definitions = new Choices();
@@ -196,14 +198,15 @@ namespace Metin2SpeechToData {
 
 			Program.interaction.OpenWorksheet(e.text);
 			Program.mapper.SetInactive(Keys.F1, false);
-			Program.mapper.SetInactive(Keys.F2, false);
-			Program.mapper.SetInactive(Keys.F3, false);
+			Program.mapper.SetInactive(Keys.F2, true);
+			Program.mapper.SetInactive(Keys.F3, true);
 			Program.mapper.SetInactive(Keys.F4, false);
 
 			Console.Clear();
 			Console.WriteLine("Grammar initialized!");
 			DefinitionParser.instance.LoadHotkeys(e.text);
-			Console.WriteLine("(F1) or '" + Program.controlCommands.getStartCommand + "' to start");
+			Console.WriteLine("(F1) or '" + Program.controlCommands.getStartCommand + "' to start\n" +
+							  "(F4) or '" + Program.controlCommands.getStopCommand + "' to stop");
 		}
 
 

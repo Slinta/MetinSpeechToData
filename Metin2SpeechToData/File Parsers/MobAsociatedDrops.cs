@@ -33,7 +33,7 @@ namespace Metin2SpeechToData {
 					string[] splt = getAllDropsFile[i].Split('{');
 					if (splt[0] == mobName) {
 						mobEntryExists = true;
-						if (!GroupEntryExists(i + 1, item.group)) {
+						if (!CheckGroupExists(i + 1, item.group)) {
 							list = new List<string>(getAllDropsFile);
 							list.Insert(i + 1, "\t-" + item.group + ":");
 
@@ -118,10 +118,10 @@ namespace Metin2SpeechToData {
 		}
 
 
-		private bool GroupEntryExists(int mobLine, string group) {
+		private bool CheckGroupExists(int mobLine, string groupName) {
 			foreach (int line in GetLinesOfEnemy(mobLine)) {
 				string s = getAllDropsFile[line].TrimStart().Trim('-').Split(':')[0];
-				if (s == group) {
+				if (s == groupName) {
 					return true;
 				}
 			}

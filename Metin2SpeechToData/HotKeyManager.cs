@@ -118,6 +118,7 @@ namespace Metin2SpeechToData {
 
 
 		private readonly Dictionary<Keys, ActionStashSpeechArgs> voiceHotkeys = new Dictionary<Keys, ActionStashSpeechArgs>();
+
 		private readonly Dictionary<Keys, ActionStashString> controlHotkeys = new Dictionary<Keys, ActionStashString>();
 
 		public HotKeyMapper() {
@@ -141,6 +142,7 @@ namespace Metin2SpeechToData {
 			);
 			return voiceHotkeys[selectedKey]._unregID;
 		}
+
 		/// <summary>
 		/// Assign hotkey 'selectedKey' + a 'modifier' key to call function 'action' with 'arguments'
 		/// </summary>
@@ -157,6 +159,7 @@ namespace Metin2SpeechToData {
 			);
 			return voiceHotkeys[selectedKey]._unregID;
 		}
+
 		/// <summary>
 		/// Assign hotkey 'selectedKey' + 'modifier' keys to call function 'action' with 'arguments'
 		/// </summary>
@@ -169,6 +172,23 @@ namespace Metin2SpeechToData {
 				_data = arguments,
 				_keyModifier = modifier1 | modifier2,
 				_unregID = HotKeyManager.RegisterHotKey(selectedKey, modifier1 | modifier2)
+			}
+			);
+			return voiceHotkeys[selectedKey]._unregID;
+		}
+
+		/// <summary>
+		/// Assign hotkey 'selectedKey' + 'modifier' keys to call function 'action' with 'arguments'
+		/// </summary>
+		public int AssignToHotkey(Keys selectedKey, KeyModifiers modifier1, KeyModifiers modifier2, KeyModifiers modifier3, Action<SpeechRecognizedArgs> action, SpeechRecognizedArgs arguments) {
+			if (voiceHotkeys.ContainsKey(selectedKey)) {
+				throw new CustomException(selectedKey + " already mapped to " + voiceHotkeys[selectedKey] + "!");
+			}
+			voiceHotkeys.Add(selectedKey, new ActionStashSpeechArgs() {
+				_action = action,
+				_data = arguments,
+				_keyModifier = modifier1 | modifier2 | modifier3,
+				_unregID = HotKeyManager.RegisterHotKey(selectedKey, modifier1 | modifier2 | modifier3)
 			}
 			);
 			return voiceHotkeys[selectedKey]._unregID;
@@ -190,6 +210,7 @@ namespace Metin2SpeechToData {
 			);
 			return controlHotkeys[hotkey]._unregID;
 		}
+
 		/// <summary>
 		/// Assign hotkey 'selectedKey' + a 'modifier' key to call function 'action' with 'arguments'
 		/// </summary>
@@ -206,6 +227,7 @@ namespace Metin2SpeechToData {
 			);
 			return controlHotkeys[hotkey]._unregID;
 		}
+
 		/// <summary>
 		/// Assign hotkey 'selectedKey' + 'modifier' keys to call function 'action' with 'arguments'
 		/// </summary>
@@ -261,6 +283,23 @@ namespace Metin2SpeechToData {
 		public void FreeCustomHotkeys() {
 			foreach (int key in DefinitionParser.instance.hotkeyParser.activeKeyIDs) {
 				HotKeyManager.UnregisterHotKey(key);
+			}
+		}
+
+		/// <summary>
+		/// Removes all hotkeys except custom item ones, expensive call!
+		/// </summary>
+		public void FreeNonCustomHotkeys() {
+			FreeControlHotkeys();
+			List<Keys> toRemove = new List<Keys>();
+			foreach (KeyValuePair<Keys, ActionStashSpeechArgs> item in voiceHotkeys) {
+				if (!DefinitionParser.instance.hotkeyParser.currKeys.Contains(item.Key)) {
+					HotKeyManager.UnregisterHotKey(item.Value._unregID);
+					toRemove.Add(item.Key);
+				}
+			}
+			for (int i = 0; i < toRemove.Count; i++) {
+				voiceHotkeys.Remove(toRemove[i]);
 			}
 		}
 
@@ -324,7 +363,7 @@ namespace Metin2SpeechToData {
 					stash._action.Invoke(stash._data);
 				}
 				else if (stash._isInactive) {
-					Console.WriteLine("This command in currenly inaccessible");
+					Console.WriteLine("This command in currently inaccessible");
 				}
 			}
 			else if (voiceHotkeys.ContainsKey(e.Key)) {
@@ -333,7 +372,7 @@ namespace Metin2SpeechToData {
 					stash._action.Invoke(stash._data);
 				}
 				else if (stash._isInactive) {
-					Console.WriteLine("This command in currenly inaccessible");
+					Console.WriteLine("This command in currently inaccessible");
 				}
 			}
 			else {
