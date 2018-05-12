@@ -12,25 +12,31 @@ namespace Metin2SpeechToData {
 
 		public List<int> activeKeyIDs { get; private set; }
 
-		public List<Keys> currKeys { get; private set; }
+		public List<Keys> currentCustomKeys { get; private set; }
+		private List<(Keys key, string name)> _hotkeySelection;
 
 		public HotkeyPresetParser(string selectedArea) {
 			DirectoryInfo directory = new DirectoryInfo(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Hotkeys");
 			hotkeyFiles = directory.GetFiles("* *.definition");
 			activeKeyIDs = new List<int>();
-			currKeys = new List<Keys>();
+			currentCustomKeys = new List<Keys>();
 			Load(selectedArea);
 		}
 
 
 		public void SetKeysActiveState(bool state) {
-			foreach (Keys key in currKeys) {
+			foreach (Keys key in currentCustomKeys) {
 				Program.mapper.SetInactive(key, !state);
 			}
 		}
 
 		public void Selected_Hotkey(SpeechRecognizedArgs args) {
 			Console.WriteLine("Selected " + args.text);
+			for (int i = 0; i < _hotkeySelection.Count; i++) {
+				if (_hotkeySelection[i].name == args.text) {
+					Program.mapper.SetInactive(_hotkeySelection[i].key, true);
+				}
+			}
 			string[] fileContent = File.ReadAllLines(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Hotkeys" + Path.DirectorySeparatorChar + args.text);
 			for (int i = 0; i < fileContent.Length; i++) {
 				if (fileContent[i].StartsWith("#") || string.IsNullOrWhiteSpace(fileContent[i])) {
@@ -46,7 +52,7 @@ namespace Metin2SpeechToData {
 						int ID = Program.mapper.AssignToHotkey(key, Program.mapper.EnemyHandlingItemDroppedWrapper, new SpeechRecognizedArgs(itemName, 100));
 						Console.WriteLine("Assigning - " + key + " for item " + itemName);
 						activeKeyIDs.Add(ID);
-						currKeys.Add(key);
+						currentCustomKeys.Add(key);
 						break;
 					}
 					case 2: {
@@ -56,7 +62,7 @@ namespace Metin2SpeechToData {
 							int ID = Program.mapper.AssignToHotkey(key, mod1, Program.mapper.EnemyHandlingItemDroppedWrapper, new SpeechRecognizedArgs(itemName, 100));
 							Console.WriteLine("Assigning - " + mod1 + " + " + key + " for item " + itemName);
 							activeKeyIDs.Add(ID);
-							currKeys.Add(key);
+							currentCustomKeys.Add(key);
 						}
 						else {
 							Console.WriteLine("Unable to parse '" + curr[0] + "'");
@@ -71,7 +77,7 @@ namespace Metin2SpeechToData {
 							int ID = Program.mapper.AssignToHotkey(key, mod1, mod2, Program.mapper.EnemyHandlingItemDroppedWrapper, new SpeechRecognizedArgs(itemName, 100));
 							Console.WriteLine("Assigning - " + mod1 + " + " + mod2 + " + " + key + " for item " + itemName);
 							activeKeyIDs.Add(ID);
-							currKeys.Add(key);
+							currentCustomKeys.Add(key);
 						}
 						else {
 							Console.WriteLine("Unable to parse '" + (one ? curr[1] : curr[0]) + "'");
@@ -87,10 +93,10 @@ namespace Metin2SpeechToData {
 							int ID = Program.mapper.AssignToHotkey(key, mod1, mod2, mod3, Program.mapper.EnemyHandlingItemDroppedWrapper, new SpeechRecognizedArgs(itemName, 100));
 							Console.WriteLine("Assigning - " + mod1 + " + " + mod2 + " + " + mod3 + " + " + key + " for item " + itemName);
 							activeKeyIDs.Add(ID);
-							currKeys.Add(key);
+							currentCustomKeys.Add(key);
 						}
 						else {
-							Console.WriteLine("Unable to parse one of '" + curr[0] +" | "+ curr[1] +" | "+ curr[2] + "'");
+							Console.WriteLine("Unable to parse one of '" + curr[0] + " | " + curr[1] + " | " + curr[2] + "'");
 						}
 						break;
 					}
@@ -101,11 +107,13 @@ namespace Metin2SpeechToData {
 
 		public void Load(string area) {
 			FileInfo[] validForArea = hotkeyFiles.Where(file => new Regex(Regex.Escape(area) + @"\ \d+\.definition").IsMatch(file.Name)).ToArray();
+			_hotkeySelection = new List<(Keys key, string name)>();
 			if (validForArea.Length > 0) {
 				Console.WriteLine("Found some hotkey definitions for " + area + ", load them ?");
 				for (int i = 0; i < validForArea.Length; i++) {
 					Console.WriteLine("(" + (i + 1) + ") " + validForArea[i].Name.Split('.')[0]);
-					Program.mapper.AssignToHotkey(Keys.D1, Selected_Hotkey, new SpeechRecognizedArgs(validForArea[i].Name.Split(':')[0], 100));
+					Program.mapper.AssignToHotkey((Keys)((int)Keys.D1 + i), Selected_Hotkey, new SpeechRecognizedArgs(validForArea[i].Name.Split(':')[0], 100));
+					_hotkeySelection.Add(((Keys)((int)Keys.D1 + i), validForArea[i].Name.Split(':')[0]));
 				}
 			}
 			else {

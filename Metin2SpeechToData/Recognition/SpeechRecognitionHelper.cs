@@ -65,7 +65,7 @@ namespace Metin2SpeechToData {
 			controlingRecognizer.LoadGrammar(new Grammar(new Choices(quitC)));
 			controlingRecognizer.LoadGrammar(new Grammar(new Choices(switchC)));
 
-			_currentGrammars.Add(startC, (0,true));
+			_currentGrammars.Add(startC, (0, true));
 			_currentGrammars.Add(pauseC, (1, true));
 			_currentGrammars.Add(quitC, (2, true));
 			_currentGrammars.Add(switchC, (3, true));
@@ -123,7 +123,7 @@ namespace Metin2SpeechToData {
 					SetGrammarActive(Program.controlCommands.getSwitchGrammarCommand, false);
 					SetGrammarActive(Program.controlCommands.getPauseCommand, true);
 
-					Console.WriteLine("To pause: " + KeyModifiers.Control + " + " + KeyModifiers.Shift + " + " + Keys.F4 + " or '" + Program.controlCommands.getPauseCommand+ "'");
+					Console.WriteLine("To pause: " + KeyModifiers.Control + " + " + KeyModifiers.Shift + " + " + Keys.F4 + " or '" + Program.controlCommands.getPauseCommand + "'");
 					Console.WriteLine("Pausing will enable the rest of control.");
 					Program.mapper.AssignToHotkey(Keys.F4, KeyModifiers.Control, KeyModifiers.Shift, Control_SpeechRecognized, new SpeechRecognizedArgs(Program.controlCommands.getPauseCommand, 100));
 					DefinitionParser.instance.hotkeyParser.SetKeysActiveState(true);
@@ -238,7 +238,7 @@ namespace Metin2SpeechToData {
 		public void SetGrammarActive(string name, bool active) {
 			if (_currentGrammars.ContainsKey(name)) {
 				controlingRecognizer.Grammars[_currentGrammars[name].index].Enabled = active;
-				_currentGrammars[name] = (_currentGrammars[name].index,active);
+				_currentGrammars[name] = (_currentGrammars[name].index, active);
 			}
 			else {
 				throw new CustomException("Grammar name " + name + " not found!");

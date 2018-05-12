@@ -293,7 +293,7 @@ namespace Metin2SpeechToData {
 			FreeControlHotkeys();
 			List<Keys> toRemove = new List<Keys>();
 			foreach (KeyValuePair<Keys, ActionStashSpeechArgs> item in voiceHotkeys) {
-				if (!DefinitionParser.instance.hotkeyParser.currKeys.Contains(item.Key)) {
+				if (!DefinitionParser.instance.hotkeyParser.currentCustomKeys.Contains(item.Key)) {
 					HotKeyManager.UnregisterHotKey(item.Value._unregID);
 					toRemove.Add(item.Key);
 				}
