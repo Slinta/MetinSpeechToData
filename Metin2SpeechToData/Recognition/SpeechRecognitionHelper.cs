@@ -98,11 +98,18 @@ namespace Metin2SpeechToData {
 		/// Called by saying one of the controling words 
 		/// </summary>
 		protected void Control_SpeechRecognized_Wrapper(object sender, SpeechRecognizedEventArgs e) {
-			Control_SpeechRecognized(new SpeechRecognizedArgs(e.Result.Text, e.Result.Confidence));
+			if (e.Result.Confidence > Configuration.acceptanceThreshold) {
+				Control_SpeechRecognized(new SpeechRecognizedArgs(e.Result.Text, e.Result.Confidence));
+			}
 		}
 		protected virtual void Control_SpeechRecognized(SpeechRecognizedArgs e) {
 
 			if (e.text == Program.controlCommands.getStartCommand) {
+				if(baseRecognizer.currentState == RecognitionBase.RecognitionState.ACTIVE) {
+					Console.WriteLine("Already started!");
+					return;
+				}
+
 				Console.Write("Starting Recognition... ");
 				if (!baseRecognizer.isPrimaryDefinitionLoaded) {
 					Console.WriteLine("Current grammar: NOT INITIALIZED!");
@@ -134,6 +141,11 @@ namespace Metin2SpeechToData {
 				Console.WriteLine("Stopping Recognition!");
 			}
 			else if (e.text == Program.controlCommands.getPauseCommand) {
+				if(baseRecognizer.currentState != RecognitionBase.RecognitionState.ACTIVE) {
+					Console.WriteLine("Recognition is not currenty active, no actions taken.");
+					return;
+				}
+
 				baseRecognizer.OnRecognitionStateChanged(this, RecognitionBase.RecognitionState.PAUSED);
 				SetGrammarActive(Program.controlCommands.getPauseCommand, false);
 				SetGrammarActive(Program.controlCommands.getStopCommand, true);
@@ -141,6 +153,10 @@ namespace Metin2SpeechToData {
 				DefinitionParser.instance.hotkeyParser.SetKeysActiveState(false);
 			}
 			else if (e.text == Program.controlCommands.getSwitchGrammarCommand) {
+				if(baseRecognizer.currentState >= RecognitionBase.RecognitionState.GRAMMAR_SELECTED) {
+					Console.WriteLine("You can not select another grammar at this point, Pause >> Quit >> Select grammar");
+					return;
+				}
 				Choices definitions = new Choices();
 				Console.Write("Switching Grammar, available: ");
 				string[] available = DefinitionParser.instance.getDefinitionNames;
@@ -174,7 +190,9 @@ namespace Metin2SpeechToData {
 		/// to handle the next word that will signalize the location of choice
 		/// </summary>
 		private void Switch_WordRecognized_Wrapper(object sender, SpeechRecognizedEventArgs e) {
-			Switch_WordRecognized(new SpeechRecognizedArgs(e.Result.Text, e.Result.Confidence));
+			if (Configuration.acceptanceThreshold < e.Result.Confidence) {
+				Switch_WordRecognized(new SpeechRecognizedArgs(e.Result.Text, e.Result.Confidence));
+			}
 		}
 		protected virtual void Switch_WordRecognized(SpeechRecognizedArgs e) {
 			controlingRecognizer.SpeechRecognized -= Switch_WordRecognized_Wrapper;
@@ -207,6 +225,7 @@ namespace Metin2SpeechToData {
 			DefinitionParser.instance.LoadHotkeys(e.text);
 			Console.WriteLine("(F1) or '" + Program.controlCommands.getStartCommand + "' to start\n" +
 							  "(F4) or '" + Program.controlCommands.getStopCommand + "' to stop");
+			baseRecognizer.currentState = RecognitionBase.RecognitionState.GRAMMAR_SELECTED;
 		}
 
 

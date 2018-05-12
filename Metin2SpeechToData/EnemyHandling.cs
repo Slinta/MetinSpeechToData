@@ -120,7 +120,13 @@ namespace Metin2SpeechToData {
 							currentItem = itemName;
 							mobDrops.RemoveItemEntry(currentEnemy, currentItem, true);
 						}
+						else {
+							Console.WriteLine("Enemy file NOT modified!");
+						}
 					}
+				}
+				else {
+					Console.WriteLine("Undo refused!");
 				}
 			}
 		}

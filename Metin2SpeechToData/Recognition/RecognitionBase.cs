@@ -9,17 +9,21 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		public enum RecognitionState {
 			INACTIVE,
-			ACTIVE,
-			SWITCHING,
-			PAUSED,
 			STOPPED,
+			SWITCHING,
+			GRAMMAR_SELECTED,
+			PAUSED,
+			ACTIVE,
 		}
+
 
 		protected delegate void Recognition(object sender, RecognitionState state);
 		public delegate void Modifier(object sender, ModiferRecognizedEventArgs args);
 		protected Dictionary<string, int> _currentGrammars;
 
+
 		public bool isPrimaryDefinitionLoaded { get; set; }
+		public RecognitionState currentState { get; set; }
 
 		/// <summary>
 		/// Get currently loded grammars by name with indexes
@@ -59,7 +63,9 @@ namespace Metin2SpeechToData {
 		/// Base speech recognized event handler
 		/// </summary>
 		private void Main_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {
-			SpeechRecognized(sender, new SpeechRecognizedArgs(e.Result.Text, e.Result.Confidence));
+			if (Configuration.acceptanceThreshold < e.Result.Confidence) {
+				SpeechRecognized(sender, new SpeechRecognizedArgs(e.Result.Text, e.Result.Confidence));
+			}
 		}
 
 		/// <summary>

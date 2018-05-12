@@ -8,11 +8,13 @@ namespace Metin2SpeechToData {
 		public FileInfo xlsxFile { get; private set; }
 
 		public const string FILE_NAME = "Metin2 Drop Speadsheet.xlsx";
-		public const uint DEFAULT_STACK_DEPHT = 5;
-		public const uint DEFAULT_INTERNAL_MODIFICATION_COUNT = 1;
+		private const uint DEFAULT_STACK_DEPHT = 5;
+		private const uint DEFAULT_INTERNAL_MODIFICATION_COUNT = 1;
+		private const float DEFAULT_SPEECH_ACCEPTANCE_THRESHOLD = 0.8f;
 
 		public static uint undoHistoryLength { get; private set; } =  DEFAULT_STACK_DEPHT;
 		public static uint sheetChangesBeforeSaving { get; private set; } = DEFAULT_INTERNAL_MODIFICATION_COUNT;
+		public static float acceptanceThreshold { get; private set; } = DEFAULT_SPEECH_ACCEPTANCE_THRESHOLD;
 
 		public Configuration(string filePath) {
 			if (!File.Exists(filePath)) {
@@ -56,11 +58,15 @@ namespace Metin2SpeechToData {
 				sw.Write("# Path to the file\n");
 				sw.Write("PATH{\n\t" + xlsxFile + "\n}\n");
 				sw.WriteLine();
-				sw.Write("# Undo stack depth, the amout of \"undos\" you can make | DEAFULT=5\n");
+				sw.Write("# Undo stack depth, the amout of \"undos\" you can make | DEAFULT=5 {1--1000}\n");
 				sw.Write("UNDO_HISTORY_LENGTH= " + DEFAULT_STACK_DEPHT + "\n");
 				sw.WriteLine();
-				sw.Write("# How many changes are made internally before writing into the file, lower is better for stability reasons, higher is less CPU intesive | DEAFULT=1\n");
+				sw.Write("# How many changes are made internally before writing into the file, lower is better for stability reasons, higher is less CPU intesive | DEAFULT=1 {1--100}\n");
 				sw.Write("WRITE_XSLX_AFTER_NO_OF_MODIFICATIONS= " + DEFAULT_INTERNAL_MODIFICATION_COUNT + "\n");
+				sw.WriteLine();
+				sw.Write("# The threshold for recognition, if the recognizer is less confident in waht you said than this value, it will ignore the word/sentence | DEAFULT=0.8 {0,5--0,95}\n");
+				sw.Write("SPEECH_ACCEPTANCE_THRESHOLD= " + DEFAULT_SPEECH_ACCEPTANCE_THRESHOLD + "\n");
+				sw.WriteLine();
 			}
 		}
 
@@ -96,9 +102,21 @@ namespace Metin2SpeechToData {
 						string[] split = line.Split('=');
 						if (split[0] == "UNDO_HISTORY_LENGTH") {
 							undoHistoryLength = uint.Parse(split[1].Trim('\n', ' ', '\t'));
+							if(undoHistoryLength > 1000 && undoHistoryLength < 1) {
+								throw new CustomException("THe value for UNDO_HISTORY_LENGTH in 'config.cfg' is out of bounds!");
+							}
 						}
 						else if (split[0] == "WRITE_XSLX_AFTER_NO_OF_MODIFICATIONS") {
 							sheetChangesBeforeSaving = uint.Parse(split[1].Trim('\n', ' ', '\t'));
+							if (sheetChangesBeforeSaving > 100 && sheetChangesBeforeSaving < 1) {
+								throw new CustomException("THe value for WRITE_XSLX_AFTER_NO_OF_MODIFICATIONS in 'config.cfg' is out of bounds!");
+							}
+						}
+						else if (split[0] == "SPEECH_ACCEPTANCE_THRESHOLD") {
+							acceptanceThreshold = float.Parse(split[1].Trim('\n', ' ', '\t'));
+							if (acceptanceThreshold > 0.95f && acceptanceThreshold < 0.5f) {
+								throw new CustomException("THe value for SPEECH_ACCEPTANCE_THRESHOLD in 'config.cfg' is out of bounds!");
+							}
 						}
 					}
 				}

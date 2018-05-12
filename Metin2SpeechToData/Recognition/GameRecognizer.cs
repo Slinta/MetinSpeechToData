@@ -6,7 +6,6 @@ namespace Metin2SpeechToData {
 
 		public static event Modifier OnModifierRecognized;
 
-		public RecognitionState currentState { get; private set; }
 
 		public SpeechRecognitionHelper helper { get; }
 		public EnemyHandling enemyHandling { get; }
@@ -95,6 +94,10 @@ namespace Metin2SpeechToData {
 					mainRecognizer.Grammars[getCurrentGrammars[Program.controlCommands.getNewTargetCommand]].Enabled = false;
 					break;
 				}
+				case SpeechRecognitionHelper.ModifierWords.UNDO: {
+					mainRecognizer.Grammars[primaryGrammarIndex].Enabled = false;
+					break;
+				}
 			}
 		}
 
@@ -104,6 +107,10 @@ namespace Metin2SpeechToData {
 				case SpeechRecognitionHelper.ModifierWords.NEW_TARGET: {
 					mainRecognizer.Grammars[primaryGrammarIndex].Enabled = true;
 					mainRecognizer.Grammars[getCurrentGrammars[Program.controlCommands.getNewTargetCommand]].Enabled = true;
+					break;
+				}
+				case SpeechRecognitionHelper.ModifierWords.UNDO: {
+					mainRecognizer.Grammars[primaryGrammarIndex].Enabled = true;
 					break;
 				}
 			}
