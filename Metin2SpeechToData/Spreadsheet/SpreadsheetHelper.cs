@@ -1,6 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using OfficeOpenXml;
+using Metin2SpeechToData.Structures;
+
 
 namespace Metin2SpeechToData {
 	public class SpreadsheetHelper {
@@ -209,15 +210,5 @@ namespace Metin2SpeechToData {
 			return range;
 		}
 		#endregion
-
-		public struct Dicts {
-			public Dicts(bool initialize) {
-				addresses = new Dictionary<string, ExcelCellAddress>();
-				groups = new Dictionary<string, SpreadsheetInteraction.Group>();
-			}
-
-			public Dictionary<string, ExcelCellAddress> addresses { get; }
-			public Dictionary<string, SpreadsheetInteraction.Group> groups { get; }
-		}
 	}
 }

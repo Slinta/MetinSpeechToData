@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Speech.Recognition;
+using Metin2SpeechToData.Structures;
+
 
 namespace Metin2SpeechToData {
 	public class GameRecognizer: RecognitionBase {

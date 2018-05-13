@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using System;
 using System.Windows.Forms;
 using System.Collections.Generic;
+using Metin2SpeechToData.Structures;
 
 namespace Metin2SpeechToData {
 	public class HotkeyPresetParser {

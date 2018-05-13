@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using OfficeOpenXml;
 using static Metin2SpeechToData.Configuration;
+using Metin2SpeechToData.Structures;
 
 namespace Metin2SpeechToData {
 	public class SpreadsheetInteraction : IDisposable {
@@ -62,7 +63,7 @@ namespace Metin2SpeechToData {
 				}
 			}
 			if (!sheetToAdresses.ContainsKey(sheetName)) {
-				SpreadsheetHelper.Dicts dicts = SpreadsheetHelper.LoadSpreadsheet(content, sheetName, helper.GetSheetType(sheetName));
+				Dicts dicts = SpreadsheetHelper.LoadSpreadsheet(content, sheetName, helper.GetSheetType(sheetName));
 				sheetToAdresses.Add(sheetName, dicts.addresses);
 				sheetToGroups.Add(sheetName, dicts.groups);
 			}
@@ -110,7 +111,7 @@ namespace Metin2SpeechToData {
 		#region Sheet initializers
 		public void InitAreaSheet(string areaName) {
 			_currentSheet = content.Worksheets[areaName];
-			SpreadsheetHelper.Dicts dicts = templates.InitializeAreaSheet(DefinitionParser.instance.currentGrammarFile);
+			Dicts dicts = templates.InitializeAreaSheet(DefinitionParser.instance.currentGrammarFile);
 			if (!sheetToAdresses.ContainsKey(areaName)) {
 				sheetToAdresses.Add(areaName, dicts.addresses);
 				sheetToGroups.Add(areaName, dicts.groups);
@@ -120,7 +121,7 @@ namespace Metin2SpeechToData {
 
 		public void InitMobSheet(string mobName) {
 			_currentSheet = content.Worksheets[mobName];
-			SpreadsheetHelper.Dicts dicts = templates.InitializeMobSheet(mobName, Program.gameRecognizer.enemyHandling.mobDrops);
+			Dicts dicts = templates.InitializeMobSheet(mobName, Program.gameRecognizer.enemyHandling.mobDrops);
 			if (!sheetToAdresses.ContainsKey(mobName)) {
 				sheetToAdresses.Add(mobName, dicts.addresses);
 				sheetToGroups.Add(mobName, dicts.groups);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Speech.Recognition;
+using Metin2SpeechToData.Structures;
 
 namespace Metin2SpeechToData {
 	public abstract class RecognitionBase: IDisposable {

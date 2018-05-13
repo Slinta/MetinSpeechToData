@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Diagnostics;
 using System.Collections.Generic;
+using Metin2SpeechToData.Structures;
 
 namespace Metin2SpeechToData {
 

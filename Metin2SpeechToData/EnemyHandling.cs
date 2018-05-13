@@ -3,6 +3,7 @@ using System.Speech.Recognition;
 using System.Threading;
 using static Metin2SpeechToData.SpeechRecognitionHelper;
 using OfficeOpenXml;
+using Metin2SpeechToData.Structures;
 
 namespace Metin2SpeechToData {
 	public class EnemyHandling {
@@ -102,18 +103,18 @@ namespace Metin2SpeechToData {
 			}
 			else if (args.modifier == ModifierWords.UNDO) {
 				ItemInsertion action = stack.Peek();
-				if (action.addr == null) {
+				if (action.address == null) {
 					Console.WriteLine("Nothing else to undo!");
 					return;
 				}
-				Console.WriteLine("Would remove " + action.count + " items from " + Program.interaction.currentSheet.Cells[action.addr.Row, action.addr.Column - 2].Value);
+				Console.WriteLine("Would remove " + action.count + " items from " + Program.interaction.currentSheet.Cells[action.address.Row, action.address.Column - 2].Value);
 
 				bool resultUndo = Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'?");
 				if (resultUndo) {
 					action = stack.Pop();
-					Program.interaction.AddNumberTo(action.addr, -action.count);
-					if (Program.interaction.currentSheet.Cells[action.addr.Row, action.addr.Column].GetValue<int>() == 0 && currentEnemy != "") {
-						string itemName = Program.interaction.currentSheet.Cells[action.addr.Row, action.addr.Column - 2].Value.ToString();
+					Program.interaction.AddNumberTo(action.address, -action.count);
+					if (Program.interaction.currentSheet.Cells[action.address.Row, action.address.Column].GetValue<int>() == 0 && currentEnemy != "") {
+						string itemName = Program.interaction.currentSheet.Cells[action.address.Row, action.address.Column - 2].Value.ToString();
 						Console.WriteLine("Remove " + currentItem + " from current enemy's (" + currentEnemy + ") item list?");
 						bool resultRemoveFromFile = Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'?");
 						if (resultRemoveFromFile) {
@@ -140,7 +141,7 @@ namespace Metin2SpeechToData {
 			}
 			ExcelCellAddress address = Program.interaction.GetAddress(item.mainPronounciation);
 			Program.interaction.AddNumberTo(address, amount);
-			stack.Push(new ItemInsertion { addr = address, count = amount });
+			stack.Push(new ItemInsertion(address,amount));
 		}
 		public void ItemDropped(string item, int amount = 1) {
 			ItemDropped(DefinitionParser.instance.currentGrammarFile.GetItemEntry(item), amount);
@@ -155,11 +156,6 @@ namespace Metin2SpeechToData {
 			evnt.Dispose();
 			masterMobRecognizer.SpeechRecognized -= MasterMobRecognizer_SpeechRecognized;
 			masterMobRecognizer.Dispose();
-		}
-
-		private struct ItemInsertion {
-			public ExcelCellAddress addr;
-			public int count;
 		}
 	}
 }

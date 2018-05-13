@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Speech.Recognition;
 using System.Windows.Forms;
 using System.Threading;
+using Metin2SpeechToData.Structures;
+
 
 namespace Metin2SpeechToData {
 	public class SpeechRecognitionHelper {

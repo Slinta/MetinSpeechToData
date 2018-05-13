@@ -1,7 +1,7 @@
-﻿using System.Linq;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using OfficeOpenXml;
-using System;
+using Metin2SpeechToData.Structures;
+
 
 namespace Metin2SpeechToData {
 	public class SpreadsheetTemplates {
@@ -18,9 +18,9 @@ namespace Metin2SpeechToData {
 			this.interaction = interaction;
 		}
 
-		public SpreadsheetHelper.Dicts InitializeMobSheet(string mobName, MobAsociatedDrops data) {
+		public Dicts InitializeMobSheet(string mobName, MobAsociatedDrops data) {
 
-			SpreadsheetHelper.Dicts d = new SpreadsheetHelper.Dicts(true);
+			Dicts d = new Dicts(true);
 
 			interaction.InsertValue(new ExcelCellAddress(1, 1), "Spreadsheet for enemy: " + interaction.currentSheet.Name);
 			interaction.InsertValue(new ExcelCellAddress(1, 4), "Num killed:");
@@ -52,8 +52,8 @@ namespace Metin2SpeechToData {
 			interaction.currentSheet.Cells[10, 10].Value = "TEMP INIT MAIN";
 		}
 
-		public SpreadsheetHelper.Dicts InitializeAreaSheet(DefinitionParserData data) {
-			SpreadsheetHelper.Dicts d = new SpreadsheetHelper.Dicts(true);
+		public Dicts InitializeAreaSheet(DefinitionParserData data) {
+			Dicts d = new Dicts(true);
 
 			interaction.InsertValue(new ExcelCellAddress(1, 1), "Spreadsheet for zone: " + interaction.currentSheet.Name);
 

@@ -2,6 +2,8 @@
 using System.Speech.Recognition;
 using OfficeOpenXml;
 using System.Threading;
+using Metin2SpeechToData.Structures;
+
 
 namespace Metin2SpeechToData {
 	public class ChestRecognizer : RecognitionBase {
@@ -50,7 +52,7 @@ namespace Metin2SpeechToData {
 			evnt.Wait();
 			//Now we have an address and how many items they received
 			Console.WriteLine("Parsed: " + _count);
-			stack.Push(new ItemInsertion() { addr = address, count = _count });
+			stack.Push(new ItemInsertion(address,_count));
 			Program.interaction.AddNumberTo(address, _count);
 			evnt.Reset();
 		}
@@ -60,15 +62,15 @@ namespace Metin2SpeechToData {
 			switch (current) {
 				case SpeechRecognitionHelper.ModifierWords.UNDO: {
 					ItemInsertion peeked = stack.Peek();
-					if (peeked.addr == null) {
+					if (peeked.address == null) {
 						Console.WriteLine("Nothing else to undo...");
 						return;
 					}
-					Console.WriteLine("Undoing... " + Program.interaction.currentSheet.Cells[peeked.addr.Row, peeked.addr.Column - 2].GetValue<string>() + " with " + peeked.count + " items");
+					Console.WriteLine("Undoing... " + Program.interaction.currentSheet.Cells[peeked.address.Row, peeked.address.Column - 2].GetValue<string>() + " with " + peeked.count + " items");
 					if (Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'")) {
 						Console.Write("Confirming");
 						ItemInsertion poped = stack.Pop();
-						Program.interaction.AddNumberTo(poped.addr, -poped.count);
+						Program.interaction.AddNumberTo(poped.address, -poped.count);
 					}
 					else {
 						Console.Write("Refusing");
@@ -91,11 +93,6 @@ namespace Metin2SpeechToData {
 				return;
 			}
 			throw new CustomException("This can never happen bacause the grammar is designed to only have numbers between 0-200 inclusive written as digits");
-		}
-
-		private struct ItemInsertion {
-			public ExcelCellAddress addr;
-			public int count;
 		}
 	}
 }
