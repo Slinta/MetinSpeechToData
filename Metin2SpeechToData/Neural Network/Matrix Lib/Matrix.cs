@@ -25,8 +25,10 @@ namespace Metin2SpeechToData.Neural_Network {
 			for (int i = 0; i < rows; i++) {
 				for (int j = 0; j < cols; j++) {
 					_matrix[i, j] = r.NextDouble() * 2 - 1;
+					Console.WriteLine(_matrix[i, j]);
 				}
 			}
+			Console.ReadLine();
 		}
 
 		/// <summary>
@@ -106,9 +108,6 @@ namespace Metin2SpeechToData.Neural_Network {
 		}
 
 		public static Matrix operator *(Matrix a, double b) {
-			//If A is an m - by - n matrix and B is an n - by - p matrix,
-			// then their matrix product AB is the m - by - p matrix whose entries are given by dot product
-			// of the corresponding row of A and the corresponding column of B:
 			Matrix x = new Matrix(a.rows, a.cols);
 
 			for (int i = 0; i < x.rows; i++) {

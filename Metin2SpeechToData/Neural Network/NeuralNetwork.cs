@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Metin2SpeechToData.Neural_Network {
 	class NeuralNetwork {
@@ -25,13 +21,13 @@ namespace Metin2SpeechToData.Neural_Network {
 
 			input_hidden_weights = new Matrix(hiddenNodes, inputs);
 			hidden_output_weights = new Matrix(outputs, hiddenNodes);
-			input_hidden_weights.InitRandomOneNormalized();
-			hidden_output_weights.InitRandomOneNormalized();
+			//input_hidden_weights.InitRandomOneNormalized();
+			//hidden_output_weights.InitRandomOneNormalized();
 
 			hidden_bias = new Matrix(hiddenNodes, 1);
 			output_bias = new Matrix(outputs, 1);
-			hidden_bias.InitRandomOneNormalized();
-			output_bias.InitRandomOneNormalized();
+			//hidden_bias.InitRandomOneNormalized();
+			//output_bias.InitRandomOneNormalized();
 		}
 
 		public double[] Classify(double[] data) {
@@ -68,22 +64,22 @@ namespace Metin2SpeechToData.Neural_Network {
 			Matrix gradient = Matrix.Map(outputs, DeriveSigmoid);
 			gradient *= outputError;
 			gradient *= learningRate;
-
+			//How much error goes to this layer
 
 			Matrix hiddenT = Matrix.Transpose(hidden);
 			Matrix hidden_output_e_delta = gradient * hiddenT;
+			//By how much the error differs from previous
 
 			hidden_output_weights += hidden_output_e_delta;
 			output_bias += gradient;
 
-
+			//Calculate the same stuff for 2nd layer
 			Matrix hidden_output_T = Matrix.Transpose(hidden_output_weights);
 			Matrix hidden_error = hidden_output_T * outputError;
 
 			Matrix hiddenGradient = Matrix.Map(hidden, DeriveSigmoid);
 			hiddenGradient *= hidden_error;
 			hiddenGradient *= learningRate;
-
 
 			Matrix inputMatrixT = Matrix.Transpose(inputs);
 			Matrix input_hidden_e_delta = hiddenGradient * inputMatrixT;

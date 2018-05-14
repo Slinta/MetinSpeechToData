@@ -39,7 +39,8 @@ namespace Metin2SpeechToData {
 		[STAThread]
 		static void Main(string[] args) {
 			// Init
-			NeuralNetwork nn = new NeuralNetwork(2, 2, 1);
+			NeuralNetwork nn = new NeuralNetwork(2, 1, 1);
+			
 
 			NeuralNetwork.NData[] XORData = new NeuralNetwork.NData[4] {
 				new NeuralNetwork.NData(){ input = new double[2] {0,1}, expected = new double[1] { 0 } },
@@ -48,22 +49,20 @@ namespace Metin2SpeechToData {
 				new NeuralNetwork.NData(){ input = new double[2] {0,0}, expected = new double[1] { 0 } },
 			};
 
-
-
 			Random r = new Random();
 			for (int i = 0; i < 1000; i++) {
 				int index = r.Next(0, XORData.Length);
 				nn.Train(XORData[index].input, XORData[index].expected);
-				double[] classified_ = nn.Classify(new double[2] { 1, 0 });
-				double[] classified1_ = nn.Classify(new double[2] { 1, 1 });
-				double[] classified2_ = nn.Classify(new double[2] { 0, 1 });
-				double[] classified3_ = nn.Classify(new double[2] { 0, 0 });
+				//double[] classified_ = nn.Classify(new double[2] { 1, 0 });
+				//double[] classified1_ = nn.Classify(new double[2] { 1, 1 });
+				//double[] classified2_ = nn.Classify(new double[2] { 0, 1 });
+				//double[] classified3_ = nn.Classify(new double[2] { 0, 0 });
 
-				Console.WriteLine(Math.Round(classified_[0], 5));
-				Console.WriteLine(Math.Round(classified1_[0], 5));
-				Console.WriteLine(Math.Round(classified2_[0], 5));
-				Console.WriteLine(Math.Round(classified3_[0], 5));
-				Console.WriteLine();
+				//Console.WriteLine(Math.Round(classified_[0], 5));
+				//Console.WriteLine(Math.Round(classified1_[0], 5));
+				//Console.WriteLine(Math.Round(classified2_[0], 5));
+				//Console.WriteLine(Math.Round(classified3_[0], 5));
+				//Console.WriteLine();
 			}
 
 			double[] classified = nn.Classify(new double[2] { 1, 0 });
@@ -77,6 +76,8 @@ namespace Metin2SpeechToData {
 			Console.WriteLine(Math.Round(classified3[0], 5));
 			Console.WriteLine();
 
+			Console.ReadLine();
+			Environment.Exit(0);
 
 			config = new Configuration(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
 			interaction = new SpreadsheetInteraction(config.xlsxFile);
