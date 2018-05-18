@@ -10,6 +10,7 @@ namespace Metin2SpeechToData {
 
 
 		public SpeechRecognitionHelper helper { get; }
+		public RecognitionSetup currentSetup { get; }
 		public EnemyHandling enemyHandling { get; }
 
 		public GameRecognizer(): base() {

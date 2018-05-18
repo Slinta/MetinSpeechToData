@@ -8,8 +8,8 @@ using Metin2SpeechToData.Structures;
 namespace Metin2SpeechToData {
 	public class SpreadsheetInteraction : IDisposable {
 
-		private readonly ExcelPackage xlsxFile;
-		private readonly ExcelWorkbook content;
+		private ExcelPackage xlsxFile;
+		private ExcelWorkbook content;
 
 		private readonly SpreadsheetTemplates templates;
 		private readonly SpreadsheetHelper helper;
@@ -39,6 +39,38 @@ namespace Metin2SpeechToData {
 			sheetToGroups = new Dictionary<string, Dictionary<string, Group>>();
 		}
 		#endregion
+
+		public void SwitchFile(FileInfo newFile) {
+			Save();
+
+			if (newFile == Program.config.xlsxFile) {
+				Console.WriteLine("Switching back to default file");
+				//TODO: perform merging of the two files -- ask wheter to keep the session file
+			}
+
+			if (newFile == default(FileInfo) || !File.Exists(newFile.FullName)) {
+				Console.WriteLine("Creating new file for session.");
+				if (!string.IsNullOrWhiteSpace(newFile.FullName)) {
+					File.Create(newFile.FullName);
+				}
+				else {
+					newFile = new FileInfo(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + Path.GetRandomFileName() + ".xlsx");
+					newFile.Attributes = FileAttributes.Hidden | FileAttributes.Archive;
+					File.Create(newFile.FullName);
+				}
+			}
+			currentSheet.Dispose();
+			content.Dispose();
+			xlsxFile.Dispose();
+
+			xlsxFile = new ExcelPackage(newFile);
+			content = xlsxFile.Workbook;
+			if(content.Worksheets["Session"] == null) {
+				content.Worksheets.Add("Session");
+				currentSheet = content.Worksheets["Session"];
+			}
+		}
+
 
 		/// <summary>
 		/// Open existing worksheet or add one and populate it if the sheet does not exist

@@ -18,6 +18,7 @@ namespace Metin2SpeechToData {
 
 		public string getHotkeyAssignCommand { get; private set; }
 		public string getRemoveTargetCommand { get; private set; }
+		public string getStartSessionCommand { get; private set; }
 
 		public ControlSpeechCommands(string relativeFilePath) {
 			if (!File.Exists(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + relativeFilePath)) {
@@ -75,6 +76,10 @@ namespace Metin2SpeechToData {
 						}
 						case "HOTKEY_ASSIGN": {
 							getHotkeyAssignCommand = modified;
+							break;
+						}
+						case "SESSION_START": {
+							getStartSessionCommand = modified;
 							break;
 						}
 						default: {
