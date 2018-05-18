@@ -1,91 +1,142 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Metin2SpeechToData.Neural_Network {
 	class NeuralNetwork {
 
-		private Matrix input_hidden_weights;
-		private Matrix hidden_output_weights;
+		public const float learningRate = 0.1f;
 
-		private Matrix hidden_bias;
-		private Matrix output_bias;
-
-		public float learningRate = 0.1f;
+		Layer inputLayer;
+		List<Layer> hidden_Layers;
+		Layer outputLayer;
 
 		/// <summary>
-		/// Creates a new instance of a neural network
+		/// Create a new neural network
 		/// </summary>
-		/// <param name="inputs"> number of input nodes</param>
-		/// <param name="hiddenNodes">number of hidden nodes</param>
-		/// <param name="outputs">number of classifications(number of things to recognize)</param>
-		public NeuralNetwork(int inputs, int hiddenNodes, int outputs) {
-
-			input_hidden_weights = new Matrix(hiddenNodes, inputs);
-			hidden_output_weights = new Matrix(outputs, hiddenNodes);
-			//input_hidden_weights.InitRandomOneNormalized();
-			//hidden_output_weights.InitRandomOneNormalized();
-
-			hidden_bias = new Matrix(hiddenNodes, 1);
-			output_bias = new Matrix(outputs, 1);
-			//hidden_bias.InitRandomOneNormalized();
-			//output_bias.InitRandomOneNormalized();
+		/// <param name="inputLength">NO. of input neurons</param>
+		/// <param name="hiddenLayersCount">NO. of hidden layers</param>
+		/// <param name="hiddenLayersLength">NO. of neurons in each hidden layer</param>
+		/// <param name="outputLayersLength">NO. of output neurons</param>
+		public NeuralNetwork(int inputLength, int hiddenLayersCount, int hiddenLayersLength, int outputLayersLength) {
+			inputLayer = new Layer(inputLength, 0);
+			hidden_Layers = new List<Layer>();
+			for (int i = 1; i < hiddenLayersCount + 1; i++) {
+				hidden_Layers.Add(new Layer(hiddenLayersLength, i));
+			}
+			outputLayer = new Layer(outputLayersLength, hiddenLayersCount + 1);
+			MakeConnections(inputLayer, hidden_Layers, outputLayer);
 		}
 
-		public double[] Classify(double[] data) {
 
-			Matrix dd = Matrix.FromAray(data);
-			Matrix fromHidden = input_hidden_weights * dd;
-			fromHidden += hidden_bias;
-			fromHidden.Map(Sigmoid);
-
-			Matrix _out = hidden_output_weights * fromHidden;
-			_out += output_bias;
-			_out.Map(Sigmoid);
-
-			return _out.ToArray();
+		/// <summary>
+		/// Connects all layers
+		/// </summary>
+		private void MakeConnections(Layer input, List<Layer> hidden, Layer output) {
+			Random r = new Random(Environment.TickCount);
+			input.ConnectLayer(hidden[0], r.Next(1000));
+			for (int i = 1; i < hidden.Count - 1; i++) {
+				hidden[i].ConnectLayer(hidden[i + 1], r.Next(1000));
+			}
+			hidden[hidden.Count - 1].ConnectLayer(output, r.Next(1000));
 		}
 
-		public void Train(double[] data, double[] expected) {
-			Matrix inputs = Matrix.FromAray(data);
-			Matrix hidden = input_hidden_weights * inputs;
-			hidden += hidden_bias;
-			hidden.Map(Sigmoid);
+		/// <summary>
+		/// Processes input and returns a guess
+		/// </summary>
+		/// <param name="data">double array of size 'inputNeuronsCount'</param>
+		public double[] FeedForward(double[] data) {
+			return inputLayer.ProcessInput(Matrix.FromAray(data)).ToArray();
+		}
 
 
-			Matrix outputs = hidden_output_weights * hidden;
-			outputs += output_bias;
-			outputs.Map(Sigmoid);
-			//^^^ This would be the guess
+		public void Train(double[] input, double[] expected, bool debug = false) {
+			Matrix expectedMatrix = Matrix.FromAray(expected);
+			Matrix outputMatrix = Matrix.FromAray(FeedForward(input));
+			Matrix finalError = expectedMatrix - outputMatrix; // distribute this to lasthidden/output connection
 
-			Matrix targets = Matrix.FromAray(expected);
-			Matrix outputError = targets - outputs;
-			//^^^This is the error
-			Matrix.Print(outputError);
+			if (debug) {
+				Console.WriteLine("Expecting:");
+				Matrix.Print(expectedMatrix);
+				Console.WriteLine("Instead got:");
+				Matrix.Print(outputMatrix);
+				Console.WriteLine("That is off by...");
+				Matrix.Print(finalError);
+			}
 
-			Matrix gradient = Matrix.Map(outputs, DeriveSigmoid);
-			gradient *= outputError;
-			gradient *= learningRate;
-			//How much error goes to this layer
+			Matrix weightMatrixToOutputTransposed = Matrix.Transpose(outputLayer.inputConnection.getConnectionMatrix);
 
-			Matrix hiddenT = Matrix.Transpose(hidden);
-			Matrix hidden_output_e_delta = gradient * hiddenT;
-			//By how much the error differs from previous
+			if (debug) {
+				Console.WriteLine("Transpose connection matrix inputs to the output layer");
+				Matrix.Print(weightMatrixToOutputTransposed);
+			}
 
-			hidden_output_weights += hidden_output_e_delta;
-			output_bias += gradient;
+			Matrix lastHiddenLayerError = weightMatrixToOutputTransposed * finalError;
 
-			//Calculate the same stuff for 2nd layer
-			Matrix hidden_output_T = Matrix.Transpose(hidden_output_weights);
-			Matrix hidden_error = hidden_output_T * outputError;
+			if (debug) {
+				Console.WriteLine("The error that goes to connection from last hidden to output");
+				Matrix.Print(lastHiddenLayerError);
+				Console.WriteLine("Gradient descent");
+			}
 
-			Matrix hiddenGradient = Matrix.Map(hidden, DeriveSigmoid);
-			hiddenGradient *= hidden_error;
-			hiddenGradient *= learningRate;
+			Matrix toOutputGradient = Matrix.Map(outputMatrix, DeriveSigmoid);
+			toOutputGradient *= finalError;
+			toOutputGradient *= learningRate;
 
-			Matrix inputMatrixT = Matrix.Transpose(inputs);
-			Matrix input_hidden_e_delta = hiddenGradient * inputMatrixT;
+			Matrix lastStepWeightMatrix = Matrix.Transpose(hidden_Layers[hidden_Layers.Count -1].inputConnection.getConnectionMatrix);
 
-			input_hidden_weights += input_hidden_e_delta;
-			hidden_bias += hiddenGradient;
+			if (debug) {
+				Console.WriteLine("What is stored in the last hidden layer's storage TRANSPOSED");
+				Matrix.Print(lastStepWeightMatrix);
+			}
+
+			Matrix lastErrorDelta = toOutputGradient * lastStepWeightMatrix;
+
+			if (debug) {
+				Console.WriteLine("Apply gradient to our transposed matrix");
+				Matrix.Print(lastErrorDelta);
+				Console.WriteLine("Adjusted connection from:");
+				Matrix.Print(outputLayer.inputConnection.getConnectionMatrix);
+			}
+
+			outputLayer.inputConnection.AdjustByDelta(lastErrorDelta);
+			outputLayer.inputConnection.AdjustBias(toOutputGradient);
+
+			if (debug) {
+				Console.WriteLine("To:");
+				Matrix.Print(outputLayer.inputConnection.getConnectionMatrix);
+			}
+
+			Matrix currentLayerError = lastHiddenLayerError;
+
+			if (debug) {
+				Console.WriteLine("The error that goes deeper:");
+				Matrix.Print(currentLayerError);
+			}
+
+			for (int i = hidden_Layers.Count - 1; i >= 0; i--) {
+				if (hidden_Layers[i].inputConnection == null) {
+					break;
+				}
+
+				Matrix prevConnTransposed = Matrix.Transpose(hidden_Layers[i].outputConnection.getConnectionMatrix);
+				Matrix previousError = prevConnTransposed * currentLayerError;
+
+				Matrix currGradient = Matrix.Map(prevConnTransposed, DeriveSigmoid);
+				currGradient *= previousError;
+				currGradient *= learningRate;
+
+				Matrix prevStepMatrix = Matrix.Transpose(hidden_Layers[i].inputConnection.from.storage);
+				Matrix prevErrorDelta = currGradient * prevStepMatrix;
+
+				hidden_Layers[i].inputConnection.AdjustByDelta(prevErrorDelta);
+				hidden_Layers[i].inputConnection.AdjustBias(currGradient);
+
+				currentLayerError = previousError;
+				//loop until the distribution happens between input and first hidden(the error from first hidden) adjust those
+			}
+			// now we have to adjust connections from input layer to the first hidden layer
+			// NO the loop goes to the first hidden and looks at its input connections which is the output connection of our input layer
+			//and adjusts it, inputs of input layer cannot be adjusted!		 
 		}
 
 

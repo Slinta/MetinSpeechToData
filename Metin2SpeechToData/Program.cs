@@ -39,42 +39,29 @@ namespace Metin2SpeechToData {
 		[STAThread]
 		static void Main(string[] args) {
 			// Init
-			NeuralNetwork nn = new NeuralNetwork(2, 1, 1);
-			
+			NeuralNetwork nn2 = new NeuralNetwork(2, 1, 2, 1);
 
 			NeuralNetwork.NData[] XORData = new NeuralNetwork.NData[4] {
-				new NeuralNetwork.NData(){ input = new double[2] {0,1}, expected = new double[1] { 0 } },
-				new NeuralNetwork.NData(){ input = new double[2] {1,0}, expected = new double[1] { 0 } },
 				new NeuralNetwork.NData(){ input = new double[2] {1,1}, expected = new double[1] { 1 } },
 				new NeuralNetwork.NData(){ input = new double[2] {0,0}, expected = new double[1] { 0 } },
+				new NeuralNetwork.NData(){ input = new double[2] {1,0}, expected = new double[1] { 0 } },
+				new NeuralNetwork.NData(){ input = new double[2] {0,1}, expected = new double[1] { 0 } },
 			};
 
+			//Trainig sesstion
 			Random r = new Random();
-			for (int i = 0; i < 1000; i++) {
-				int index = r.Next(0, XORData.Length);
-				nn.Train(XORData[index].input, XORData[index].expected);
-				//double[] classified_ = nn.Classify(new double[2] { 1, 0 });
-				//double[] classified1_ = nn.Classify(new double[2] { 1, 1 });
-				//double[] classified2_ = nn.Classify(new double[2] { 0, 1 });
-				//double[] classified3_ = nn.Classify(new double[2] { 0, 0 });
-
-				//Console.WriteLine(Math.Round(classified_[0], 5));
-				//Console.WriteLine(Math.Round(classified1_[0], 5));
-				//Console.WriteLine(Math.Round(classified2_[0], 5));
-				//Console.WriteLine(Math.Round(classified3_[0], 5));
-				//Console.WriteLine();
+			int selected = -1;
+			NeuralNetwork.NData data;
+			for (int i = 0; i < 10000; i++) {
+				selected = r.Next(4);
+				data = XORData[selected];
+				nn2.Train(data.input, data.expected);
 			}
 
-			double[] classified = nn.Classify(new double[2] { 1, 0 });
-			double[] classified1 = nn.Classify(new double[2] { 1, 1 });
-			double[] classified2 = nn.Classify(new double[2] { 0, 1 });
-			double[] classified3 = nn.Classify(new double[2] { 0, 0 });
-
-			Console.WriteLine(Math.Round(classified[0], 5));
-			Console.WriteLine(Math.Round(classified1[0], 5));
-			Console.WriteLine(Math.Round(classified2[0], 5));
-			Console.WriteLine(Math.Round(classified3[0], 5));
-			Console.WriteLine();
+			double[] output0 = nn2.FeedForward(XORData[0].input);
+			double[] output1 = nn2.FeedForward(XORData[1].input);
+			double[] output2 = nn2.FeedForward(XORData[2].input);
+			double[] output3 = nn2.FeedForward(XORData[3].input);
 
 			Console.ReadLine();
 			Environment.Exit(0);

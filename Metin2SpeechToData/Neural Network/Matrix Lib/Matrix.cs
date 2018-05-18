@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Metin2SpeechToData.Neural_Network {
-	class Matrix {
+	public class Matrix {
 
 		private bool isSquare { get; }
 		private int cols { get; }
@@ -20,15 +19,13 @@ namespace Metin2SpeechToData.Neural_Network {
 		/// <summary>
 		/// Randomly fills this matrix with values from 0 inclusive to 1.0 exlusive
 		/// </summary>
-		public void InitRandomOneNormalized() {
-			Random r = new Random();
+		public void InitRandomOneNormalized(int seed) {
+			Random r = new Random(seed);
 			for (int i = 0; i < rows; i++) {
 				for (int j = 0; j < cols; j++) {
-					_matrix[i, j] = r.NextDouble() * 2 - 1;
-					Console.WriteLine(_matrix[i, j]);
+					_matrix[i, j] = r.NextDouble();
 				}
 			}
-			Console.ReadLine();
 		}
 
 		/// <summary>
@@ -62,7 +59,7 @@ namespace Metin2SpeechToData.Neural_Network {
 
 		public static Matrix operator -(Matrix a, Matrix b) {
 			if (a.rows != b.rows || a.cols != b.cols) {
-				throw new Exception("Attempting to sum two matrices with mismatched sizes.");
+				throw new Exception("Attempting to subtract two matrices with mismatched sizes.");
 			}
 			Matrix newM = new Matrix(a.rows, a.cols);
 			for (int i = 0; i < a.rows; i++) {
@@ -133,7 +130,7 @@ namespace Metin2SpeechToData.Neural_Network {
 		}
 
 		/// <summary>
-		/// Pront matrix data in a readable format
+		/// Print matrix data in a readable format
 		/// </summary>
 		public static void Print(Matrix m) {
 			for (int i = 0; i < m.rows; i++) {

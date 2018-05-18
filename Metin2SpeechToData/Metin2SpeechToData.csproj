@@ -64,6 +64,8 @@
     <Compile Include="File Parsers\MobAsociatedDrops.cs" />
     <Compile Include="File Parsers\MobParserData.cs" />
     <Compile Include="HotKeyManager.cs" />
+    <Compile Include="Neural Network\Connection.cs" />
+    <Compile Include="Neural Network\Layer.cs" />
     <Compile Include="Neural Network\Matrix Lib\Matrix.cs" />
     <Compile Include="Neural Network\NeuralNetwork.cs" />
     <Compile Include="Program.cs" />
