@@ -19,7 +19,8 @@ namespace Metin2SpeechToData {
 
 
 		protected delegate void Recognition(object sender, RecognitionState state);
-		public delegate void Modifier(object sender, ModiferRecognizedEventArgs args);
+		public delegate void Modifier(object sender, ModiferRecognizedEventArgs e);
+
 		protected Dictionary<string, int> _currentGrammars;
 
 
@@ -95,7 +96,9 @@ namespace Metin2SpeechToData {
 					if (Program.debug) {
 						Console.WriteLine("Currently active");
 					}
-					BeginRecognition(true);
+					if (currentState != RecognitionState.PAUSED) {
+						BeginRecognition(true);
+					}
 					break;
 				}
 				case RecognitionState.PAUSED: {
@@ -108,6 +111,10 @@ namespace Metin2SpeechToData {
 					if (Program.debug) {
 						Console.WriteLine("Currently stoped");
 					}
+					mainRecognizer.UnloadAllGrammars();
+					_currentGrammars.Clear();
+					mainRecognizer.RecognizeAsyncStop();
+					mainRecognizer.Dispose();
 					break;
 				}
 				case RecognitionState.SWITCHING: {
@@ -166,19 +173,23 @@ namespace Metin2SpeechToData {
 		protected virtual void Dispose(bool disposing) {
 			if (!disposedValue) {
 				if (disposing) {
-					return;
+					mainRecognizer.SpeechRecognized -= Main_SpeechRecognized;
 				}
-				mainRecognizer.SpeechRecognized -= Main_SpeechRecognized;
 				mainRecognizer.Dispose();
 				disposedValue = true;
 			}
 		}
 
+		~RecognitionBase() {
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(false);
+		}
+
+		// This code added to correctly implement the disposable pattern.
 		public void Dispose() {
 			Dispose(true);
 			GC.SuppressFinalize(this);
 		}
 		#endregion
-
 	}
 }

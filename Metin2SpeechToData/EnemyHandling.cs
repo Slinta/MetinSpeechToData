@@ -6,7 +6,7 @@ using OfficeOpenXml;
 using Metin2SpeechToData.Structures;
 
 namespace Metin2SpeechToData {
-	public class EnemyHandling {
+	public class EnemyHandling : IDisposable {
 		public enum EnemyState {
 			NO_ENEMY,
 			FIGHTING
@@ -19,9 +19,11 @@ namespace Metin2SpeechToData {
 		private readonly DropOutStack<ItemInsertion> stack;
 		private string currentEnemy = "";
 		private string currentItem = "";
+		private readonly GameRecognizer asociated;
 
-		public EnemyHandling() {
-			GameRecognizer.OnModifierRecognized += EnemyTargetingModifierRecognized;
+		public EnemyHandling(GameRecognizer recognizer) {
+			asociated = recognizer;
+			recognizer.OnModifierRecognized += EnemyTargetingModifierRecognized;
 			mobDrops = new MobAsociatedDrops();
 			stack = new DropOutStack<ItemInsertion>(Configuration.undoHistoryLength);
 			evnt = new ManualResetEventSlim(false);
@@ -147,15 +149,32 @@ namespace Metin2SpeechToData {
 			ItemDropped(DefinitionParser.instance.currentGrammarFile.GetItemEntry(item), amount);
 		}
 
+		#region IDisposable Support
+		private bool disposedValue = false;
 
-		public void CleanUp() {
-			state = EnemyState.NO_ENEMY;
-			mobDrops = null;
-			stack.Clear();
-			GameRecognizer.OnModifierRecognized -= EnemyTargetingModifierRecognized;
-			evnt.Dispose();
-			masterMobRecognizer.SpeechRecognized -= MasterMobRecognizer_SpeechRecognized;
-			masterMobRecognizer.Dispose();
+		protected virtual void Dispose(bool disposing) {
+			if (!disposedValue) {
+				if (disposing) {
+					state = EnemyState.NO_ENEMY;
+					mobDrops = null;
+					stack.Clear();
+					asociated.OnModifierRecognized -= EnemyTargetingModifierRecognized;
+					masterMobRecognizer.SpeechRecognized -= MasterMobRecognizer_SpeechRecognized;
+				}
+				evnt.Dispose();
+				masterMobRecognizer.Dispose();
+				disposedValue = true;
+			}
 		}
+
+		~EnemyHandling() {
+			Dispose(false);
+		}
+
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+		#endregion
 	}
 }

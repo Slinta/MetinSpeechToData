@@ -43,8 +43,6 @@ namespace Metin2SpeechToData {
 					folderBrowser.ShowDialog();
 					if (string.IsNullOrWhiteSpace(folderBrowser.SelectedPath)) {
 						Console.WriteLine("No path selected, quitting...\nPress 'Enter' to close the window");
-						sw.Close();
-						sw.Dispose();
 						File.Delete(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
 						Console.ReadLine();
 						Environment.Exit(1);

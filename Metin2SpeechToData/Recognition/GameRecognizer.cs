@@ -6,15 +6,13 @@ using Metin2SpeechToData.Structures;
 namespace Metin2SpeechToData {
 	public class GameRecognizer: RecognitionBase {
 
-		public static event Modifier OnModifierRecognized;
-
-
 		public SpeechRecognitionHelper helper { get; }
-		public RecognitionSetup currentSetup { get; }
 		public EnemyHandling enemyHandling { get; }
 
+		public event Modifier OnModifierRecognized;
+
 		public GameRecognizer(): base() {
-			enemyHandling = new EnemyHandling();
+			enemyHandling = new EnemyHandling(this);
 			helper = new SpeechRecognitionHelper(this);
 			currentState = RecognitionState.INACTIVE;
 
@@ -126,6 +124,13 @@ namespace Metin2SpeechToData {
 			get {
 				return getCurrentGrammars[DefinitionParser.instance.currentGrammarFile.ID];
 			}
+		}
+
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2213:DisposableFieldsShouldBeDisposed")]
+		protected override void Dispose(bool disposing) {
+			enemyHandling.Dispose();
+			helper.Dispose();
+			base.Dispose(disposing);
 		}
 	}
 }

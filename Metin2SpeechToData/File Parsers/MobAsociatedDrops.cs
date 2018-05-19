@@ -26,13 +26,11 @@ namespace Metin2SpeechToData {
 		}
 
 		public void UpdateDrops(string mobName, DefinitionParserData.Item item) {
-			bool mobEntryExists = false;
 			List<string> list;
 			for (int i = 0; i < getAllDropsFile.Length; i++) {
 				if (getAllDropsFile[i].Contains("{")) {
 					string[] splt = getAllDropsFile[i].Split('{');
 					if (splt[0] == mobName) {
-						mobEntryExists = true;
 						if (!CheckGroupExists(i + 1, item.group)) {
 							list = new List<string>(getAllDropsFile);
 							list.Insert(i + 1, "\t-" + item.group + ":");
@@ -51,16 +49,13 @@ namespace Metin2SpeechToData {
 							Program.interaction.AddItemEntryToCurrentSheet(item);
 							SaveChanges();
 						}
-
 						return;
 					}
 				}
 			}
-			if (!mobEntryExists) {
-				AddMobEntry(mobName, item);
-				Program.interaction.AddItemEntryToCurrentSheet(item);
-				SaveChanges();
-			}
+			AddMobEntry(mobName, item);
+			Program.interaction.AddItemEntryToCurrentSheet(item);
+			SaveChanges();
 		}
 
 		private void AddMobEntry(string mobName, DefinitionParserData.Item item) {
@@ -158,7 +153,7 @@ namespace Metin2SpeechToData {
 
 		private int[] GetLinesOfEnemy(string enemyName) {
 			List<int> lines = new List<int>();
-			if(getAllDropsFile.Length == 0) {
+			if (getAllDropsFile.Length == 0) {
 				return lines.ToArray();
 			}
 
@@ -170,7 +165,7 @@ namespace Metin2SpeechToData {
 					return lines.ToArray();
 				}
 				currLine = getAllDropsFile[_index];
-				
+
 			}
 			//Fond the start of our enemy
 			lines.Add(_index);

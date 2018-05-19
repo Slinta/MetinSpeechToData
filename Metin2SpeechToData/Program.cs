@@ -37,8 +37,7 @@ namespace Metin2SpeechToData {
 
 			mapper = new HotKeyMapper();
 			mapper.AssignToHotkey(Keys.F1, "voice");
-			mapper.AssignToHotkey(Keys.F2, "chest");
-			mapper.AssignToHotkey(Keys.F3, "help");
+			mapper.AssignToHotkey(Keys.F2, "help");
 			mapper.AssignToHotkey(Keys.F4, "quit");
 			mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
 			bool continueRunning = true;
@@ -50,8 +49,7 @@ namespace Metin2SpeechToData {
 			while (continueRunning) {
 				Console.WriteLine("Commands:" +
 					"\n-(F1) Voice recognition" +
-					"\n-(F2) Chests" +
-					"\n-(F3) Help" +
+					"\n-(F2) Help" +
 					"\n-(F4) Quit" +
 					"\n-(Shift + F8) Wipe");
 
@@ -90,8 +88,7 @@ namespace Metin2SpeechToData {
 								Console.WriteLine("Returned to Main control!");
 								mapper.FreeGameHotkeys();
 								mapper.AssignToHotkey(Keys.F1, "voice");
-								mapper.AssignToHotkey(Keys.F2, "chest");
-								mapper.AssignToHotkey(Keys.F3, "help");
+								mapper.AssignToHotkey(Keys.F2, "help");
 								mapper.AssignToHotkey(Keys.F4, "quit");
 								mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
 								break;
@@ -103,8 +100,7 @@ namespace Metin2SpeechToData {
 								Console.WriteLine("Returned to Main control!");
 								mapper.FreeGameHotkeys();
 								mapper.AssignToHotkey(Keys.F1, "voice");
-								mapper.AssignToHotkey(Keys.F2, "chest");
-								mapper.AssignToHotkey(Keys.F3, "help");
+								mapper.AssignToHotkey(Keys.F2, "help");
 								mapper.AssignToHotkey(Keys.F4, "quit");
 								mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
 								break;
@@ -125,9 +121,9 @@ namespace Metin2SpeechToData {
 									File.Delete(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + MobAsociatedDrops.MOB_DROPS_FILE);
 									Console.WriteLine(MobAsociatedDrops.MOB_DROPS_FILE);
 								}
-								if (File.Exists(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + Configuration.FILE_NAME)) {
-									File.Delete(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + Configuration.FILE_NAME);
-									Console.WriteLine(Configuration.FILE_NAME);
+								if (File.Exists(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + Configuration.DEFAULT_FILE_NAME)) {
+									File.Delete(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + Configuration.DEFAULT_FILE_NAME);
+									Console.WriteLine(Configuration.DEFAULT_FILE_NAME);
 								}
 								config = new Configuration(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
 								interaction = new SpreadsheetInteraction(config.xlsxFile);

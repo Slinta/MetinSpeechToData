@@ -48,7 +48,7 @@ namespace Metin2SpeechToData {
 				//TODO: perform merging of the two files -- ask wheter to keep the session file
 			}
 
-			if (newFile == default(FileInfo) || !File.Exists(newFile.FullName)) {
+			if (!File.Exists(newFile.FullName)) {
 				Console.WriteLine("Creating new file for session.");
 				if (!string.IsNullOrWhiteSpace(newFile.FullName)) {
 					File.Create(newFile.FullName);

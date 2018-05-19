@@ -3,11 +3,13 @@ using OfficeOpenXml;
 
 namespace Metin2SpeechToData.Structures{
 	public struct SpeechRecognizedArgs {
-		public SpeechRecognizedArgs(string text, float confidence) : this() {
+		public SpeechRecognizedArgs(string text, float confidence, bool asHotkey = false) : this() {
 			this.text = text;
 			this.confidence = confidence;
+			this.asHotkey = asHotkey;
 		}
 
+		public bool asHotkey { get; }
 		public string text { get; }
 		public float confidence { get; }
 	}
