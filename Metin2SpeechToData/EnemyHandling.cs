@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Speech.Recognition;
 using System.Threading;
-using static Metin2SpeechToData.SpeechRecognitionHelper;
+using static Metin2SpeechToData.SpeechHelperBase;
 using OfficeOpenXml;
 using Metin2SpeechToData.Structures;
 
@@ -30,7 +30,7 @@ namespace Metin2SpeechToData {
 			masterMobRecognizer = new SpeechRecognitionEngine();
 			masterMobRecognizer.SetInputToDefaultAudioDevice();
 			masterMobRecognizer.SpeechRecognized += MasterMobRecognizer_SpeechRecognized;
-			masterMobRecognizer.LoadGrammar(new Grammar(new Choices(Program.controlCommands.getRemoveTargetCommand)));
+			masterMobRecognizer.LoadGrammar(new Grammar(new Choices(CCommands.getRemoveTargetCommand)));
 		}
 
 		/// <summary>
@@ -61,13 +61,13 @@ namespace Metin2SpeechToData {
 		/// <param name="keyWord">"NEW_TARGET" // "UNDO" // "REMOVE_TARGET" // TARGET_KILLED</param>
 		/// <param name="args">Always supply at least string.Empty as args!</param>
 		private void EnemyTargetingModifierRecognized(object sender, ModiferRecognizedEventArgs args) {
-			if (args.modifier == ModifierWords.NEW_TARGET) {
+			if (args.modifier == CCommands.Speech.NEW_TARGET) {
 
 				switch (state) {
 					case EnemyState.NO_ENEMY: {
 						string enemy = GetEnemy();
 						evnt.Reset();
-						if (enemy == Program.controlCommands.getRemoveTargetCommand) {
+						if (enemy == CCommands.getRemoveTargetCommand) {
 							Console.WriteLine("Targetting calcelled!");
 							return;
 						}
@@ -90,12 +90,12 @@ namespace Metin2SpeechToData {
 					}
 				}
 			}
-			else if (args.modifier == ModifierWords.TARGET_KILLED) {
+			else if (args.modifier == CCommands.Speech.TARGET_KILLED) {
 				Console.WriteLine("Killed " + currentEnemy + ", the death count increased");
 				Program.interaction.AddNumberTo(new ExcelCellAddress(1, 5), 1);
-				EnemyTargetingModifierRecognized(this, new ModiferRecognizedEventArgs() { modifier = ModifierWords.REMOVE_TARGET });
+				EnemyTargetingModifierRecognized(this, new ModiferRecognizedEventArgs() { modifier = CCommands.Speech.REMOVE_TARGET });
 			}
-			else if (args.modifier == ModifierWords.REMOVE_TARGET) {
+			else if (args.modifier == CCommands.Speech.REMOVE_TARGET) {
 				Program.interaction.OpenWorksheet(DefinitionParser.instance.currentGrammarFile.ID);
 				currentEnemy = "";
 				currentItem = "";
@@ -103,7 +103,7 @@ namespace Metin2SpeechToData {
 				stack.Clear();
 				Console.WriteLine("Reset current target to 'None', switching to " + DefinitionParser.instance.currentGrammarFile.ID + " sheet.");
 			}
-			else if (args.modifier == ModifierWords.UNDO) {
+			else if (args.modifier == CCommands.Speech.UNDO) {
 				ItemInsertion action = stack.Peek();
 				if (action.address == null) {
 					Console.WriteLine("Nothing else to undo!");

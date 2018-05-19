@@ -20,16 +20,15 @@ namespace Metin2SpeechToData {
 		}
 
 		/// <summary>
-		/// Parses all mob files that exists in current folder
+		/// Parses all mob files that exist in current folder
 		/// </summary>
-		public MobParserData[] Parse(DirectoryInfo dir) {
+		public MobParserData[] Parse(FileInfo[] files, List<int> indexes) {
 			List<MobParserData> dataList = new List<MobParserData>();
 			List<Enemy> mobs = new List<Enemy>();
-			FileInfo[] mobFiles = dir.GetFiles("Mob_*.definition");
-			for (int i = 0; i < mobFiles.Length; i++) {
-				using (StreamReader sr = mobFiles[i].OpenText()) {
+			for (int i = 0; i < indexes.Count; i++) {
+				using (StreamReader sr = files[indexes[i]].OpenText()) {
 					MobParserData data = new MobParserData() {
-						ID = mobFiles[i].Name.Split('.')[0],
+						ID = files[indexes[i]].Name.Split('.')[0],
 					};
 					while (!sr.EndOfStream) {
 						string line = sr.ReadLine();

@@ -28,8 +28,8 @@ namespace Metin2SpeechToData {
 				strs[i] = i.ToString();
 			}
 			numbers.LoadGrammar(new Grammar(new Choices(strs)));
-			mainRecognizer.LoadGrammar(new Grammar(new Choices(Program.controlCommands.getUndoCommand)));
-			getCurrentGrammars.Add(Program.controlCommands.getUndoCommand, 2);
+			mainRecognizer.LoadGrammar(new Grammar(new Choices(CCommands.getUndoCommand)));
+			getCurrentGrammars.Add(CCommands.getUndoCommand, 2);
 		}
 
 
@@ -58,9 +58,9 @@ namespace Metin2SpeechToData {
 		}
 
 		protected override void ModifierRecognized(object sender, SpeechRecognizedArgs args) {
-			SpeechRecognitionHelper.ModifierWords current = SpeechRecognitionHelper.reverseModifierDict[args.text];
+			CCommands.Speech current = SpeechHelperBase.reverseModifierDict[args.text];
 			switch (current) {
-				case SpeechRecognitionHelper.ModifierWords.UNDO: {
+				case CCommands.Speech.UNDO: {
 					ItemInsertion peeked = stack.Peek();
 					if (peeked.address == null) {
 						Console.WriteLine("Nothing else to undo...");

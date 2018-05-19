@@ -130,7 +130,7 @@ namespace Metin2SpeechToData {
 		/// If a modifier is recognized, you can modify current grammars and other things in this method implementation
 		/// </summary>
 		/// <param name="current">the modifier that will be switched to</param>
-		protected virtual void PreModiferEvaluation(SpeechRecognitionHelper.ModifierWords current) {
+		protected virtual void PreModiferEvaluation(CCommands.Speech current) {
 			if (Program.debug) {
 				Console.WriteLine("Switching modifier to " + current);
 			}
@@ -140,7 +140,7 @@ namespace Metin2SpeechToData {
 		/// If a modifier is recognized, you can modify current grammars and other things in this method implementation
 		/// </summary>
 		/// <param name="current">the modifier that will be switched to</param>
-		protected virtual void PostModiferEvaluation(SpeechRecognitionHelper.ModifierWords current) {
+		protected virtual void PostModiferEvaluation(CCommands.Speech current) {
 			if (Program.debug) {
 				Console.WriteLine("Modifier " + current + " handeled ");
 			}

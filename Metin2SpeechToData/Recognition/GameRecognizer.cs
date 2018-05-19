@@ -16,15 +16,15 @@ namespace Metin2SpeechToData {
 			helper = new SpeechRecognitionHelper(this);
 			currentState = RecognitionState.INACTIVE;
 
-			mainRecognizer.LoadGrammar(new Grammar(new Choices(Program.controlCommands.getNewTargetCommand)));
-			mainRecognizer.LoadGrammar(new Grammar(new Choices(Program.controlCommands.getTargetKilledCommand)));
-			mainRecognizer.LoadGrammar(new Grammar(new Choices(Program.controlCommands.getUndoCommand)));
-			mainRecognizer.LoadGrammar(new Grammar(new Choices(Program.controlCommands.getRemoveTargetCommand)));
+			mainRecognizer.LoadGrammar(new Grammar(new Choices(CCommands.getNewTargetCommand)));
+			mainRecognizer.LoadGrammar(new Grammar(new Choices(CCommands.getTargetKilledCommand)));
+			mainRecognizer.LoadGrammar(new Grammar(new Choices(CCommands.getUndoCommand)));
+			mainRecognizer.LoadGrammar(new Grammar(new Choices(CCommands.getRemoveTargetCommand)));
 			
-			getCurrentGrammars.Add(Program.controlCommands.getNewTargetCommand, 0);
-			getCurrentGrammars.Add(Program.controlCommands.getTargetKilledCommand, 1);
-			getCurrentGrammars.Add(Program.controlCommands.getUndoCommand, 2);
-			getCurrentGrammars.Add(Program.controlCommands.getRemoveTargetCommand, 3);
+			getCurrentGrammars.Add(CCommands.getNewTargetCommand, 0);
+			getCurrentGrammars.Add(CCommands.getTargetKilledCommand, 1);
+			getCurrentGrammars.Add(CCommands.getUndoCommand, 2);
+			getCurrentGrammars.Add(CCommands.getRemoveTargetCommand, 3);
 		}
 
 		public override void SwitchGrammar(string grammarID) {
@@ -74,7 +74,7 @@ namespace Metin2SpeechToData {
 
 
 		protected override void ModifierRecognized(object sender, SpeechRecognizedArgs args) {
-			SpeechRecognitionHelper.ModifierWords modifier = SpeechRecognitionHelper.reverseModifierDict[args.text];
+			CCommands.Speech modifier = SpeechHelperBase.reverseModifierDict[args.text];
 
 			PreModiferEvaluation(modifier);
 
@@ -87,30 +87,30 @@ namespace Metin2SpeechToData {
 		}
 
 
-		protected override void PreModiferEvaluation(SpeechRecognitionHelper.ModifierWords current) {
+		protected override void PreModiferEvaluation(CCommands.Speech current) {
 			base.PreModiferEvaluation(current);
 			switch (current) {
-				case SpeechRecognitionHelper.ModifierWords.NEW_TARGET: {
+				case CCommands.Speech.NEW_TARGET: {
 					mainRecognizer.Grammars[primaryGrammarIndex].Enabled = false;
-					mainRecognizer.Grammars[getCurrentGrammars[Program.controlCommands.getNewTargetCommand]].Enabled = false;
+					mainRecognizer.Grammars[getCurrentGrammars[CCommands.GetSpeechString(current)]].Enabled = false;
 					break;
 				}
-				case SpeechRecognitionHelper.ModifierWords.UNDO: {
+				case CCommands.Speech.UNDO: {
 					mainRecognizer.Grammars[primaryGrammarIndex].Enabled = false;
 					break;
 				}
 			}
 		}
 
-		protected override void PostModiferEvaluation(SpeechRecognitionHelper.ModifierWords current) {
+		protected override void PostModiferEvaluation(CCommands.Speech current) {
 			base.PostModiferEvaluation(current);
 			switch (current) {
-				case SpeechRecognitionHelper.ModifierWords.NEW_TARGET: {
+				case CCommands.Speech.NEW_TARGET: {
 					mainRecognizer.Grammars[primaryGrammarIndex].Enabled = true;
-					mainRecognizer.Grammars[getCurrentGrammars[Program.controlCommands.getNewTargetCommand]].Enabled = true;
+					mainRecognizer.Grammars[getCurrentGrammars[CCommands.GetSpeechString(current)]].Enabled = true;
 					break;
 				}
-				case SpeechRecognitionHelper.ModifierWords.UNDO: {
+				case CCommands.Speech.UNDO: {
 					mainRecognizer.Grammars[primaryGrammarIndex].Enabled = true;
 					break;
 				}

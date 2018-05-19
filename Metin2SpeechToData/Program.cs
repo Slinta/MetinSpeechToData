@@ -13,7 +13,6 @@ namespace Metin2SpeechToData {
 
 		public static SpreadsheetInteraction interaction { get; private set; }
 		public static Configuration config { get; private set; }
-		public static ControlSpeechCommands controlCommands { get; private set; }
 
 		public static HotKeyMapper mapper { get; private set; }
 
@@ -32,12 +31,13 @@ namespace Metin2SpeechToData {
 			// Init
 			config = new Configuration(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
 			interaction = new SpreadsheetInteraction(config.xlsxFile);
-			controlCommands = new ControlSpeechCommands("Control.definition");
 			Confirmation.Initialize();
-
 			mapper = new HotKeyMapper();
+			parser = new DefinitionParser();
+
 			mapper.AssignToHotkey(Keys.F1, "voice");
-			mapper.AssignToHotkey(Keys.F2, "help");
+			mapper.AssignToHotkey(Keys.F2, "chest");
+			mapper.AssignToHotkey(Keys.F3, "help");
 			mapper.AssignToHotkey(Keys.F4, "quit");
 			mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
 			bool continueRunning = true;
@@ -48,8 +48,9 @@ namespace Metin2SpeechToData {
 
 			while (continueRunning) {
 				Console.WriteLine("Commands:" +
-					"\n-(F1) Voice recognition" +
-					"\n-(F2) Help" +
+					"\n-(F1) Drop with voice recognition" +
+					"\n-(F2) Chests" +
+					"\n-(F3) Help" +
 					"\n-(F4) Quit" +
 					"\n-(Shift + F8) Wipe");
 
@@ -67,7 +68,7 @@ namespace Metin2SpeechToData {
 							case "quit":
 							case "exit": {
 								Console.WriteLine("Do you want to quit? y/n");
-								if (Console.ReadKey().Key == ConsoleKey.Y) {
+								if (Console.ReadKey(true).Key == ConsoleKey.Y) {
 									continueRunning = false;
 								}
 								break;
@@ -82,25 +83,25 @@ namespace Metin2SpeechToData {
 								break;
 							}
 							case "voice": {
-								parser = new DefinitionParser(new System.Text.RegularExpressions.Regex(@"(Mob_)?\w+\.definition"));
 								gameRecognizer = new GameRecognizer();
 								gameRecognizer.helper.AcquireControl();
 								Console.WriteLine("Returned to Main control!");
 								mapper.FreeGameHotkeys();
 								mapper.AssignToHotkey(Keys.F1, "voice");
-								mapper.AssignToHotkey(Keys.F2, "help");
+								mapper.AssignToHotkey(Keys.F2, "chest");
+								mapper.AssignToHotkey(Keys.F3, "help");
 								mapper.AssignToHotkey(Keys.F4, "quit");
 								mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
 								break;
 							}
 							case "chest": {
-								parser = new DefinitionParser(new System.Text.RegularExpressions.Regex(@"\w+\ (C|c)hest[+-]?\.definition"));
 								ChestRecognizer chestRecognizer = new ChestRecognizer();
 								chestRecognizer.helper.AcquireControl();
 								Console.WriteLine("Returned to Main control!");
 								mapper.FreeGameHotkeys();
 								mapper.AssignToHotkey(Keys.F1, "voice");
-								mapper.AssignToHotkey(Keys.F2, "help");
+								mapper.AssignToHotkey(Keys.F2, "chest");
+								mapper.AssignToHotkey(Keys.F3, "help");
 								mapper.AssignToHotkey(Keys.F4, "quit");
 								mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
 								break;

@@ -14,7 +14,7 @@ namespace Metin2SpeechToData {
 
 		private static List<int> grammarsThatWereEnabledBefore = new List<int>();
 		public static void Initialize() {
-			_boolConfirmation = new string[2] { Program.controlCommands.getConfirmationCommand, Program.controlCommands.getRefusalCommand };
+			_boolConfirmation = new string[2] { CCommands.getConfirmationCommand, CCommands.getRefusalCommand };
 			_confimer.SetInputToDefaultAudioDevice();
 		}
 

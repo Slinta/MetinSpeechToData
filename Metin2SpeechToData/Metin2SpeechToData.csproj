@@ -53,10 +53,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CCommands.cs" />
     <Compile Include="Recognition\ChestRecognizer.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="Confirmation.cs" />
-    <Compile Include="ControlSpeechCommands.cs" />
     <Compile Include="CustomException.cs" />
     <Compile Include="File Parsers\DefinitionParser.cs" />
     <Compile Include="File Parsers\DefinitionParserData.cs" />
@@ -70,6 +70,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Recognition\GameRecognizer.cs" />
     <Compile Include="Recognition\RecognitionBase.cs" />
+    <Compile Include="Recognition\SpeechHelperBase.cs" />
     <Compile Include="Recognition\SpeechRecognitionHelper.cs" />
     <Compile Include="Structures.cs" />
     <Compile Include="Spreadsheet\SpreadsheetHelper.cs" />

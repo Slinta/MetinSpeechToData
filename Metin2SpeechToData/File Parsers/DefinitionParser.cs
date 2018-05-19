@@ -23,11 +23,11 @@ namespace Metin2SpeechToData {
 		public MobParserData[] getMobDefinitions { get; }
 
 		/// <summary>
-		/// Current major grammar file files
+		/// Current major grammar file
 		/// </summary>
 		public DefinitionParserData currentGrammarFile { get; private set; }
 		/// <summary>
-		/// Current major grammar file files
+		/// Current major mob grammar file
 		/// </summary>
 		public MobParserData currentMobGrammarFile { get; private set; }
 
@@ -36,49 +36,80 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		public HotkeyPresetParser hotkeyParser { get; private set; }
 
+		/// <summary>
+		/// The regex string that was used to selec definition files
+		/// </summary>
+		public string regexMatchString { get; private set; }
+
+		public bool custonDefinitionsLoaded { get; internal set; }
+
+
 		#region Constructor/Destructor
 		/// <summary>
-		/// Parser for .definition files, constructor parses all .definition files in Definitions folder
+		/// Parser for .definition files, constructor parses selected .definition files in Definitions folder
 		/// </summary>
 		public DefinitionParser(Regex searchPattern) {
+			regexMatchString = searchPattern.ToString();
 			instance = this;
 			DirectoryInfo d = new DirectoryInfo(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Definitions");
 			FileInfo[] filesPresent = d.GetFiles("*.definition", SearchOption.AllDirectories).Where(path => searchPattern.IsMatch(path.Name)).ToArray();
 			if (filesPresent.Length == 0) {
 				throw new CustomException("Your program is missing voice recognition strings! Either redownload, or create your own *.definition text file.");
 			}
+			getDefinitions = LoadDefinitionData(filesPresent, out List<int> enemyDefinitionIndexes);
+			getMobDefinitions = LoadMobDefinitionData(filesPresent, enemyDefinitionIndexes);
+		}
 
-			List<int> Mob_indexes = new List<int>();
+		public DefinitionParser() {
+			regexMatchString = "";
+			instance = this;
+			DirectoryInfo d = new DirectoryInfo(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Definitions");
+			FileInfo[] filesPresent = d.GetFiles("*.definition", SearchOption.AllDirectories);
+			if (filesPresent.Length == 0) {
+				throw new CustomException("Your program is missing voice recognition strings! Either redownload, or create your own *.definition text file.");
+			}
+			getDefinitions = LoadDefinitionData(filesPresent, out List<int> enemyDefinitionIndexes);
+			getMobDefinitions = LoadMobDefinitionData(filesPresent, enemyDefinitionIndexes);
+		}
+		#endregion
+
+		#region FileParsing base
+
+		private DefinitionParserData[] LoadDefinitionData(FileInfo[] filesPresent, out List<int> mobIndexes) {
+			List<int> enemyDefinitions = new List<int>();
 			List<DefinitionParserData> definitions = new List<DefinitionParserData>();
 			for (int i = 0; i < filesPresent.Length; i++) {
 				if (filesPresent[i].Name.StartsWith("Mob_")) {
-					Mob_indexes.Add(i);
+					enemyDefinitions.Add(i);
 					continue;
 				}
-				
+
 				using (StreamReader s = filesPresent[i].OpenText()) {
 					DefinitionParserData data = new DefinitionParserData(filesPresent[i].Name.Split('.')[0], ParseHeader(s), ParseEntries(s));
 					data.ConstructGrammar();
 					definitions.Add(data);
 				}
 			}
-			
-			getDefinitions = definitions.ToArray();
+			mobIndexes = enemyDefinitions;
+			return definitions.ToArray();
+		}
 
-			if(Mob_indexes.Count != 0) {
-				getMobDefinitions = new MobParserData().Parse(d);
-				for (int i = 0; i < getMobDefinitions.Length; i++) {
-					for (int j = 0; j < getDefinitions.Length; j++) {
-						if(getMobDefinitions[i].ID == "Mob_" + getDefinitions[j].ID) {
+		private MobParserData[] LoadMobDefinitionData(FileInfo[] filesPresent, List<int> indexes) {
+			if (indexes.Count != 0) {
+				MobParserData[] mobData = new MobParserData().Parse(filesPresent, indexes);
+				for (int i = 0; i < mobData.Length; i++) {
+					for (int j = 0; j < mobData.Length; j++) {
+						if (mobData[i].ID == "Mob_" + getDefinitions[j].ID) {
 							getDefinitions[j].hasEnemyCompanionGrammar = true;
 						}
 					}
 				}
+				return mobData;
 			}
+			return new MobParserData[0];
 		}
-		#endregion
 
-		#region FileParsing base
+
 		private string[] ParseHeader(StreamReader r) {
 			List<string> strings = new List<string>();
 			string line = r.ReadLine();
@@ -175,6 +206,10 @@ namespace Metin2SpeechToData {
 			throw new CustomException("Definiton not found");
 		}
 
+		/// <summary>
+		/// Updates currentGrammarFile with one named 'grammar' from available list
+		/// </summary>
+		/// <param name="grammar"></param>
 		public void UpdateCurrents(string grammar) {
 			currentGrammarFile = GetDefinitionByName(grammar);
 			if (currentGrammarFile.hasEnemyCompanionGrammar) {
