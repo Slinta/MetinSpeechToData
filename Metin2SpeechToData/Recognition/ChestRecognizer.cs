@@ -94,5 +94,14 @@ namespace Metin2SpeechToData {
 			}
 			throw new CustomException("This can never happen bacause the grammar is designed to only have numbers between 0-200 inclusive written as digits");
 		}
+
+		protected override void Dispose(bool disposing) {
+			numbers.SpeechRecognized -= Numbers_SpeechRecognized;
+			numbers.RecognizeAsyncStop();
+			numbers.Dispose();
+			evnt.Dispose();
+			helper.Dispose();
+			base.Dispose(disposing);
+		}
 	}
 }

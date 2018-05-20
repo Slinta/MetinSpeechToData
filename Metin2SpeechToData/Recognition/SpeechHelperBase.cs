@@ -33,6 +33,11 @@ namespace Metin2SpeechToData {
 		protected SpeechRecognitionEngine controlingRecognizer;
 		protected Dictionary<string, (int index, bool isActive)> _currentGrammars;
 		protected readonly ManualResetEventSlim evnt = new ManualResetEventSlim();
+		protected readonly RecognitionBase baseRecognizer;
+
+		protected SpeechHelperBase(RecognitionBase master) {
+			baseRecognizer = master;
+		}
 
 		protected virtual void InitializeControl() {
 			controlingRecognizer = new SpeechRecognitionEngine();
@@ -68,14 +73,22 @@ namespace Metin2SpeechToData {
 			}
 		}
 
-		protected void SwapReceiver(EventHandler<SpeechRecognizedEventArgs> unsub,
-									EventHandler<SpeechRecognizedEventArgs> sub) {
-			controlingRecognizer.SpeechRecognized -= unsub;
-			controlingRecognizer.SpeechRecognized += sub;
-		}
-
 		protected abstract void Control_SpeechRecognized(SpeechRecognizedArgs e);
 
+		/// <summary>
+		/// Enables/Disables grammar 'name' in controling recognizer according to value in 'avtive'
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="active"></param>
+		public void SetGrammarState(string name, bool active) {
+			if (_currentGrammars.ContainsKey(name)) {
+				controlingRecognizer.Grammars[_currentGrammars[name].index].Enabled = active;
+				_currentGrammars[name] = (_currentGrammars[name].index, active);
+			}
+			else {
+				throw new CustomException("Grammar name '" + name + "' not found!");
+			}
+		}
 
 		/// <summary>
 		/// Prevents Console.ReadLine() from Main from consuming lines meant for different prompt
@@ -90,10 +103,8 @@ namespace Metin2SpeechToData {
 
 			controlingRecognizer.SpeechRecognized += waitCancellation;
 			evnt.Wait();
-			controlingRecognizer.RecognizeAsyncStop();
 			controlingRecognizer.SpeechRecognized -= waitCancellation;
 			controlingRecognizer.SpeechRecognized -= Control_SpeechRecognized_Wrapper;
-			controlingRecognizer.Dispose();
 		}
 
 		/// <summary>

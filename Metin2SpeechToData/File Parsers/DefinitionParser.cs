@@ -37,10 +37,13 @@ namespace Metin2SpeechToData {
 		public HotkeyPresetParser hotkeyParser { get; private set; }
 
 		/// <summary>
-		/// The regex string that was used to selec definition files
+		/// The regex string that was used to select definition files
 		/// </summary>
 		public string regexMatchString { get; private set; }
 
+		/// <summary>
+		/// Whethet user selected custom made definition
+		/// </summary>
 		public bool custonDefinitionsLoaded { get; internal set; }
 
 

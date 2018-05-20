@@ -3,15 +3,28 @@ using System.Collections.Generic;
 using System.Speech.Recognition;
 using System.Windows.Forms;
 using Metin2SpeechToData.Structures;
+using System.Linq;
 using System.Text;
 
 namespace Metin2SpeechToData {
 	public class SpeechRecognitionHelper : SpeechHelperBase {
 
-		private readonly RecognitionBase baseRecognizer;
+		private enum UnderlyingRecognizer {
+			GAME,
+			CHEST,
+			CUSTOM,
+		}
+
+		private UnderlyingRecognizer currentMode;
+
 		#region Constructor
-		public SpeechRecognitionHelper(RecognitionBase master) {
-			baseRecognizer = master;
+		public SpeechRecognitionHelper(GameRecognizer master): base(master) {
+			currentMode = UnderlyingRecognizer.GAME;
+			InitializeControl();
+		}
+
+		public SpeechRecognitionHelper(ChestRecognizer master) : base(master) {
+			currentMode = UnderlyingRecognizer.CHEST;
 			InitializeControl();
 		}
 
@@ -74,6 +87,7 @@ namespace Metin2SpeechToData {
 				baseRecognizer.OnRecognitionStateChanged(this, RecognitionBase.RecognitionState.STOPPED);
 				baseRecognizer.Dispose();
 				ReturnControl();
+				Dispose();
 			}
 			else if (e.text == CCommands.getPauseCommand) {
 				if (baseRecognizer.currentState != RecognitionBase.RecognitionState.ACTIVE) {
@@ -104,7 +118,7 @@ namespace Metin2SpeechToData {
 				}
 				Choices definitions = new Choices();
 				Console.Write("Switching Grammar, available: ");
-				string[] available = DefinitionParser.instance.getDefinitionNames;
+				string[] available = GetDefinitionNames(currentMode);
 				for (int i = 0; i < available.Length; i++) {
 					definitions.Add(available[i]);
 					Program.mapper.AssignToHotkey((Keys.D1 + i), Switch_WordRecognized, new SpeechRecognizedArgs(available[i], 100));
@@ -126,8 +140,29 @@ namespace Metin2SpeechToData {
 					controlingRecognizer.Grammars[i].Enabled = false;
 					_currentGrammars[controlingRecognizer.Grammars[i].Name] = (i, false);
 				}
-				SwapReceiver(Control_SpeechRecognized_Wrapper, Switch_WordRecognized_Wrapper);
+				controlingRecognizer.SpeechRecognized += Switch_WordRecognized_Wrapper;
+				controlingRecognizer.SpeechRecognized -= Control_SpeechRecognized_Wrapper;
 				baseRecognizer.OnRecognitionStateChanged(this, RecognitionBase.RecognitionState.SWITCHING);
+			}
+		}
+
+		private string[] GetDefinitionNames(UnderlyingRecognizer mode) {
+			switch (mode) {
+				case UnderlyingRecognizer.GAME: {
+					return DefinitionParser.instance.getDefinitionNames.Where(
+						   (x) => new System.Text.RegularExpressions.Regex(Configuration.AREA_REGEXP).IsMatch(x)).ToArray();
+				}
+				case UnderlyingRecognizer.CHEST: {
+					return DefinitionParser.instance.getDefinitionNames.Where(
+						   (x) => new System.Text.RegularExpressions.Regex(Configuration.CHESTS_REGEXP).IsMatch(x)).ToArray();
+				}
+				case UnderlyingRecognizer.CUSTOM: {
+					//TODO
+					throw new NotImplementedException();
+				}
+				default: {
+					return new string[0];
+				}
 			}
 		}
 
@@ -141,7 +176,9 @@ namespace Metin2SpeechToData {
 			}
 		}
 		private void Switch_WordRecognized(SpeechRecognizedArgs e) {
-			SwapReceiver(Control_SpeechRecognized_Wrapper, Switch_WordRecognized_Wrapper);
+
+			controlingRecognizer.SpeechRecognized -= Switch_WordRecognized_Wrapper;
+			controlingRecognizer.SpeechRecognized += Control_SpeechRecognized_Wrapper;
 
 			Console.WriteLine("\nSelected - " + e.text);
 			for (int i = (int)Keys.D1; i < (int)Keys.D9; i++) {
@@ -173,16 +210,6 @@ namespace Metin2SpeechToData {
 							  "(F2) or '" + CCommands.getStartSessionCommand + "'to start as session\n" +
 							  "(F4) or '" + CCommands.getStopCommand + "' to stop");
 			baseRecognizer.currentState = RecognitionBase.RecognitionState.GRAMMAR_SELECTED;
-		}
-
-		public void SetGrammarState(string name, bool active) {
-			if (_currentGrammars.ContainsKey(name)) {
-				controlingRecognizer.Grammars[_currentGrammars[name].index].Enabled = active;
-				_currentGrammars[name] = (_currentGrammars[name].index, active);
-			}
-			else {
-				throw new CustomException("Grammar name '" + name + "' not found!");
-			}
 		}
 	}
 

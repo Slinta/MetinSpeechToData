@@ -8,6 +8,10 @@ namespace Metin2SpeechToData {
 		public FileInfo xlsxFile { get; private set; }
 
 		public const string DEFAULT_FILE_NAME = "Metin2 Drop Speadsheet.xlsx";
+		public const string AREA_REGEXP = @"(Mob_)?\w+$";
+		public const string CHESTS_REGEXP = @"\w+\ (C|c)hest[+-]?";
+		public const string FILE_EXT = ".definition";
+
 		private const uint DEFAULT_STACK_DEPHT = 5;
 		private const uint DEFAULT_INTERNAL_MODIFICATION_COUNT = 1;
 		private const float DEFAULT_SPEECH_ACCEPTANCE_THRESHOLD = 0.8f;
