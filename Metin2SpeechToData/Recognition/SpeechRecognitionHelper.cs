@@ -10,7 +10,7 @@ namespace Metin2SpeechToData {
 	public class SpeechRecognitionHelper : SpeechHelperBase {
 
 		private enum UnderlyingRecognizer {
-			GAME,
+			AREA,
 			CHEST,
 			CUSTOM,
 		}
@@ -19,7 +19,7 @@ namespace Metin2SpeechToData {
 
 		#region Constructor
 		public SpeechRecognitionHelper(GameRecognizer master): base(master) {
-			currentMode = UnderlyingRecognizer.GAME;
+			currentMode = UnderlyingRecognizer.AREA;
 			InitializeControl();
 		}
 
@@ -86,8 +86,8 @@ namespace Metin2SpeechToData {
 			else if (e.text == CCommands.getStopCommand) {
 				baseRecognizer.OnRecognitionStateChanged(this, RecognitionBase.RecognitionState.STOPPED);
 				baseRecognizer.Dispose();
-				ReturnControl();
 				Dispose();
+				ReturnControl();
 			}
 			else if (e.text == CCommands.getPauseCommand) {
 				if (baseRecognizer.currentState != RecognitionBase.RecognitionState.ACTIVE) {
@@ -148,7 +148,7 @@ namespace Metin2SpeechToData {
 
 		private string[] GetDefinitionNames(UnderlyingRecognizer mode) {
 			switch (mode) {
-				case UnderlyingRecognizer.GAME: {
+				case UnderlyingRecognizer.AREA: {
 					return DefinitionParser.instance.getDefinitionNames.Where(
 						   (x) => new System.Text.RegularExpressions.Regex(Configuration.AREA_REGEXP).IsMatch(x)).ToArray();
 				}
