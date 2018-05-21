@@ -88,7 +88,6 @@ namespace Metin2SpeechToData {
 			if (!File.Exists(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + CONTROL_DEFINITION_NAME)) {
 				throw new CustomException("Could not locate 'Control.definition' file! You have to redownload this application");
 			}
-
 			using (StreamReader sr = File.OpenText(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + CONTROL_DEFINITION_NAME)) {
 				while (!sr.EndOfStream) {
 					string line = sr.ReadLine();

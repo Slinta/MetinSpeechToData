@@ -29,6 +29,19 @@ namespace Metin2SpeechToData {
 			else {
 				ParseConfig(filePath);
 			}
+			ValidateDirectory();
+		}
+
+		private void ValidateDirectory() {
+			if(!Directory.Exists(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Definitions")){
+				Directory.CreateDirectory(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Definitions");
+			}
+			if(!Directory.Exists(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Hotkeys")){
+				Directory.CreateDirectory(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Hotkeys");
+			}
+			if (!Directory.Exists(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Sessions")) {
+				Directory.CreateDirectory(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Sessions");
+			}
 		}
 
 		private void RecreateConfig() {
