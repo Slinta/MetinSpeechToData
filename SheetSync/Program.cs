@@ -4,10 +4,16 @@ using System.Collections.Generic;
 using System.Linq;
 using OfficeOpenXml;
 using Metin2SpeechToData;
+using System.Windows.Forms;
 
 namespace Sheet_DefinitionValueSync {
 	internal static class Program {
-		static void Main(string[] args) {
+
+		private static Diffs[] differences;
+		private static Typos[] typos;
+
+		[STAThread]
+		private static void Main(string[] args) {
 			Configuration cfg = new Configuration(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
 			if (cfg.xlsxFile == null) {
 				throw new FileNotFoundException("Unable to find config file");
@@ -21,8 +27,49 @@ namespace Sheet_DefinitionValueSync {
 			ExcelPackage sheetsFile = new ExcelPackage(cfg.xlsxFile);
 
 			Item[] allItems = GetItems(currFiles);
-			Diffs[] differences = FindDiffs(allItems.ToDictionary((str) => str.name, (data) => data), sheetsFile);
-			Console.WriteLine("Found " + differences.Length + " differences");
+			differences = FindDiffs(allItems.ToDictionary((str) => str.name, (data) => data), sheetsFile);
+			Console.WriteLine();
+			Console.WriteLine("Found " + differences.Length + " differences:");
+
+			foreach (Diffs diff in differences) {
+				Console.WriteLine("Item named '{3}' in sheet '{2}' is assigned as {0} Yang, but as {1} Yang in definition!",
+					diff.sheetYangVal.ToString("C").Replace(",00 Kč", ""),
+					diff.fileYangVal.ToString("C").Replace(",00 Kč", ""),
+					diff.currentSheet.Name,
+					diff.currentSheet.GetValue<string>(diff.location.Row, diff.location.Column - 1));
+			}
+
+			HotKeyMapper m = new HotKeyMapper();
+			Console.WriteLine();			
+			Console.WriteLine("(1) Sync data from definition files into the sheet.");
+			Console.WriteLine("(2) Sync data from spreadsheet into definition files.");
+			m.AssignToHotkey(Keys.D1, 1, Selected);
+			m.AssignToHotkey(Keys.D2, 2, Selected);
+			Console.ReadLine();
+			sheetsFile.Save();
+		}
+
+
+		private static void Selected(int selection) {
+			if (selection == 1) {
+				//Definition into Sheet
+				foreach (Diffs difference in differences) {
+					difference.currentSheet.SetValue(difference.location.Address, difference.fileYangVal);
+				}
+			}
+			else {
+				string fileName = "";
+				string[] currFile;
+				foreach (Diffs diff in differences) {
+					fileName = diff.itemFile;
+					currFile = File.ReadAllLines(fileName);
+
+					currFile[diff.itemDef] = currFile[diff.itemDef].Replace(diff.fileYangVal.ToString(), diff.sheetYangVal.ToString());
+					File.WriteAllLines(fileName, currFile);
+				}
+			}
+			Console.WriteLine("Done");
+			Console.WriteLine("Press Enter to save changes and exit...");
 		}
 
 		private static Item[] GetItems(FileInfo[] currFiles) {
@@ -66,12 +113,26 @@ namespace Sheet_DefinitionValueSync {
 				ExcelCellAddress currAddr = new ExcelCellAddress(ST_ROW, 1);
 				while (sheet.Cells[currAddr.Address].Value != null) {
 
-					string name = sheet.Cells[currAddr.Address].GetValue<string>();
+					string sheetItemName = sheet.Cells[currAddr.Address].GetValue<string>();
 					try {
-						if (items[name].name == name) { /*Check wheter all items are spelt properly*/ }
+						if (items[sheetItemName].name == sheetItemName) { /*Check wheter all items are spelt properly*/ }
 					}
 					catch {
-						Console.WriteLine("Found invalid entry at '" +currAddr.Address + "' with name: '" + name + "' ... skipping");
+						Console.WriteLine("Found invalid entry at '" + currAddr.Address + "' with name: '" + sheetItemName + "' ... skipping");
+						int min = 20;
+						string curr_min = "";
+						foreach (string fileName in items.Keys) {
+							int dist = WordSimilarity.Compute(fileName, sheetItemName);
+							if (dist < min) {
+								min = dist;
+								curr_min = fileName;
+								continue;
+							}
+							if(dist == min) {
+								curr_min = curr_min + "' or '" + fileName;
+							}
+						}
+						Console.WriteLine("Possibly '" + curr_min + "'?");
 						currAddr = Advance(sheet, currAddr);
 						if (currAddr == default(ExcelCellAddress)) {
 							break;
@@ -81,13 +142,13 @@ namespace Sheet_DefinitionValueSync {
 					ExcelCellAddress yangs = new ExcelCellAddress(currAddr.Row, currAddr.Column + 1);
 
 					uint localYangVal = sheet.Cells[yangs.Address].GetValue<uint>();
-					if (localYangVal != items[name].yangValue) {
-						diffs.Add(new Diffs(sheet, yangs, items[name].fileOrigin, items[name].fileLine));
+					if (localYangVal != items[sheetItemName].yangValue) {
+						diffs.Add(new Diffs(sheet, yangs, items[sheetItemName].fileOrigin, items[sheetItemName].fileLine, localYangVal, items[sheetItemName].yangValue));
 					}
 
 
 					currAddr = Advance(sheet, currAddr);
-					if(currAddr == default(ExcelCellAddress)) {
+					if (currAddr == default(ExcelCellAddress)) {
 						break;
 					}
 				}
@@ -109,6 +170,19 @@ namespace Sheet_DefinitionValueSync {
 		}
 	}
 
+	internal struct Typos {
+		public Typos(string word, string[] possible_replacements, ExcelCellAddress sheetLocation) {
+			originalTypo = word;
+			alternatives = possible_replacements;
+			location = sheetLocation;
+		}
+		public string originalTypo { get; }
+		public string[] alternatives { get; }
+		public ExcelCellAddress location { get; }
+
+	}
+
+
 	internal struct Item {
 		public Item(string name, string fileOrigin, int fileLine, uint yangValue) {
 			this.name = name;
@@ -124,17 +198,21 @@ namespace Sheet_DefinitionValueSync {
 	}
 
 	internal struct Diffs {
-		public Diffs(ExcelWorksheet sheet, ExcelCellAddress address, string fileOrigin, int fileLine) {
+		public Diffs(ExcelWorksheet sheet, ExcelCellAddress address, string fileOrigin, int fileLine, uint sheetVal, uint fileVal) {
 			currentSheet = sheet;
 			location = address;
 			itemDef = fileLine;
 			itemFile = fileOrigin;
+			sheetYangVal = sheetVal;
+			fileYangVal = fileVal;
 		}
 
 		public string itemFile { get; }
 		public ExcelWorksheet currentSheet { get; }
 		public ExcelCellAddress location { get; }
 		public int itemDef { get; }
+		public uint sheetYangVal { get; }
+		public uint fileYangVal { get; }
 	}
 }
 

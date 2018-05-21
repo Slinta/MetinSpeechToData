@@ -126,12 +126,26 @@ namespace Metin2SpeechToData {
 
 		private readonly Dictionary<Keys, ActionStashString> controlHotkeys = new Dictionary<Keys, ActionStashString>();
 
+		private readonly Dictionary<Keys, ActionData<int>> customHotkeys = new Dictionary<Keys, ActionData<int>>();
+
 		public HotKeyMapper() {
 			manager = new HotKeyManager();
 			manager.HotKeyPressed += new EventHandler<HotKeyEventArgs>(HotKeyManager_HotKeyPressed);
 		}
 
 		#region Add Hotkeys
+
+		public int AssignToHotkey(Keys selectedKey, int selection, Action<int> action) {
+			customHotkeys.Add(selectedKey, new ActionData<int>() {
+				action = action,
+				_unregID = manager.RegisterHotKey(selectedKey, KeyModifiers.None),
+				_keyModifiers = KeyModifiers.None,
+				data = selection
+			});
+			return customHotkeys[selectedKey]._unregID;
+		}
+
+
 		/// <summary>
 		/// Assign hotkey 'selectedKey' to call function 'action' with 'arguments'
 		/// </summary>
@@ -317,15 +331,19 @@ namespace Metin2SpeechToData {
 				if (unsubscribe) {
 					manager.UnregisterHotKey(voiceHotkeys[hotkey]._unregID);
 				}
-
 				voiceHotkeys.Remove(hotkey);
 			}
 			else if (controlHotkeys.ContainsKey(hotkey)) {
 				if (unsubscribe) {
 					manager.UnregisterHotKey(controlHotkeys[hotkey]._unregID);
 				}
-
 				controlHotkeys.Remove(hotkey);
+			}
+			else if (customHotkeys.ContainsKey(hotkey)) {
+				if (unsubscribe) {
+					manager.UnregisterHotKey(customHotkeys[hotkey]._unregID);
+				}
+				customHotkeys.Remove(hotkey);
 			}
 			else {
 				if (debug) { Console.WriteLine(hotkey + " not found in any list!"); }
@@ -381,9 +399,20 @@ namespace Metin2SpeechToData {
 					Console.WriteLine("This command in currently inaccessible");
 				}
 			}
+			else if (customHotkeys.ContainsKey(e.Key)) {
+				ActionData<int> data = customHotkeys[e.Key];
+				data.action.Invoke(data.data);
+			}
 			else {
 				Console.WriteLine("Hotkey for " + e.Key + " is not assigned");
 			}
+		}
+
+		private struct ActionData<T> {
+			public KeyModifiers _keyModifiers;
+			public Action<T> action;
+			public T data;
+			public int _unregID;
 		}
 
 		private struct ActionStashSpeechArgs {
