@@ -5,12 +5,15 @@ using System.Linq;
 using OfficeOpenXml;
 using Metin2SpeechToData;
 using System.Windows.Forms;
+using System.Threading;
 
 namespace Sheet_DefinitionValueSync {
 	internal static class Program {
 
 		private static Diffs[] differences;
 		private static Typos[] typos;
+		private static HotKeyMapper m = new HotKeyMapper();
+		private static ManualResetEventSlim evnt = new ManualResetEventSlim();
 
 		[STAThread]
 		private static void Main(string[] args) {
@@ -28,6 +31,12 @@ namespace Sheet_DefinitionValueSync {
 
 			Item[] allItems = GetItems(currFiles);
 			differences = FindDiffs(allItems.ToDictionary((str) => str.name, (data) => data), sheetsFile);
+			if (differences.Length == 0 && typos.Length == 0) {
+				Console.WriteLine("Files in sync!\nPress enter to quit");
+				Console.ReadLine();
+				Environment.Exit(0);
+			}
+
 			Console.WriteLine();
 			Console.WriteLine("Found " + differences.Length + " differences:");
 
@@ -39,16 +48,46 @@ namespace Sheet_DefinitionValueSync {
 					diff.currentSheet.GetValue<string>(diff.location.Row, diff.location.Column - 1));
 			}
 
-			HotKeyMapper m = new HotKeyMapper();
-			Console.WriteLine();			
-			Console.WriteLine("(1) Sync data from definition files into the sheet.");
-			Console.WriteLine("(2) Sync data from spreadsheet into definition files.");
-			m.AssignToHotkey(Keys.D1, 1, Selected);
-			m.AssignToHotkey(Keys.D2, 2, Selected);
-			Console.ReadLine();
+			if (typos.Length > 0 && Confirmation.WrittenConfirmation("Resovle name typos?")) {
+				ResolveTypos();
+			}
+
+
+			if (differences.Length > 0) {
+				Console.WriteLine();
+				Console.WriteLine("(1) Sync data from definition files into the sheet.");
+				Console.WriteLine("(2) Sync data from spreadsheet into definition files.");
+				m.AssignToHotkey(Keys.D1, 1, Selected);
+				m.AssignToHotkey(Keys.D2, 2, Selected);
+				Console.ReadLine();
+			}
 			sheetsFile.Save();
+			Console.WriteLine("All done");
 		}
 
+		private static void ResolveTypos() {
+			m.hotkeyOverriding = true;
+			for (int j = 0; j < typos.Length; j++) {
+				evnt.Reset();
+				Console.WriteLine("Typo: " + typos[j].originalTypo);
+				Console.Write("Alternatives: ");
+				for (int i = 0; i < typos[j].alternatives.Length - 1; i++) {
+					Console.Write("(" + (i + 1) + ")-" + typos[j].alternatives[i] + ", ");
+					m.AssignToHotkey(Keys.D1 + i, i+ 1, Resolve);
+				}
+				Console.WriteLine("(" + (typos[j].alternatives.Length) + ")-" + typos[j].alternatives[typos[j].alternatives.Length - 1]);
+				m.AssignToHotkey(Keys.D1 + typos[j].alternatives.Length - 1, typos[j].alternatives.Length - 1, Resolve);
+				evnt.Wait();
+			}
+		}
+
+		private static int currentIndex = 0;
+		private static void Resolve(int selected) {
+			Console.WriteLine("Replaced '" + typos[currentIndex].originalTypo+"' with '"+ typos[currentIndex].alternatives[selected] + "'");
+			typos[currentIndex].sheet.SetValue(typos[currentIndex].location.Address, typos[currentIndex].alternatives[selected]);
+			evnt.Set();
+			currentIndex++;
+		}
 
 		private static void Selected(int selection) {
 			if (selection == 1) {
@@ -107,7 +146,7 @@ namespace Sheet_DefinitionValueSync {
 				Console.WriteLine("Missing fist sheet '" + SpreadsheetHelper.DEFAULT_SHEET + "'... treating it as data sheet.");
 				sheetIndex = 1;
 			}
-
+			List<Typos> currTypos = new List<Typos>();
 			while (sheetIndex <= sheets.Count) {
 				ExcelWorksheet sheet = sheets[sheetIndex];
 				ExcelCellAddress currAddr = new ExcelCellAddress(ST_ROW, 1);
@@ -128,11 +167,13 @@ namespace Sheet_DefinitionValueSync {
 								curr_min = fileName;
 								continue;
 							}
-							if(dist == min) {
+							if (dist == min) {
 								curr_min = curr_min + "' or '" + fileName;
 							}
 						}
 						Console.WriteLine("Possibly '" + curr_min + "'?");
+						Typos t = new Typos(sheetItemName, curr_min.Replace("' or '", "_").Trim('\'', ' ').Split('_'),currAddr, sheet);
+						currTypos.Add(t);
 						currAddr = Advance(sheet, currAddr);
 						if (currAddr == default(ExcelCellAddress)) {
 							break;
@@ -155,6 +196,7 @@ namespace Sheet_DefinitionValueSync {
 
 				sheetIndex++;
 			}
+			typos = currTypos.ToArray();
 			return diffs.ToArray();
 		}
 
@@ -171,14 +213,16 @@ namespace Sheet_DefinitionValueSync {
 	}
 
 	internal struct Typos {
-		public Typos(string word, string[] possible_replacements, ExcelCellAddress sheetLocation) {
+		public Typos(string word, string[] possible_replacements, ExcelCellAddress sheetLocation, ExcelWorksheet sheet) {
 			originalTypo = word;
 			alternatives = possible_replacements;
 			location = sheetLocation;
+			this.sheet = sheet;
 		}
 		public string originalTypo { get; }
 		public string[] alternatives { get; }
 		public ExcelCellAddress location { get; }
+		public ExcelWorksheet sheet{ get; }
 
 	}
 

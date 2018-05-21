@@ -128,6 +128,8 @@ namespace Metin2SpeechToData {
 
 		private readonly Dictionary<Keys, ActionData<int>> customHotkeys = new Dictionary<Keys, ActionData<int>>();
 
+		public bool hotkeyOverriding { get; set; }
+
 		public HotKeyMapper() {
 			manager = new HotKeyManager();
 			manager.HotKeyPressed += new EventHandler<HotKeyEventArgs>(HotKeyManager_HotKeyPressed);
@@ -136,6 +138,12 @@ namespace Metin2SpeechToData {
 		#region Add Hotkeys
 
 		public int AssignToHotkey(Keys selectedKey, int selection, Action<int> action) {
+			if (customHotkeys.ContainsKey(selectedKey) && !hotkeyOverriding) {
+				throw new CustomException(selectedKey + " already mapped to " + customHotkeys[selectedKey] + "!");
+			}
+			if (customHotkeys.TryGetValue(selectedKey, out ActionData<int> data)) {
+				customHotkeys.Remove(selectedKey);
+			}
 			customHotkeys.Add(selectedKey, new ActionData<int>() {
 				action = action,
 				_unregID = manager.RegisterHotKey(selectedKey, KeyModifiers.None),
@@ -150,8 +158,11 @@ namespace Metin2SpeechToData {
 		/// Assign hotkey 'selectedKey' to call function 'action' with 'arguments'
 		/// </summary>
 		public int AssignToHotkey(Keys selectedKey, Action<SpeechRecognizedArgs> action, SpeechRecognizedArgs arguments) {
-			if (voiceHotkeys.ContainsKey(selectedKey)) {
+			if (voiceHotkeys.ContainsKey(selectedKey) && !hotkeyOverriding) {
 				throw new CustomException(selectedKey + " already mapped to " + voiceHotkeys[selectedKey] + "!");
+			}
+			if (voiceHotkeys.TryGetValue(selectedKey, out ActionStashSpeechArgs data)) {
+				voiceHotkeys.Remove(selectedKey);
 			}
 			voiceHotkeys.Add(selectedKey, new ActionStashSpeechArgs() {
 				_action = action,
@@ -167,8 +178,11 @@ namespace Metin2SpeechToData {
 		/// Assign hotkey 'selectedKey' + a 'modifier' key to call function 'action' with 'arguments'
 		/// </summary>
 		public int AssignToHotkey(Keys selectedKey, KeyModifiers modifier, Action<SpeechRecognizedArgs> action, SpeechRecognizedArgs arguments) {
-			if (voiceHotkeys.ContainsKey(selectedKey)) {
+			if (voiceHotkeys.ContainsKey(selectedKey) && !hotkeyOverriding) {
 				throw new CustomException(selectedKey + " already mapped to " + voiceHotkeys[selectedKey] + "!");
+			}
+			if (voiceHotkeys.TryGetValue(selectedKey, out ActionStashSpeechArgs data)) {
+				voiceHotkeys.Remove(selectedKey);
 			}
 			voiceHotkeys.Add(selectedKey, new ActionStashSpeechArgs() {
 				_action = action,
@@ -184,8 +198,11 @@ namespace Metin2SpeechToData {
 		/// Assign hotkey 'selectedKey' + 'modifier' keys to call function 'action' with 'arguments'
 		/// </summary>
 		public int AssignToHotkey(Keys selectedKey, KeyModifiers modifier1, KeyModifiers modifier2, Action<SpeechRecognizedArgs> action, SpeechRecognizedArgs arguments) {
-			if (voiceHotkeys.ContainsKey(selectedKey)) {
+			if (voiceHotkeys.ContainsKey(selectedKey) && !hotkeyOverriding) {
 				throw new CustomException(selectedKey + " already mapped to " + voiceHotkeys[selectedKey] + "!");
+			}
+			if (voiceHotkeys.TryGetValue(selectedKey, out ActionStashSpeechArgs data)) {
+				voiceHotkeys.Remove(selectedKey);
 			}
 			voiceHotkeys.Add(selectedKey, new ActionStashSpeechArgs() {
 				_action = action,
@@ -201,8 +218,11 @@ namespace Metin2SpeechToData {
 		/// Assign hotkey 'selectedKey' + 'modifier' keys to call function 'action' with 'arguments'
 		/// </summary>
 		public int AssignToHotkey(Keys selectedKey, KeyModifiers modifier1, KeyModifiers modifier2, KeyModifiers modifier3, Action<SpeechRecognizedArgs> action, SpeechRecognizedArgs arguments) {
-			if (voiceHotkeys.ContainsKey(selectedKey)) {
+			if (voiceHotkeys.ContainsKey(selectedKey) && !hotkeyOverriding) {
 				throw new CustomException(selectedKey + " already mapped to " + voiceHotkeys[selectedKey] + "!");
+			}
+			if (voiceHotkeys.TryGetValue(selectedKey, out ActionStashSpeechArgs data)) {
+				voiceHotkeys.Remove(selectedKey);
 			}
 			voiceHotkeys.Add(selectedKey, new ActionStashSpeechArgs() {
 				_action = action,
@@ -217,43 +237,52 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Assign hotkey 'selectedKey' to call function 'action' with 'arguments'
 		/// </summary>
-		public int AssignToHotkey(Keys hotkey, string command) {
-			if (controlHotkeys.ContainsKey(hotkey)) {
-				throw new CustomException(hotkey + " already mapped to " + controlHotkeys[hotkey] + "!");
+		public int AssignToHotkey(Keys selectedKey, string command) {
+			if (controlHotkeys.ContainsKey(selectedKey) && !hotkeyOverriding) {
+				throw new CustomException(selectedKey + " already mapped to " + controlHotkeys[selectedKey] + "!");
 			}
-			controlHotkeys.Add(hotkey, new ActionStashString() {
+			if (controlHotkeys.TryGetValue(selectedKey, out ActionStashString data)) {
+				voiceHotkeys.Remove(selectedKey);
+			}
+			controlHotkeys.Add(selectedKey, new ActionStashString() {
 				_action = AbortReadLine,
 				_data = command,
 				_keyModifier = KeyModifiers.None,
-				_unregID = manager.RegisterHotKey(hotkey, KeyModifiers.None)
+				_unregID = manager.RegisterHotKey(selectedKey, KeyModifiers.None)
 			}
 			);
-			return controlHotkeys[hotkey]._unregID;
+			return controlHotkeys[selectedKey]._unregID;
 		}
 
 		/// <summary>
 		/// Assign hotkey 'selectedKey' + a 'modifier' key to call function 'action' with 'arguments'
 		/// </summary>
-		public int AssignToHotkey(Keys hotkey, KeyModifiers modifier, string command) {
-			if (controlHotkeys.ContainsKey(hotkey)) {
-				throw new CustomException(hotkey + " already mapped to " + controlHotkeys[hotkey] + "!");
+		public int AssignToHotkey(Keys selectedKey, KeyModifiers modifier, string command) {
+			if (controlHotkeys.ContainsKey(selectedKey) && !hotkeyOverriding) {
+				throw new CustomException(selectedKey + " already mapped to " + controlHotkeys[selectedKey] + "!");
 			}
-			controlHotkeys.Add(hotkey, new ActionStashString() {
+			if (controlHotkeys.TryGetValue(selectedKey, out ActionStashString data)) {
+				controlHotkeys.Remove(selectedKey);
+			}
+			controlHotkeys.Add(selectedKey, new ActionStashString() {
 				_action = AbortReadLine,
 				_data = command,
 				_keyModifier = modifier,
-				_unregID = manager.RegisterHotKey(hotkey, modifier)
+				_unregID = manager.RegisterHotKey(selectedKey, modifier)
 			}
 			);
-			return controlHotkeys[hotkey]._unregID;
+			return controlHotkeys[selectedKey]._unregID;
 		}
 
 		/// <summary>
 		/// Assign hotkey 'selectedKey' + 'modifier' keys to call function 'action' with 'arguments'
 		/// </summary>
 		public int AssignToHotkey(Keys hotkey, KeyModifiers modifier1, KeyModifiers modifier2, string command) {
-			if (controlHotkeys.ContainsKey(hotkey)) {
+			if (controlHotkeys.ContainsKey(hotkey) && !hotkeyOverriding) {
 				throw new CustomException(hotkey + " already mapped to " + controlHotkeys[hotkey] + "!");
+			}
+			if (controlHotkeys.TryGetValue(selectedKey, out ActionStashString data)) {
+				controlHotkeys.Remove(selectedKey);
 			}
 			controlHotkeys.Add(hotkey, new ActionStashString() {
 				_action = AbortReadLine,
