@@ -277,21 +277,21 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Assign hotkey 'selectedKey' + 'modifier' keys to call function 'action' with 'arguments'
 		/// </summary>
-		public int AssignToHotkey(Keys hotkey, KeyModifiers modifier1, KeyModifiers modifier2, string command) {
-			if (controlHotkeys.ContainsKey(hotkey) && !hotkeyOverriding) {
-				throw new CustomException(hotkey + " already mapped to " + controlHotkeys[hotkey] + "!");
+		public int AssignToHotkey(Keys selectedKey, KeyModifiers modifier1, KeyModifiers modifier2, string command) {
+			if (controlHotkeys.ContainsKey(selectedKey) && !hotkeyOverriding) {
+				throw new CustomException(selectedKey + " already mapped to " + controlHotkeys[selectedKey] + "!");
 			}
 			if (controlHotkeys.TryGetValue(selectedKey, out ActionStashString data)) {
 				controlHotkeys.Remove(selectedKey);
 			}
-			controlHotkeys.Add(hotkey, new ActionStashString() {
+			controlHotkeys.Add(selectedKey, new ActionStashString() {
 				_action = AbortReadLine,
 				_data = command,
 				_keyModifier = modifier1 | modifier2,
-				_unregID = manager.RegisterHotKey(hotkey, modifier1 | modifier2)
+				_unregID = manager.RegisterHotKey(selectedKey, modifier1 | modifier2)
 			}
 			);
-			return controlHotkeys[hotkey]._unregID;
+			return controlHotkeys[selectedKey]._unregID;
 		}
 
 		#endregion
