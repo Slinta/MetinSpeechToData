@@ -78,10 +78,7 @@ namespace Metin2SpeechToData {
 
 			PreModiferEvaluation(modifier);
 
-			OnModifierRecognized?.Invoke(this, new ModiferRecognizedEventArgs() {
-				modifier = modifier,
-				triggeringItem = args.text,
-			});
+			OnModifierRecognized?.Invoke(this, new ModiferRecognizedEventArgs(modifier,args.text));
 
 			PostModiferEvaluation(modifier);
 		}

@@ -47,11 +47,11 @@ namespace Metin2SpeechToData {
 
 			while (continueRunning) {
 				Console.WriteLine("Commands:" +
-					"\n-(F1) Drop with voice recognition" +
-					"\n-(F2) Chests" +
-					"\n-(F3) Help" +
-					"\n-(F4) Quit" +
-					"\n-(Shift + F8) Wipe");
+					"\n(F1)-Drop with voice recognition" +
+					"\n(F2)-Chests" +
+					"\n(F3)-Help" +
+					"\n(F4)-Quit" +
+					"\n(Shift + F8)-Wipe files(see 'help')");
 
 				string command = Console.ReadLine();
 				if (currCommand != "") {

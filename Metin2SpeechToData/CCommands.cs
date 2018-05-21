@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace Metin2SpeechToData {
 	public class CCommands {
@@ -8,6 +9,7 @@ namespace Metin2SpeechToData {
 
 		public static string getStartCommand { get; private set; }
 		public static string getPauseCommand { get; private set; }
+
 		public static string getStopCommand { get; private set; }
 		public static string getSwitchGrammarCommand { get; private set; }
 
@@ -38,6 +40,48 @@ namespace Metin2SpeechToData {
 			TARGET_KILLED,
 			ASSIGN_HOTKEY_TO_ITEM,
 		};
+
+		public static Speech GetEnum(string text) {
+			if (text == getStartCommand) {
+				return Speech.START;
+			}
+			else if (text == getPauseCommand) {
+				return Speech.PAUSE;
+			}
+			else if (text == getStopCommand) {
+				return Speech.STOP;
+			}
+			else if (text == getConfirmationCommand) {
+				return Speech.CONFIRM;
+			}
+			else if (text == getRefusalCommand) {
+				return Speech.REFUSE;
+			}
+			else if (text == getStartSessionCommand) {
+				return Speech.START_SESSION;
+			}
+			else if (text == getNewTargetCommand) {
+				return Speech.NEW_TARGET;
+			}
+			else if (text == getRemoveTargetCommand) {
+				return Speech.REMOVE_TARGET;
+			}
+			else if (text == getTargetKilledCommand) {
+				return Speech.TARGET_KILLED;
+			}
+			else if (text == getSwitchGrammarCommand) {
+				return Speech.SWITCH_GRAMMAR;
+			}
+			else if (text == getUndoCommand) {
+				return Speech.UNDO;
+			}
+			else if (text == getHotkeyAssignCommand) {
+				return Speech.ASSIGN_HOTKEY_TO_ITEM;
+			}
+			else {
+				return Speech.NONE;
+			}
+		}
 
 		public static string GetSpeechString(Speech speech) {
 			switch (speech) {
@@ -81,7 +125,7 @@ namespace Metin2SpeechToData {
 					return getStartSessionCommand;
 				}
 			}
-			throw new System.NotSupportedException();
+			throw new NotSupportedException();
 		}
 
 		static CCommands() {

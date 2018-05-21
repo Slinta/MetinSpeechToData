@@ -73,7 +73,14 @@ namespace Metin2SpeechToData {
 			}
 		}
 
+		protected void Switch_WordRecognized_Wrapper(object sender, SpeechRecognizedEventArgs e) {
+			if (Configuration.acceptanceThreshold < e.Result.Confidence) {
+				Switch_WordRecognized(new SpeechRecognizedArgs(e.Result.Text, e.Result.Confidence));
+			}
+		}
+
 		protected abstract void Control_SpeechRecognized(SpeechRecognizedArgs e);
+		protected abstract void Switch_WordRecognized(SpeechRecognizedArgs e);
 
 		/// <summary>
 		/// Enables/Disables grammar 'name' in controling recognizer according to value in 'avtive'
@@ -129,5 +136,14 @@ namespace Metin2SpeechToData {
 			GC.SuppressFinalize(this);
 		}
 		#endregion
+	}
+
+	public sealed class ModiferRecognizedEventArgs : EventArgs {
+		public ModiferRecognizedEventArgs(CCommands.Speech modifier, string itemTrigger) {
+			this.modifier = modifier;
+			this.itemTrigger = itemTrigger;
+		}
+		public CCommands.Speech modifier { get; }
+		public string itemTrigger { get; }
 	}
 }

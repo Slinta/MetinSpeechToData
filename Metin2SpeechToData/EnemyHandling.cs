@@ -93,7 +93,7 @@ namespace Metin2SpeechToData {
 			else if (args.modifier == CCommands.Speech.TARGET_KILLED) {
 				Console.WriteLine("Killed " + currentEnemy + ", the death count increased");
 				Program.interaction.AddNumberTo(new ExcelCellAddress(1, 5), 1);
-				EnemyTargetingModifierRecognized(this, new ModiferRecognizedEventArgs() { modifier = CCommands.Speech.REMOVE_TARGET });
+				EnemyTargetingModifierRecognized(this, new ModiferRecognizedEventArgs(CCommands.Speech.REMOVE_TARGET,""));
 			}
 			else if (args.modifier == CCommands.Speech.REMOVE_TARGET) {
 				Program.interaction.OpenWorksheet(DefinitionParser.instance.currentGrammarFile.ID);
