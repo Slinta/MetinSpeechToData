@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Speech.Recognition;
 using System.Windows.Forms;
 using Metin2SpeechToData.Structures;

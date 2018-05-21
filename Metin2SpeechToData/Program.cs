@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Windows.Forms;
-using OfficeOpenXml;
 
 namespace Metin2SpeechToData {
 	public static class Program {
