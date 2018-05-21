@@ -94,16 +94,7 @@ namespace Metin2SpeechToData {
 		/// Prevents Console.ReadLine() from Main from consuming lines meant for different prompt
 		/// </summary>
 		public void AcquireControl() {
-			//EventHandler<SpeechRecognizedEventArgs> waitCancellation = new EventHandler<SpeechRecognizedEventArgs>(
-			//(object o, SpeechRecognizedEventArgs e) => {
-			//	if (e.Result.Text == CCommands.getStopCommand) {
-			//		evnt.Set();
-			//	}
-			//});
-
-			//controlingRecognizer.SpeechRecognized += waitCancellation;
 			evnt.Wait();
-			//controlingRecognizer.SpeechRecognized -= waitCancellation;
 			controlingRecognizer.SpeechRecognized -= Control_SpeechRecognized_Wrapper;
 		}
 

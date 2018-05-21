@@ -12,6 +12,7 @@ namespace Sheet_DefinitionValueSync {
 
 		private static Diffs[] differences;
 		private static Typos[] typos;
+		private static FileInfo[] sessions;
 		private static HotKeyMapper m = new HotKeyMapper();
 		private static ManualResetEventSlim evnt = new ManualResetEventSlim();
 
@@ -29,12 +30,22 @@ namespace Sheet_DefinitionValueSync {
 			FileInfo[] currFiles = currentDirectory.GetDirectories("Definitions")[0].GetFiles("*.definition");
 			ExcelPackage sheetsFile = new ExcelPackage(cfg.xlsxFile);
 
+			sessions = currentDirectory.GetDirectories("Sessions")[0].GetFiles("*.xlsx");
+
 			Item[] allItems = GetItems(currFiles);
 			differences = FindDiffs(allItems.ToDictionary((str) => str.name, (data) => data), sheetsFile);
-			if (differences.Length == 0 && typos.Length == 0) {
-				Console.WriteLine("Files in sync!\nPress enter to quit");
+			if (differences.Length == 0 && typos.Length == 0 && sessions.Length == 0) {
+				Console.WriteLine("Evertying looks the way it should ;]\nPress enter to quit");
 				Console.ReadLine();
 				Environment.Exit(0);
+			}
+
+			if(sessions.Length > 0) {
+				Console.WriteLine("Found session files in 'Sessions' folder...");
+				if(Confirmation.WrittenConfirmation("Merge with main file (create new sheets in main file with time stamp)?")) {
+					Console.WriteLine("Sorry, not suppoted yet!");
+					//TODO
+				}
 			}
 
 			Console.WriteLine();
