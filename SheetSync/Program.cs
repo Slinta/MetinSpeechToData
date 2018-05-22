@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using OfficeOpenXml;
 using Metin2SpeechToData;
+using static Metin2SpeechToData.Spreadsheet.SsConstants;
 using System.Windows.Forms;
 using System.Threading;
 
-namespace Sheet_DefinitionValueSync {
+namespace SheetSync {
 	internal static class Program {
 
 		private static Diffs[] differences;
@@ -44,7 +45,7 @@ namespace Sheet_DefinitionValueSync {
 				Console.WriteLine("Found session files in 'Sessions' folder...");
 				if(Confirmation.WrittenConfirmation("Merge with main file (create new sheets in main file with time stamp)?")) {
 					Console.WriteLine("Sorry, not suppoted yet!");
-					//TODO
+					//TODO session merging with main file
 				}
 			}
 
@@ -146,21 +147,18 @@ namespace Sheet_DefinitionValueSync {
 			return items.ToArray();
 		}
 
-		private const int ST_ROW = 3;
-		private const int COL_INC = 4;
-
 		private static Diffs[] FindDiffs(IReadOnlyDictionary<string, Item> items, ExcelPackage sheetsFile) {
 			List<Diffs> diffs = new List<Diffs>();
 			ExcelWorksheets sheets = sheetsFile.Workbook.Worksheets;
 			int sheetIndex = 2;
-			if (sheets[1].Name != SpreadsheetHelper.DEFAULT_SHEET) {
-				Console.WriteLine("Missing fist sheet '" + SpreadsheetHelper.DEFAULT_SHEET + "'... treating it as data sheet.");
+			if (sheets[1].Name != H_DEFAULT_SHEET_NAME) {
+				Console.WriteLine("Missing fist sheet '" + H_DEFAULT_SHEET_NAME + "'... treating it as data sheet.");
 				sheetIndex = 1;
 			}
 			List<Typos> currTypos = new List<Typos>();
 			while (sheetIndex <= sheets.Count) {
 				ExcelWorksheet sheet = sheets[sheetIndex];
-				ExcelCellAddress currAddr = new ExcelCellAddress(ST_ROW, 1);
+				ExcelCellAddress currAddr = new ExcelCellAddress(3, 1);
 				while (sheet.Cells[currAddr.Address].Value != null) {
 
 					string sheetItemName = sheet.Cells[currAddr.Address].GetValue<string>();
@@ -185,8 +183,8 @@ namespace Sheet_DefinitionValueSync {
 						Console.WriteLine("Possibly '" + curr_min + "'?");
 						Typos t = new Typos(sheetItemName, curr_min.Replace("' or '", "_").Trim('\'', ' ').Split('_'),currAddr, sheet);
 						currTypos.Add(t);
-						currAddr = Advance(sheet, currAddr);
-						if (currAddr == default(ExcelCellAddress)) {
+						currAddr = SpreadsheetHelper.Advance(sheet, currAddr);
+						if (currAddr == null) {
 							break;
 						}
 						continue;
@@ -199,8 +197,8 @@ namespace Sheet_DefinitionValueSync {
 					}
 
 
-					currAddr = Advance(sheet, currAddr);
-					if (currAddr == default(ExcelCellAddress)) {
+					currAddr = SpreadsheetHelper.Advance(sheet, currAddr);
+					if (currAddr == null) {
 						break;
 					}
 				}
@@ -209,17 +207,6 @@ namespace Sheet_DefinitionValueSync {
 			}
 			typos = currTypos.ToArray();
 			return diffs.ToArray();
-		}
-
-		private static ExcelCellAddress Advance(ExcelWorksheet sheet, ExcelCellAddress currAddr) {
-			currAddr = new ExcelCellAddress(currAddr.Row + 1, currAddr.Column);
-			if (sheet.Cells[currAddr.Address].Value == null) {
-				currAddr = new ExcelCellAddress(ST_ROW, currAddr.Column + COL_INC);
-				if (sheet.Cells[currAddr.Address].Value == null) {
-					return default(ExcelCellAddress);
-				}
-			}
-			return currAddr;
 		}
 	}
 

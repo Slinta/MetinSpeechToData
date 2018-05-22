@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Sheet_DefinitionValueSync {
+namespace SheetSync {
 	public static class WordSimilarity {
 		/// <summary>
 		/// Compute the distance between two strings.

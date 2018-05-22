@@ -15,7 +15,7 @@ namespace Metin2SpeechToData {
 		private readonly SpreadsheetHelper helper;
 		private ExcelWorksheet _currentSheet;
 		private Dictionary<string, ExcelCellAddress> currentNameToConutAddress;
-		private Dictionary<string, Group> currentGroupsByName; 
+		private Dictionary<string, Group> currentGroupsByName;
 
 		private readonly Dictionary<string, Dictionary<string, ExcelCellAddress>> sheetToAdresses;
 		private readonly Dictionary<string, Dictionary<string, Group>> sheetToGroups;
@@ -37,6 +37,10 @@ namespace Metin2SpeechToData {
 			templates.InitializeMainSheet();
 			sheetToAdresses = new Dictionary<string, Dictionary<string, ExcelCellAddress>>();
 			sheetToGroups = new Dictionary<string, Dictionary<string, Group>>();
+
+
+			SpreadsheetHelper.HyperlinkCell(currentSheet, "A1", content.Worksheets[1], "B2", "Link to B2");
+			Save();
 		}
 		#endregion
 
@@ -45,7 +49,10 @@ namespace Metin2SpeechToData {
 
 			if (newFile == Program.config.xlsxFile) {
 				Console.WriteLine("Switching back to default file");
-				//TODO: perform merging of the two files -- ask wheter to keep the session file
+				xlsxFile = new ExcelPackage(Program.config.xlsxFile);
+				content = xlsxFile.Workbook;
+				currentSheet = content.Worksheets[1];
+				return;
 			}
 
 			if (!File.Exists(newFile.FullName)) {
@@ -65,7 +72,7 @@ namespace Metin2SpeechToData {
 
 			xlsxFile = new ExcelPackage(newFile);
 			content = xlsxFile.Workbook;
-			if(content.Worksheets["Session"] == null) {
+			if (content.Worksheets["Session"] == null) {
 				content.Worksheets.Add("Session");
 				currentSheet = content.Worksheets["Session"];
 			}

@@ -3,6 +3,7 @@
 # !DO NOT MODIFY KEYWORDS BEFORE ':' YOU HAVE BEEN WARNED!
 
 START: Computer start recognition
+SESSION_START: Computer start session
 PAUSE: Computer pause recognition
 STOP: Computer stop and quit
 SWITCH: Computer switch grammar
@@ -15,5 +16,7 @@ NEW_TARGET: New target
 TARGET_KILLED: Target killed
 REMOVE_TARGET: Remove target
 UNDO: Undo
+
+# Curerntly unused commands
 
 HOTKEY_ASSIGN: Assign hotkey

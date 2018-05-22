@@ -72,6 +72,7 @@
     <Compile Include="Recognition\RecognitionBase.cs" />
     <Compile Include="Recognition\SpeechHelperBase.cs" />
     <Compile Include="Recognition\SpeechRecognitionHelper.cs" />
+    <Compile Include="Spreadsheet\SsConstants.cs" />
     <Compile Include="Structures.cs" />
     <Compile Include="Spreadsheet\SpreadsheetHelper.cs" />
     <Compile Include="Spreadsheet\SpreadsheetInteraction.cs" />

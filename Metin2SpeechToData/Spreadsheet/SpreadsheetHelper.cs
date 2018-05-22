@@ -1,14 +1,12 @@
 ﻿using System.Collections.Generic;
 using OfficeOpenXml;
 using Metin2SpeechToData.Structures;
-
+using static Metin2SpeechToData.Spreadsheet.SsConstants;
 
 namespace Metin2SpeechToData {
 	public class SpreadsheetHelper {
 
-		public const string DEFAULT_SHEET = "Metin2 Drop Analyzer";
 		private readonly SpreadsheetInteraction main;
-
 
 		public SpreadsheetHelper(SpreadsheetInteraction interaction) {
 			main = interaction;
@@ -42,6 +40,31 @@ namespace Metin2SpeechToData {
 			main.Save();
 		}
 
+		/// <summary>
+		/// If given address containing itemName
+		/// this function will keep returning following addresses,
+		/// until it reaches an empty cell in next data column, then it returns null
+		/// <para>A3 > A4 > A5 .. Ax is null continue next column E3 > E4 ... I3 is empty >> NULL</para>
+		/// </summary>
+		public static ExcelCellAddress Advance(ExcelWorksheet sheet, ExcelCellAddress currAddr) {
+			currAddr = new ExcelCellAddress(currAddr.Row + 1, currAddr.Column);
+			if (sheet.Cells[currAddr.Address].Value == null) {
+				currAddr = new ExcelCellAddress(H_FIRST_ROW, currAddr.Column + H_COLUMN_INCREMENT);
+				if (sheet.Cells[currAddr.Address].Value == null) {
+					return null;
+				}
+			}
+			return currAddr;
+		}
+
+		/// <summary>
+		/// Creates a hyperlink in 'currentSheet' at 'currentCellAddress' pointing to 'otherSheet' to 'locationAddress', hide link syntax with 'displeyText'
+		/// </summary>
+		public static void HyperlinkCell(ExcelWorksheet currentSheet, string currentCellAddress, ExcelWorksheet otherSheet, string locationAddress, string displayText) {
+			currentSheet.Cells[currentCellAddress].Formula = 
+				string.Format("HYPERLINK(\"#'{0}'!{1}\",\"{2}\")", otherSheet.Name, locationAddress, displayText);
+			currentSheet.Cells[currentCellAddress].Calculate();
+		}
 
 		/// <summary>
 		/// Parses spreadsheet

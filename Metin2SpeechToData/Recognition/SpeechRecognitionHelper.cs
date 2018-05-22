@@ -83,7 +83,7 @@ namespace Metin2SpeechToData {
 					break;
 				}
 				case CCommands.Speech.START_SESSION: {
-					//TODO
+					//TODO Session starting
 					break;
 				}
 				case CCommands.Speech.STOP: {
@@ -167,7 +167,7 @@ namespace Metin2SpeechToData {
 						   (x) => new System.Text.RegularExpressions.Regex(Configuration.CHESTS_REGEXP).IsMatch(x)).ToArray();
 				}
 				case UnderlyingRecognizer.CUSTOM: {
-					//TODO
+					//TODO when custom undelying recognizer exists, select only custom definitions
 					throw new NotImplementedException();
 				}
 				default: {
