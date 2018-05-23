@@ -59,11 +59,11 @@ namespace Metin2SpeechToData {
 		}
 
 		private void AddMobEntry(string mobName, DefinitionParserData.Item item) {
-			List<string> modified = new List<string>(getAllDropsFile);
-			modified.Add(mobName + "{");
-			modified.Add("\t-" + item.group + ":" + item.mainPronounciation);
-			modified.Add("}");
-			getAllDropsFile = modified.ToArray();
+			getAllDropsFile = new string[3] {
+				mobName + "{",
+				"\t-" + item.group + ":" + item.mainPronounciation,
+				"}"
+			};
 		}
 
 		/// <summary>
@@ -132,7 +132,7 @@ namespace Metin2SpeechToData {
 			int[] lineIndexes = GetLinesOfEnemy(enemyName);
 			foreach (int index in lineIndexes) {
 				string currLine = getAllDropsFile[index];
-				if (currLine.StartsWith("-")) {
+				if (currLine.StartsWith("\t-")) {
 					string[] split = currLine.Split(':');
 					ret.Add(split[0].Trim('\t', '-'), split[1].Split(','));
 				}

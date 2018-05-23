@@ -61,8 +61,14 @@ namespace Metin2SpeechToData {
 		/// Creates a hyperlink in 'currentSheet' at 'currentCellAddress' pointing to 'otherSheet' to 'locationAddress', hide link syntax with 'displeyText'
 		/// </summary>
 		public static void HyperlinkCell(ExcelWorksheet currentSheet, string currentCellAddress, ExcelWorksheet otherSheet, string locationAddress, string displayText) {
-			currentSheet.Cells[currentCellAddress].Formula = 
-				string.Format("HYPERLINK(\"#'{0}'!{1}\",\"{2}\")", otherSheet.Name, locationAddress, displayText);
+			if (Configuration.sheetViewer == Configuration.SheetViewer.EXCEL) {
+				currentSheet.Cells[currentCellAddress].Formula =
+					string.Format("HYPERLINK(\"#'{0}'!{1}\",\"{2}\")", otherSheet.Name, locationAddress, displayText);
+			}
+			else {
+				currentSheet.Cells[currentCellAddress].Formula =
+					string.Format("HYPERLINK(\"#{0}.{1}\",\"{2}\")", otherSheet.Name, locationAddress, displayText);
+			}
 			currentSheet.Cells[currentCellAddress].Calculate();
 		}
 
@@ -155,16 +161,15 @@ namespace Metin2SpeechToData {
 			return SpreadsheetTemplates.SpreadsheetPresetType.MAIN;
 		}
 
+		/// <summary>
+		/// Helper function for AutoAjdustComluns
+		/// </summary>
 		private double GetCellWidth(int number, bool addCurrencyOffset) {
-			int count = DigitCount(number);
+			int count = number.ToString().Length;
 			int spaces = count / 3;
 			double width = addCurrencyOffset ? 4 : 2;
 			width += spaces + count;
 			return width;
-		}
-
-		private int DigitCount(int i) {
-			return i.ToString().Length;
 		}
 
 		#region Formula functions

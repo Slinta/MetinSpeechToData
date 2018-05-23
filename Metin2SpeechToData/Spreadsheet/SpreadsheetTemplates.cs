@@ -1,21 +1,35 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using OfficeOpenXml;
 using Metin2SpeechToData.Structures;
-
+using System;
 
 namespace Metin2SpeechToData {
-	public class SpreadsheetTemplates {
+	public class SpreadsheetTemplates : IDisposable {
 		private const short columnOffset = 4;
 		public enum SpreadsheetPresetType {
 			MAIN,
 			AREA,
-			ENEMY
+			ENEMY,
+			SESSION
 		}
 
 		private readonly SpreadsheetInteraction interaction;
-
+		private ExcelPackage package;
 		public SpreadsheetTemplates(SpreadsheetInteraction interaction) {
 			this.interaction = interaction;
+		}
+
+
+		public ExcelWorksheets LoadTemplates() {
+			FileInfo templatesFile = new FileInfo(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar +
+									  "Templates" + Path.DirectorySeparatorChar + "Templates.xlsx");
+
+			if (!templatesFile.Exists) {
+				throw new CustomException("Unable to locate 'Templates.xlsx' inside Templates folder. Reinstall might be necessary");
+			}
+			package = new ExcelPackage(templatesFile);
+			return package.Workbook.Worksheets;
 		}
 
 		public Dicts InitializeMobSheet(string mobName, MobAsociatedDrops data) {
@@ -99,5 +113,35 @@ namespace Metin2SpeechToData {
 			interaction.Save();
 			return d;
 		}
+
+		public (Dicts,ExcelWorksheet) InitAreaSheet(DefinitionParserData data) {
+			return (default(Dicts), default(ExcelWorksheet));
+		}
+
+		#region IDisposable Support
+		private bool disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing) {
+			if (!disposedValue) {
+				try {
+					package.Dispose();
+				}
+				catch {
+					//Attempt to dispose
+				}
+				disposedValue = true;
+			}
+		}
+
+		~SpreadsheetTemplates() {
+			Dispose(false);
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+		#endregion
 	}
 }

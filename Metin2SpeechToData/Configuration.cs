@@ -5,6 +5,11 @@ using System.Windows.Forms;
 namespace Metin2SpeechToData {
 	public class Configuration {
 
+		public enum SheetViewer {
+			EXCEL,
+			CALC
+		}
+
 		public FileInfo xlsxFile { get; private set; }
 
 		public const string DEFAULT_FILE_NAME = "Metin2 Drop Speadsheet.xlsx";
@@ -15,10 +20,12 @@ namespace Metin2SpeechToData {
 		private const uint DEFAULT_STACK_DEPHT = 5;
 		private const uint DEFAULT_INTERNAL_MODIFICATION_COUNT = 1;
 		private const float DEFAULT_SPEECH_ACCEPTANCE_THRESHOLD = 0.8f;
+		private const SheetViewer DEFAULT_SHEET_VIEWER = SheetViewer.EXCEL;
 
 		public static uint undoHistoryLength { get; private set; } =  DEFAULT_STACK_DEPHT;
 		public static uint sheetChangesBeforeSaving { get; private set; } = DEFAULT_INTERNAL_MODIFICATION_COUNT;
 		public static float acceptanceThreshold { get; private set; } = DEFAULT_SPEECH_ACCEPTANCE_THRESHOLD;
+		public static SheetViewer sheetViewer { get; private set; } = DEFAULT_SHEET_VIEWER;
 
 		public Configuration(string filePath) {
 			if (!File.Exists(filePath)) {
@@ -33,14 +40,19 @@ namespace Metin2SpeechToData {
 		}
 
 		private void ValidateDirectory() {
-			if(!Directory.Exists(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Definitions")){
-				Directory.CreateDirectory(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Definitions");
+			string commonDir = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar;
+
+			if (!Directory.Exists(commonDir + "Definitions")){
+				Directory.CreateDirectory(commonDir + "Definitions");
 			}
-			if(!Directory.Exists(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Hotkeys")){
-				Directory.CreateDirectory(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Hotkeys");
+			if(!Directory.Exists(commonDir + "Hotkeys")){
+				Directory.CreateDirectory(commonDir + "Hotkeys");
 			}
-			if (!Directory.Exists(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Sessions")) {
-				Directory.CreateDirectory(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Sessions");
+			if (!Directory.Exists(commonDir + "Sessions")) {
+				Directory.CreateDirectory(commonDir + "Sessions");
+			}
+			if(!Directory.Exists(commonDir + "Templates")) {
+				Directory.CreateDirectory(commonDir + "Templates");
 			}
 		}
 
@@ -82,6 +94,9 @@ namespace Metin2SpeechToData {
 				sw.Write("# The threshold for recognition, if the recognizer is less confident in waht you said than this value, it will ignore the word/sentence | DEAFULT=0.8 {0,5--0,95}\n");
 				sw.Write("SPEECH_ACCEPTANCE_THRESHOLD= " + DEFAULT_SPEECH_ACCEPTANCE_THRESHOLD + "\n");
 				sw.WriteLine();
+				sw.Write("# Spcecify which program do you use for opening .xlsx files, because LO Calc and MS Excel are not fully compatible | DEFAUL=EXCEL {'EXCEL','CALC'}\n");
+				sw.Write("DEFAULT_SHEET_EDITOR= " + DEFAULT_SHEET_VIEWER + "\n");
+				sw.WriteLine();
 			}
 		}
 
@@ -101,8 +116,7 @@ namespace Metin2SpeechToData {
 								line = line.Trim(' ', '\t', '\n');
 								if (!File.Exists(line)) {
 									Console.WriteLine("The file " + line + " was not found!\n" +
-													  "You have to raplace the path to it in 'config.cfg' in this apps folder, or delete the configuration,\n" +
-													  "new one, along with the sheet will be generated on restart.");
+													  "You have to replace the path to it in 'config.cfg' in this apps folder, or delete the configuration,\n");
 									Console.ReadKey();
 									Environment.Exit(0);
 									return;
@@ -118,19 +132,27 @@ namespace Metin2SpeechToData {
 						if (split[0] == "UNDO_HISTORY_LENGTH") {
 							undoHistoryLength = uint.Parse(split[1].Trim('\n', ' ', '\t'));
 							if(undoHistoryLength > 1000 && undoHistoryLength < 1) {
-								throw new CustomException("THe value for UNDO_HISTORY_LENGTH in 'config.cfg' is out of bounds!");
+								throw new CustomException("The value for UNDO_HISTORY_LENGTH in 'config.cfg' is out of bounds!");
 							}
 						}
 						else if (split[0] == "WRITE_XSLX_AFTER_NO_OF_MODIFICATIONS") {
 							sheetChangesBeforeSaving = uint.Parse(split[1].Trim('\n', ' ', '\t'));
 							if (sheetChangesBeforeSaving > 100 && sheetChangesBeforeSaving < 1) {
-								throw new CustomException("THe value for WRITE_XSLX_AFTER_NO_OF_MODIFICATIONS in 'config.cfg' is out of bounds!");
+								throw new CustomException("The value for WRITE_XSLX_AFTER_NO_OF_MODIFICATIONS in 'config.cfg' is out of bounds!");
 							}
 						}
 						else if (split[0] == "SPEECH_ACCEPTANCE_THRESHOLD") {
 							acceptanceThreshold = float.Parse(split[1].Trim('\n', ' ', '\t'));
 							if (acceptanceThreshold > 0.95f && acceptanceThreshold < 0.5f) {
-								throw new CustomException("THe value for SPEECH_ACCEPTANCE_THRESHOLD in 'config.cfg' is out of bounds!");
+								throw new CustomException("The value for SPEECH_ACCEPTANCE_THRESHOLD in 'config.cfg' is out of bounds!");
+							}
+						}
+						else if (split[0] == "DEFAULT_SHEET_EDITOR") {
+							if (!Enum.TryParse(split[1].Trim('\n', ' ', '\t'), out SheetViewer _sheetViewer)) {
+								throw new CustomException("The value for DEFAULT_SHEET_EDITOR in 'config.cfg' is not 'CALC' or 'EXCEL'!");
+							}
+							else {
+								sheetViewer = _sheetViewer;
 							}
 						}
 					}

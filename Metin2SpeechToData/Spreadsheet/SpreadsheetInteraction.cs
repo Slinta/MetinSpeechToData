@@ -34,10 +34,8 @@ namespace Metin2SpeechToData {
 			helper = new SpreadsheetHelper(this);
 
 			templates = new SpreadsheetTemplates(this);
-			templates.InitializeMainSheet();
 			sheetToAdresses = new Dictionary<string, Dictionary<string, ExcelCellAddress>>();
 			sheetToGroups = new Dictionary<string, Dictionary<string, Group>>();
-
 
 			SpreadsheetHelper.HyperlinkCell(currentSheet, "A1", content.Worksheets[1], "B2", "Link to B2");
 			Save();
@@ -138,6 +136,12 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Insert 'value' into cell at 'address' in current worksheet
 		/// </summary>
+		public void InsertValue<T>(string address, T value) {
+			InsertValue(new ExcelCellAddress(address), value);
+		}
+		/// <summary>
+		/// Insert 'value' into cell at 'address' in current worksheet
+		/// </summary>
 		public void InsertValue<T>(ExcelCellAddress address, T value) {
 			if (_currentSheet == null) {
 				throw new CustomException("No sheet open!");
@@ -220,6 +224,40 @@ namespace Metin2SpeechToData {
 			InsertValue<object>(new ExcelCellAddress(current.Row, current.Column + 2), null);
 			sheetToAdresses[_currentSheet.Name].Remove(entry.mainPronounciation);
 		}
+
+		public ExcelWorksheet AddSheet(string name, SpreadsheetTemplates.SpreadsheetPresetType type) {
+			if(content.Worksheets[name] != null) {
+				throw new CustomException("File already contains sheet named " + name);
+			}
+			ExcelWorksheets reference = templates.LoadTemplates();
+			ExcelWorksheet selected = null;
+			switch (type) {
+				case SpreadsheetTemplates.SpreadsheetPresetType.MAIN: {
+					throw new CustomException("Tried to add a main sheet to a file, this is unsupported");
+				}
+				case SpreadsheetTemplates.SpreadsheetPresetType.AREA: {
+					selected = reference["Area"];
+					break;
+				}
+				case SpreadsheetTemplates.SpreadsheetPresetType.ENEMY: {
+					selected = reference["Enemy"];
+					break;
+				}
+				case SpreadsheetTemplates.SpreadsheetPresetType.SESSION: {
+					selected = reference["Session"];
+					break;
+				}
+			}
+			if(reference == null) {
+				throw new CustomException("Unable to load template sheet!");
+			}
+			content.Worksheets.Add(name, selected);
+			templates.Dispose();
+			selected.Dispose();
+			reference.Dispose();
+			return content.Worksheets[name];
+		}
+
 
 		/// <summary>
 		/// Gets the item address belonging to 'itemName' in current sheet
