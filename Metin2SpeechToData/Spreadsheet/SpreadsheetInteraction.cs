@@ -14,6 +14,8 @@ namespace Metin2SpeechToData {
 		private readonly SpreadsheetTemplates templates;
 		private readonly SpreadsheetHelper helper;
 		private ExcelWorksheet _currentSheet;
+		public ExcelWorksheet mainSheet { get; }
+
 		private Dictionary<string, ExcelCellAddress> currentNameToConutAddress;
 		private Dictionary<string, Group> currentGroupsByName;
 
@@ -30,15 +32,20 @@ namespace Metin2SpeechToData {
 			xlsxFile = new ExcelPackage(path);
 			content = xlsxFile.Workbook;
 			_currentSheet = content.Worksheets["Metin2 Drop Analyzer"];
-
+			mainSheet = currentSheet;
 			helper = new SpreadsheetHelper(this);
 
 			templates = new SpreadsheetTemplates(this);
 			sheetToAdresses = new Dictionary<string, Dictionary<string, ExcelCellAddress>>();
 			sheetToGroups = new Dictionary<string, Dictionary<string, Group>>();
 
-			SpreadsheetHelper.HyperlinkCell(currentSheet, "A1", content.Worksheets[1], "B2", "Link to B2");
-			Save();
+			//TODO this testing stuff
+			//SpreadsheetHelper.HyperlinkCell(currentSheet, "Q1", content.Worksheets[1], "B2", "Link to B2");
+			//templates.InitAreaSheet(content, new DefinitionParserData("AA", new string[3] { "AAA", "BBBB", "CCC" }, new DefinitionParserData.Item[2] {
+			//	new DefinitionParserData.Item("AAAAAAAA", new string[0],1000,"AAA"),
+			//	new DefinitionParserData.Item("CSCSCSCSC", new string[0], 1000000, "CCC"),
+			//}));
+			//Save();
 		}
 		#endregion
 
@@ -314,19 +321,14 @@ namespace Metin2SpeechToData {
 
 		public struct Group {
 
-			public Group(ExcelCellAddress groupName, ExcelCellAddress elementNameFirstIndex,
-						 ExcelCellAddress yangValueFirstIndex, ExcelCellAddress totalCollectedFirstIndex) {
+			public Group(ExcelCellAddress groupName, ExcelCellAddress elementNameFirstIndex) {
 				this.groupName = groupName;
 				this.elementNameFirstIndex = elementNameFirstIndex;
-				this.yangValueFirstIndex = yangValueFirstIndex;
-				this.totalCollectedFirstIndex = totalCollectedFirstIndex;
 				this.totalEntries = 0;
 			}
 
 			public ExcelCellAddress groupName { get; }
 			public ExcelCellAddress elementNameFirstIndex { get; }
-			public ExcelCellAddress yangValueFirstIndex { get; }
-			public ExcelCellAddress totalCollectedFirstIndex { get; }
 			public int totalEntries { get; set; }
 		}
 

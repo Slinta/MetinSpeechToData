@@ -2,14 +2,15 @@
 using OfficeOpenXml;
 using Metin2SpeechToData.Structures;
 using static Metin2SpeechToData.Spreadsheet.SsConstants;
+using System;
 
 namespace Metin2SpeechToData {
 	public class SpreadsheetHelper {
 
-		private readonly SpreadsheetInteraction main;
+		private readonly SpreadsheetInteraction interaction;
 
 		public SpreadsheetHelper(SpreadsheetInteraction interaction) {
-			main = interaction;
+			this.interaction = interaction;
 		}
 
 		/// <summary>
@@ -18,26 +19,29 @@ namespace Metin2SpeechToData {
 		public void AutoAdjustColumns(Dictionary<string, SpreadsheetInteraction.Group>.ValueCollection values) {
 			double currMaxWidth = 0;
 			foreach (SpreadsheetInteraction.Group g in values) {
+				string groupStartAddress = g.elementNameFirstIndex.Address;
+
 				for (int i = 0; i < g.totalEntries; i++) {
-					main.currentSheet.Cells[g.elementNameFirstIndex.Row + i, g.elementNameFirstIndex.Column].AutoFitColumns();
-					if (main.currentSheet.Column(g.elementNameFirstIndex.Column).Width >= currMaxWidth) {
-						currMaxWidth = main.currentSheet.Column(g.elementNameFirstIndex.Column).Width;
+					interaction.currentSheet.Cells[OffsetAddress(groupStartAddress,i,0)].AutoFitColumns();
+					if (interaction.currentSheet.Column(g.elementNameFirstIndex.Column).Width >= currMaxWidth) {
+						currMaxWidth = interaction.currentSheet.Column(g.elementNameFirstIndex.Column).Width;
 					}
 				}
-				main.currentSheet.Column(g.elementNameFirstIndex.Column).Width = currMaxWidth;
+
+				interaction.currentSheet.Column(g.elementNameFirstIndex.Column).Width = currMaxWidth;
 				currMaxWidth = 0;
 
 				for (int i = 0; i < g.totalEntries; i++) {
-					int s = main.currentSheet.GetValue<int>(g.yangValueFirstIndex.Row + i, g.yangValueFirstIndex.Column);
-					main.currentSheet.Column(g.yangValueFirstIndex.Column).Width = GetCellWidth(s, false);
-					if (main.currentSheet.Column(g.yangValueFirstIndex.Column).Width > currMaxWidth) {
-						currMaxWidth = main.currentSheet.Column(g.yangValueFirstIndex.Column).Width;
+					int s = interaction.currentSheet.GetValue<int>(g.elementNameFirstIndex.Row + i, g.elementNameFirstIndex.Column + 1);
+					interaction.currentSheet.Column(g.elementNameFirstIndex.Column + 1).Width = GetCellWidth(s);
+					if (interaction.currentSheet.Column(g.elementNameFirstIndex.Column + 1).Width > currMaxWidth) {
+						currMaxWidth = interaction.currentSheet.Column(g.elementNameFirstIndex.Column + 1).Width;
 					}
 				}
-				main.currentSheet.Column(g.yangValueFirstIndex.Column).Width = currMaxWidth;
+				interaction.currentSheet.Column(g.elementNameFirstIndex.Column + 1).Width = currMaxWidth;
 				currMaxWidth = 0;
 			}
-			main.Save();
+			interaction.Save();
 		}
 
 		/// <summary>
@@ -80,32 +84,27 @@ namespace Metin2SpeechToData {
 		/// <param name="type">Spreadsheet type to determine parsing method</param>
 		public static Dicts LoadSpreadsheet(ExcelWorkbook book, string sheetName, SpreadsheetTemplates.SpreadsheetPresetType type) {
 			ExcelWorksheet sheet = book.Worksheets[sheetName];
+			Dicts d = new Dicts(true);
+
 			switch (type) {
-				case SpreadsheetTemplates.SpreadsheetPresetType.MAIN: {
-					return default(Dicts);
-				}
 				case SpreadsheetTemplates.SpreadsheetPresetType.AREA: {
-					Dicts d = new Dicts(true);
 					DefinitionParserData data = DefinitionParser.instance.currentGrammarFile;
-					int[] rowOfEachGroup = new int[data.groups.Length];
-					int[] columnOfEachGroup = new int[data.groups.Length];
-					int columnOffset = 4;
-					int groupcounter = 0;
+					byte[] rowOfEachGroup = new byte[data.groups.Length];
+					byte[] columnOfEachGroup = new byte[data.groups.Length];
+					byte groupcounter = 0;
 					foreach (string group in data.groups) {
 						rowOfEachGroup[groupcounter] = 2;
-						columnOfEachGroup[groupcounter] = groupcounter * columnOffset + 1;
+						columnOfEachGroup[groupcounter] = (byte)(groupcounter * H_COLUMN_INCREMENT + 1);
 						ExcelCellAddress address = new ExcelCellAddress(rowOfEachGroup[groupcounter], columnOfEachGroup[groupcounter]);
 						groupcounter += 1;
-						SpreadsheetInteraction.Group g = new SpreadsheetInteraction.Group(address, new ExcelCellAddress(address.Row + 1, address.Column),
-																						  new ExcelCellAddress(address.Row + 1, address.Column + 1),
-																						  new ExcelCellAddress(address.Row + 1, address.Column + 2));
+						SpreadsheetInteraction.Group g = new SpreadsheetInteraction.Group(address, new ExcelCellAddress(address.Row + 1, address.Column));
 						d.groups.Add(group, g);
 					}
 					foreach (DefinitionParserData.Item entry in data.entries) {
 						SpreadsheetInteraction.Group g = d.groups[entry.group];
 						g.totalEntries++;
 						d.groups[entry.group] = g;
-						for (int i = 0; i < data.groups.Length; i++) {
+						for (byte i = 0; i < data.groups.Length; i++) {
 							if (data.groups[i] == entry.group) {
 								groupcounter = i;
 							}
@@ -118,22 +117,11 @@ namespace Metin2SpeechToData {
 					return d;
 				}
 				case SpreadsheetTemplates.SpreadsheetPresetType.ENEMY: {
-					Dicts d = new Dicts(true);
-					// First item entry at A2
-					ExcelCellAddress baseAddr = new ExcelCellAddress("A2");
-					ExcelCellAddress current = baseAddr;
+					ExcelCellAddress current = new ExcelCellAddress("A2");
 
-					bool EOF = false;
-					while (!EOF) {
-						if (sheet.Cells[current.Row, current.Column].Value == null) {
-							current = new ExcelCellAddress(2, current.Column + 4);
-							if (sheet.Cells[current.Address].Value == null) {
-								EOF = true;
-								continue;
-							}
-						}
+					while (current != null) {
 						d.addresses.Add(sheet.Cells[current.Row, current.Column].GetValue<string>(), new ExcelCellAddress(current.Row, current.Column + 2));
-						current = new ExcelCellAddress(current.Row + 1, current.Column);
+						current = Advance(sheet, current);
 					}
 					return d;
 				}
@@ -141,6 +129,14 @@ namespace Metin2SpeechToData {
 					throw new CustomException("Uncathegorized sheet entered!");
 				}
 			}
+		}
+
+		/// <summary>
+		/// Takes 'current' address and offsets it by 'rowOffset' rows and'colOffset' columns 
+		/// </summary>
+		public static string OffsetAddress(string current, int rowOffset, int colOffset) {
+			ExcelCellAddress a = new ExcelCellAddress(current);
+			return new ExcelCellAddress(a.Row + rowOffset, a.Column + colOffset).Address;
 		}
 
 		/// <summary>
@@ -164,12 +160,10 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Helper function for AutoAjdustComluns
 		/// </summary>
-		private double GetCellWidth(int number, bool addCurrencyOffset) {
+		private double GetCellWidth(int number) {
 			int count = number.ToString().Length;
 			int spaces = count / 3;
-			double width = addCurrencyOffset ? 4 : 2;
-			width += spaces + count;
-			return width;
+			return spaces + count;
 		}
 
 		#region Formula functions
@@ -177,7 +171,7 @@ namespace Metin2SpeechToData {
 		/// Sums cells in 'range' and puts result into 'result'
 		/// </summary>
 		public void Sum(ExcelCellAddress result, ExcelRange range) {
-			main.currentSheet.Cells[result.Address].Formula = "SUM(" + range.Start.Address + ':' + range.End.Address + ")";
+			interaction.currentSheet.Cells[result.Address].Formula = "SUM(" + range.Start.Address + ':' + range.End.Address + ")";
 		}
 
 		/// <summary>
@@ -189,14 +183,14 @@ namespace Metin2SpeechToData {
 				s = string.Join(",", s, addr.Address);
 			}
 			s = s.TrimStart(',');
-			main.currentSheet.Cells[result.Address].Formula = "SUM(" + s + ")";
+			interaction.currentSheet.Cells[result.Address].Formula = "SUM(" + s + ")";
 		}
 
 		/// <summary>
 		/// Averages cells in 'range' and puts result into 'result'
 		/// </summary>
 		public void Average(ExcelCellAddress result, ExcelRange range) {
-			main.currentSheet.Cells[result.Address].Formula = "AVERAGE(" + range + ")";
+			interaction.currentSheet.Cells[result.Address].Formula = "AVERAGE(" + range + ")";
 		}
 
 		/// <summary>
@@ -208,23 +202,23 @@ namespace Metin2SpeechToData {
 				s = string.Join(",", s, addr.Address);
 			}
 			s = s.TrimStart(',');
-			main.currentSheet.Cells[result.Address].Formula = "AVERAGE(" + s + ")";
+			interaction.currentSheet.Cells[result.Address].Formula = "AVERAGE(" + s + ")";
 		}
 
 		/// <summary>
 		/// Preforms a Sum of 'numerator' and divides it by a value in 'denominator' puts the result into 'result'
 		/// </summary>
 		public void DivideBy(ExcelCellAddress result, ExcelRange numerator, ExcelCellAddress denominator) {
-			main.currentSheet.Cells[result.Address].Formula = "SUM(" + numerator.Start.Address + ':' + numerator.End.Address + ")/" + denominator.Address;
+			interaction.currentSheet.Cells[result.Address].Formula = "SUM(" + numerator.Start.Address + ':' + numerator.End.Address + ")/" + denominator.Address;
 		}
 
 		/// <summary>
 		/// Gets continuous range between two addressess
 		/// </summary>
 		public ExcelRange GetRangeContinuous(ExcelCellAddress addr1, ExcelCellAddress addr2) {
-			main.currentSheet.Select(addr1.Address + ":" + addr2.Address);
-			ExcelRange range = main.currentSheet.SelectedRange;
-			main.currentSheet.Select("A1");
+			interaction.currentSheet.Select(addr1.Address + ":" + addr2.Address);
+			ExcelRange range = interaction.currentSheet.SelectedRange;
+			interaction.currentSheet.Select("A1");
 			return range;
 		}
 
@@ -232,9 +226,9 @@ namespace Metin2SpeechToData {
 		/// Gets continuous range between two addressess as strings
 		/// </summary>
 		public ExcelRange GetRangeContinuous(string addr1, string addr2) {
-			main.currentSheet.Select(addr1 + ":" + addr2);
-			ExcelRange range = main.currentSheet.SelectedRange;
-			main.currentSheet.Select("A1");
+			interaction.currentSheet.Select(addr1 + ":" + addr2);
+			ExcelRange range = interaction.currentSheet.SelectedRange;
+			interaction.currentSheet.Select("A1");
 			return range;
 		}
 		#endregion
