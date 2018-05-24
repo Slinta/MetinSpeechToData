@@ -35,6 +35,14 @@ namespace Metin2SpeechToData.Spreadsheet {
 			data = new Data();
 		}
 
+		public void NewEnemy(string enemy, DateTime meetTime) {
+			data.UpdateDataEnemy(enemy,false,meetTime);
+		}
+
+		public void EnemyKilled(string enemy, DateTime killTime) {
+			data.UpdateDataEnemy(enemy,true,killTime);
+		}
+
 		public void Add(string itemName, string group, string enemy, DateTime dropTime, uint value) {
 			current.SetValue(currFreeAddress.Address, itemName);
 			current.SetValue(SpreadsheetHelper.OffsetAddressString(currFreeAddress, 0, 4), enemy);
@@ -42,7 +50,7 @@ namespace Metin2SpeechToData.Spreadsheet {
 			current.SetValue(SpreadsheetHelper.OffsetAddressString(currFreeAddress, 0, 10), dropTime.ToShortTimeString());
 			current.SetValue(SpreadsheetHelper.OffsetAddressString(currFreeAddress, 0, 13), value);
 			currFreeAddress = SpreadsheetHelper.OffsetAddress(currFreeAddress, 1, 0);
-			data.UpdateData(itemName, group, enemy, dropTime, value);
+			data.UpdateDataItem(itemName, group, enemy, dropTime, value);
 		}
 
 		public void Finish() {
@@ -57,7 +65,8 @@ namespace Metin2SpeechToData.Spreadsheet {
 			public DateTime start { get; }
 			public uint enemiesKilled { get; set; }
 			public Dictionary<string, int> commonEnemy { get; }
-			public Dictionary<string, int> commonItem { get; }
+			//TODO: Redundant dictionary?
+			//public Dictionary<string, int> commonItem { get; }
 			public List<DateTime> dtopTimes { get; }
 			public Dictionary<string, int> items { get; }
 			public List<string> currentGroups { get; }
@@ -66,7 +75,31 @@ namespace Metin2SpeechToData.Spreadsheet {
 				start = DateTime.Now;
 			}
 
-			public void UpdateData(string itemName, string group, string enemy, DateTime dropTime, uint value) {
+			public void UpdateDataItem(string itemName, string group, string enemy, DateTime dropTime, uint value) {
+				if (!items.ContainsKey(itemName)) {
+					items.Add(itemName, 1);
+				}
+				else {
+					items[itemName] += 1;
+				}
+				dtopTimes.Add(dropTime);
+				if (!currentGroups.Contains(DefinitionParser.instance.getDefinitions[0].GetGroup(itemName))) {
+					currentGroups.Add(DefinitionParser.instance.getDefinitions[0].GetGroup(itemName));
+				}
+
+			}
+			public void UpdateDataEnemy(string enemyName, bool killed, DateTime dropTime) {
+				if(killed) {
+					enemiesKilled += 1;
+					if (!commonEnemy.ContainsKey(enemyName)) {
+						commonEnemy.Add(enemyName, 1);
+					}
+					else {
+						commonEnemy[enemyName] += 1;
+					}
+					
+				}
+				
 
 			}
 		}

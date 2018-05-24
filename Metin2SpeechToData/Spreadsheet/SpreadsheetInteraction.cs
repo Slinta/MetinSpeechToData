@@ -107,7 +107,7 @@ namespace Metin2SpeechToData {
 				}
 			}
 			if (!sheetToAdresses.ContainsKey(sheetName)) {
-				Dicts dicts = SpreadsheetHelper.LoadSpreadsheet(content, sheetName, helper.GetSheetType(sheetName));
+				Dicts dicts = SpreadsheetHelper.LoadSpreadsheet(content.Worksheets[sheetName], helper.GetSheetType(sheetName));
 				sheetToAdresses.Add(sheetName, dicts.addresses);
 				sheetToGroups.Add(sheetName, dicts.groups);
 			}
