@@ -22,7 +22,7 @@ namespace Metin2SpeechToData {
 				string groupStartAddress = g.elementNameFirstIndex.Address;
 
 				for (int i = 0; i < g.totalEntries; i++) {
-					interaction.currentSheet.Cells[OffsetAddress(groupStartAddress,i,0)].AutoFitColumns();
+					interaction.currentSheet.Cells[OffsetAddressString(groupStartAddress,i,0)].AutoFitColumns();
 					if (interaction.currentSheet.Column(g.elementNameFirstIndex.Column).Width >= currMaxWidth) {
 						currMaxWidth = interaction.currentSheet.Column(g.elementNameFirstIndex.Column).Width;
 					}
@@ -82,8 +82,7 @@ namespace Metin2SpeechToData {
 		/// <param name="book">Current WorkBook</param>
 		/// <param name="sheetName">Name of the sheet as it appears in Excel</param>
 		/// <param name="type">Spreadsheet type to determine parsing method</param>
-		public static Dicts LoadSpreadsheet(ExcelWorkbook book, string sheetName, SpreadsheetTemplates.SpreadsheetPresetType type) {
-			ExcelWorksheet sheet = book.Worksheets[sheetName];
+		public static Dicts LoadSpreadsheet(ExcelWorksheet sheet, SpreadsheetTemplates.SpreadsheetPresetType type) {
 			Dicts d = new Dicts(true);
 
 			switch (type) {
@@ -134,9 +133,31 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Takes 'current' address and offsets it by 'rowOffset' rows and'colOffset' columns 
 		/// </summary>
-		public static string OffsetAddress(string current, int rowOffset, int colOffset) {
+		public static string OffsetAddressString(string current, int rowOffset, int colOffset) {
 			ExcelCellAddress a = new ExcelCellAddress(current);
 			return new ExcelCellAddress(a.Row + rowOffset, a.Column + colOffset).Address;
+		}
+
+		/// <summary>
+		/// Takes 'current' address and offsets it by 'rowOffset' rows and'colOffset' columns 
+		/// </summary>
+		public static string OffsetAddressString(ExcelCellAddress current, int rowOffset, int colOffset) {
+			return new ExcelCellAddress(current.Row + rowOffset, current.Column + colOffset).Address;
+		}
+
+		/// <summary>
+		/// Takes 'current' address and offsets it by 'rowOffset' rows and'colOffset' columns 
+		/// </summary>
+		public static ExcelCellAddress OffsetAddress(ExcelCellAddress current, int rowOffset, int colOffset) {
+			return new ExcelCellAddress(current.Row + rowOffset, current.Column + colOffset);
+		}
+
+		/// <summary>
+		/// Takes 'current' address and offsets it by 'rowOffset' rows and'colOffset' columns 
+		/// </summary>
+		public static ExcelCellAddress OffsetAddress(string current, int rowOffset, int colOffset) {
+			ExcelCellAddress a = new ExcelCellAddress(current);
+			return new ExcelCellAddress(a.Row + rowOffset, a.Column + colOffset);
 		}
 
 		/// <summary>

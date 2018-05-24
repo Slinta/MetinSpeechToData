@@ -47,22 +47,10 @@ namespace Metin2SpeechToData {
 		public bool custonDefinitionsLoaded { get; internal set; }
 
 
-		#region Constructor/Destructor
+		#region Constructor
 		/// <summary>
 		/// Parser for .definition files, constructor parses selected .definition files in Definitions folder
 		/// </summary>
-		public DefinitionParser(Regex searchPattern) {
-			regexMatchString = searchPattern.ToString();
-			instance = this;
-			DirectoryInfo d = new DirectoryInfo(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Definitions");
-			FileInfo[] filesPresent = d.GetFiles("*.definition", SearchOption.AllDirectories).Where(path => searchPattern.IsMatch(path.Name)).ToArray();
-			if (filesPresent.Length == 0) {
-				throw new CustomException("Your program is missing voice recognition strings! Either redownload, or create your own *.definition text file.");
-			}
-			getDefinitions = LoadDefinitionData(filesPresent, out List<int> enemyDefinitionIndexes);
-			getMobDefinitions = LoadMobDefinitionData(filesPresent, enemyDefinitionIndexes);
-		}
-
 		public DefinitionParser() {
 			regexMatchString = "";
 			instance = this;
@@ -111,7 +99,6 @@ namespace Metin2SpeechToData {
 			}
 			return new MobParserData[0];
 		}
-
 
 		private string[] ParseHeader(StreamReader r) {
 			List<string> strings = new List<string>();

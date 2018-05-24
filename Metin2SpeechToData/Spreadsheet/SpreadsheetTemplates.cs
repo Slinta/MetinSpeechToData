@@ -22,6 +22,8 @@ namespace Metin2SpeechToData {
 			this.interaction = interaction;
 		}
 
+		public SpreadsheetTemplates() {	}
+
 		/// <summary>
 		/// Opens and load Template.xlsx file from Templates folder
 		/// <para>Used for copying the template, after the procedure call Dispose!</para>
@@ -30,7 +32,6 @@ namespace Metin2SpeechToData {
 		public ExcelWorksheets LoadTemplates() {
 			FileInfo templatesFile = new FileInfo(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar +
 												  "Templates" + Path.DirectorySeparatorChar + "Templates.xlsx");
-
 			if (!templatesFile.Exists) {
 				throw new CustomException("Unable to locate 'Templates.xlsx' inside Templates folder. Redownload might be necessary");
 			}
@@ -38,111 +39,58 @@ namespace Metin2SpeechToData {
 			return package.Workbook.Worksheets;
 		}
 
-		[Obsolete("Rewritten as \"InitMobSheet()\", this function will be removed once the shift to spreadshhet templates is complete.")]
-		public Dicts InitializeMobSheet(string mobName, MobAsociatedDrops data) {
 
-			Dicts d = new Dicts(true);
+		/// <summary>
+		/// Initializes new Enemy sheet for 'name' in 'current' workbook with given 'data'
+		/// </summary>
+		public ExcelWorksheet InitEnemySheet(ExcelWorkbook current, string name, MobAsociatedDrops data) {
+			ExcelWorksheet sheet = CreateFromTemplate(current, SpreadsheetPresetType.ENEMY, name);
+			FillHeadder(current.Worksheets[name], data, name);
+			Dictionary<string, string[]> items = data.GetDropsForMob(name);
 
-			interaction.InsertValue(new ExcelCellAddress(1, 1), "Spreadsheet for enemy: " + interaction.currentSheet.Name);
-			interaction.InsertValue(new ExcelCellAddress(1, 4), "Num killed:");
-			interaction.InsertValue(new ExcelCellAddress(1, 5), 0);
+			//Group setup
+			ExcelCellAddress initGroupAddress = new ExcelCellAddress(GROUP_ROW, GROUP_COL);
+			foreach (string group in items.Keys) {
+				sheet.SetValue(initGroupAddress.Address, group);
+				initGroupAddress = SpreadsheetHelper.OffsetAddress(initGroupAddress.Address, 0, H_COLUMN_INCREMENT);
+			}
 
-			Dictionary<string, string[]> itemEntries = Program.gameRecognizer.enemyHandling.mobDrops.GetDropsForMob(mobName);
+			//Item setup
+			byte currentGroup = 0;
+			foreach (string[] parsed in items.Values) {
+				for (int i = 0; i < parsed.Length; i++) {
+					ExcelCellAddress nameAddr = new ExcelCellAddress(GROUP_ROW, GROUP_COL + currentGroup * H_COLUMN_INCREMENT);
 
-			ExcelCellAddress startAddr = new ExcelCellAddress("A2");
-			foreach (string key in itemEntries.Keys) {
-				interaction.currentSheet.Cells[startAddr.Address].Value = key;
-
-				for (int i = 0; i < itemEntries[key].Length; i++) {
-					int _offset = i + 1;
-					ExcelCellAddress itemName = new ExcelCellAddress(startAddr.Row + _offset, startAddr.Column);
-					ExcelCellAddress yangVal = new ExcelCellAddress(startAddr.Row + _offset, startAddr.Column + 1);
-					ExcelCellAddress totalDroped = new ExcelCellAddress(startAddr.Row + _offset, startAddr.Column + 2);
-					interaction.InsertValue(itemName, itemEntries[key][i]);
-					d.addresses.Add(itemEntries[key][i], totalDroped);
-					interaction.InsertValue(yangVal, DefinitionParser.instance.currentGrammarFile.GetYangValue(itemEntries[key][i]));
-					interaction.InsertValue(totalDroped, 0);
+					sheet.SetValue(nameAddr.Row, nameAddr.Column + 0, parsed[i]);
+					sheet.SetValue(nameAddr.Row, nameAddr.Column + 1, DefinitionParser.instance.currentGrammarFile.GetYangValue(parsed[i]));
+					sheet.SetValue(nameAddr.Row, nameAddr.Column + 2, 0);
+					sheet.Cells[nameAddr.Row, nameAddr.Column + 1].Style.Numberformat.Format = "###,###,###,###,###,###,###,###"; // this sucks
 				}
-				startAddr = new ExcelCellAddress(2, startAddr.Column + 4);
+				currentGroup += H_COLUMN_INCREMENT;
 			}
-			interaction.Save();
-			return d;
-		}
-
-		public void InitEnemySheet(ExcelWorkbook current, string name, MobAsociatedDrops data) {
-			//TODO add template for enemy sheet
-			//TODO complete this function
-		}
-
-		[Obsolete("Rewritten as \"InitAreaSheet()\", this function will be removed once the shift to spreadshhet templates is complete.")]
-		public Dicts InitializeAreaSheet(DefinitionParserData data) {
-			Dicts d = new Dicts(true);
-
-			interaction.InsertValue(new ExcelCellAddress(1, 1), "Spreadsheet for zone: " + interaction.currentSheet.Name);
-
-			int[] rowOfEachGroup = new int[data.groups.Length];
-			int[] columnOfEachGroup = new int[data.groups.Length];
-			int groupcounter = 0;
-			foreach (string group in data.groups) {
-				rowOfEachGroup[groupcounter] = 2;
-				columnOfEachGroup[groupcounter] = groupcounter * H_COLUMN_INCREMENT + 1;
-				ExcelCellAddress address = new ExcelCellAddress(rowOfEachGroup[groupcounter], columnOfEachGroup[groupcounter]);
-				interaction.currentSheet.Select(new ExcelAddress(address.Row, address.Column, address.Row, address.Column + 2));
-				ExcelRange r = interaction.currentSheet.SelectedRange;
-				r.Merge = true;
-				r.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
-				interaction.InsertValue(address, group);
-				groupcounter += 1;
-				SpreadsheetInteraction.Group g = new SpreadsheetInteraction.Group(address, new ExcelCellAddress(address.Row + 1, address.Column));
-				d.groups.Add(group, g);
-			}
-			foreach (DefinitionParserData.Item entry in data.entries) {
-				SpreadsheetInteraction.Group g = d.groups[entry.group];
-				g.totalEntries++;
-				d.groups[entry.group] = g;
-				for (int i = 0; i < data.groups.Length; i++) {
-					if (data.groups[i] == entry.group) {
-						groupcounter = i;
-					}
-				}
-				rowOfEachGroup[groupcounter] += 1;
-				ExcelCellAddress nameAddr = new ExcelCellAddress(rowOfEachGroup[groupcounter], columnOfEachGroup[groupcounter]);
-				ExcelCellAddress yangVal = new ExcelCellAddress(rowOfEachGroup[groupcounter], columnOfEachGroup[groupcounter] + 1);
-				ExcelCellAddress collected = new ExcelCellAddress(rowOfEachGroup[groupcounter], columnOfEachGroup[groupcounter] + 2);
-
-				interaction.InsertValue(nameAddr, entry.mainPronounciation);
-				interaction.InsertValue(yangVal, entry.yangValue);
-				interaction.InsertValue(collected, 0);
-
-				interaction.currentSheet.Cells[yangVal.Address].Style.Numberformat.Format = "###,###,###,###,###";
-				d.addresses.Add(entry.mainPronounciation, collected);
-			}
-			interaction.Save();
-			return d;
+			return sheet;
 		}
 
 		/// <summary>
 		/// Initializes Area styled sheet in 'current' workbook according to given item 'data'
 		/// </summary>
-		/// <param name="current"></param>
-		/// <param name="data"></param>
-		public void InitAreaSheet(ExcelWorkbook current, DefinitionParserData data) {
+		public ExcelWorksheet InitAreaSheet(ExcelWorkbook current, DefinitionParserData data) {
 			ExcelWorksheet sheet = CreateFromTemplate(current, SpreadsheetPresetType.AREA, data.ID);
-			FillHeadder(current.Worksheets[data.ID], data, SpreadsheetPresetType.AREA);
+			FillHeadder(current.Worksheets[data.ID], data);
 
 			//Group setup
 			int[] rowOfEachGroup = new int[data.groups.Length];
 			int[] columnOfEachGroup = new int[data.groups.Length];
 			int groupcounter = 0;
 
-			ExcelCellAddress initGroupAddress = new ExcelCellAddress(D_GROUP);
+			ExcelCellAddress initGroupAddress = new ExcelCellAddress(GROUP_ROW, GROUP_COL);
 			foreach (string group in data.groups) {
 				rowOfEachGroup[groupcounter] = initGroupAddress.Row;
 				columnOfEachGroup[groupcounter] = initGroupAddress.Column;
 				groupcounter += 1;
 
 				sheet.SetValue(initGroupAddress.Address, group);
-				initGroupAddress = new ExcelCellAddress(SpreadsheetHelper.OffsetAddress(initGroupAddress.Address, 0, H_COLUMN_INCREMENT));
+				initGroupAddress = SpreadsheetHelper.OffsetAddress(initGroupAddress.Address, 0, H_COLUMN_INCREMENT);
 			}
 
 			//Item setup
@@ -160,7 +108,15 @@ namespace Metin2SpeechToData {
 				sheet.SetValue(nameAddr.Row, nameAddr.Column + 2, 0);
 				sheet.Cells[nameAddr.Row, nameAddr.Column + 1].Style.Numberformat.Format = "###,###,###,###,###,###,###,###"; // this sucks
 			}
+			return sheet;
 		}
+
+		public ExcelWorksheet InitSessionSheet(ExcelWorkbook current) {
+			ExcelWorksheet sheet = CreateFromTemplate(current, SpreadsheetPresetType.SESSION, "Session");
+			//TODO some init here
+			return sheet;
+		}
+
 
 		/// <summary>
 		/// Creates new spreadsheet named 'name' in 'current' workbook of type 'type'
@@ -169,54 +125,61 @@ namespace Metin2SpeechToData {
 			ExcelWorksheets _sheets = LoadTemplates();
 			switch (type) {
 				case SpreadsheetPresetType.MAIN: {
-					interaction.currentSheet.Workbook.Worksheets.Add(name, _sheets["Main"]);
+					current.Worksheets.Add(name, _sheets["Main"]);
 					break;
 				}
 				case SpreadsheetPresetType.AREA: {
-					interaction.currentSheet.Workbook.Worksheets.Add(name, _sheets["Area"]);
+					current.Worksheets.Add(name, _sheets["Area"]);
 					break;
 				}
 				case SpreadsheetPresetType.ENEMY: {
-					interaction.currentSheet.Workbook.Worksheets.Add(name, _sheets["Enemy"]);
+					current.Worksheets.Add(name, _sheets["Enemy"]);
 					break;
 				}
 				case SpreadsheetPresetType.SESSION: {
-					interaction.currentSheet.Workbook.Worksheets.Add(name, _sheets["Session"]);
+					current.Worksheets.Add(name, _sheets["Session"]);
 					break;
 				}
 			}
-			interaction.currentSheet.Workbook.Worksheets.Add(name, _sheets["Area"]);
 			_sheets.Dispose();
 			Dispose();
 			return current.Worksheets[name];
 		}
 
 		/// <summary>
-		/// Fill headder information of 'curr' according to 'data' and 'type'
+		/// Fill headder information of 'curr' according to 'data'
 		/// </summary>
-		private void FillHeadder(ExcelWorksheet curr, DefinitionParserData data, SpreadsheetPresetType type) {
+		private void FillHeadder(ExcelWorksheet curr, DefinitionParserData data) {
 			FormLink(interaction.mainSheet, curr, data.ID);
-			if (type == SpreadsheetPresetType.AREA) {
-				curr.SetValue(SsControl.C_SHEET_NAME, data.ID);
-				curr.SetValue(SsControl.C_LAST_MODIFICATION, DateTime.Now);
-				curr.SetValue(SsControl.C_TOTAL_MERGED_SESSIONS, 0);
-			}
+			curr.SetValue(SsControl.C_SHEET_NAME, data.ID);
+			curr.SetValue(SsControl.A_E_LAST_MODIFICATION, DateTime.Now.ToLongDateString());
+			curr.SetValue(SsControl.A_E_TOTAL_MERGED_SESSIONS, 0);
+		}
+		/// <summary>
+		/// Fill headder information of 'curr' according to 'data'
+		/// </summary>
+		private void FillHeadder(ExcelWorksheet curr, MobAsociatedDrops data, string name) {
+
+			FormLink(interaction.mainSheet, curr, name);
+			curr.SetValue(SsControl.C_SHEET_NAME, name);
+			curr.SetValue(SsControl.A_E_LAST_MODIFICATION, DateTime.Now.ToLongDateString());
+			curr.SetValue(SsControl.A_E_TOTAL_MERGED_SESSIONS, 0);
 		}
 
 		/// <summary>
 		/// Links current sheet with main
 		/// </summary>
 		private void FormLink(ExcelWorksheet mainSheet, ExcelWorksheet curr, string name) {
-			ExcelCellAddress hlinkAddress = new ExcelCellAddress(C_HLINK_OFFSET);
+			ExcelCellAddress hlinkAddress = new ExcelCellAddress(MAIN_HLINK_OFFSET);
 			int currOffsetMain = mainSheet.GetValue<int>(hlinkAddress.Row, hlinkAddress.Column);
 
-			ExcelCellAddress freeLinkSpot = new ExcelCellAddress(C_FIRST_HLINK);
+			ExcelCellAddress freeLinkSpot = new ExcelCellAddress(MAIN_FIRST_HLINK);
 			freeLinkSpot = new ExcelCellAddress(freeLinkSpot.Row + currOffsetMain, freeLinkSpot.Column);
 
-			mainSheet.SetValue(C_HLINK_OFFSET, currOffsetMain + 1);
+			mainSheet.SetValue(MAIN_HLINK_OFFSET, currOffsetMain + 1);
 
 			SpreadsheetHelper.HyperlinkCell(mainSheet, freeLinkSpot.Address, curr, SsControl.C_RETURN_LINK, name);
-			SpreadsheetHelper.HyperlinkCell(curr, SsControl.C_RETURN_LINK, mainSheet, freeLinkSpot.Address, ">Main Sheet<");
+			SpreadsheetHelper.HyperlinkCell(curr, SsControl.C_RETURN_LINK, mainSheet, freeLinkSpot.Address, ">>Main Sheet<<");
 		}
 
 		#region IDisposable Support

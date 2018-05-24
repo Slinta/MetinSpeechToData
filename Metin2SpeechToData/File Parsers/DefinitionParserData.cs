@@ -114,7 +114,7 @@ namespace Metin2SpeechToData {
 					return entry.group;
 				}
 			}
-			throw new CustomException("item doesn't exist in the entries, perhaps the archives are incomplete");
+			throw new CustomException("Item doesn't exist in the entries, perhaps the archives are incomplete");
 		}
 
 		public Item GetItemEntry(string itemName) {
@@ -123,7 +123,7 @@ namespace Metin2SpeechToData {
 					return item;
 				}
 			}
-			throw new CustomException("Main pronounciation " + itemName + " not found in entries");
+			throw new CustomException("Main pronounciation for " + itemName + " not found in entries");
 		}
 	}
 }

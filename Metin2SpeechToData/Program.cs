@@ -142,7 +142,6 @@ namespace Metin2SpeechToData {
 								if (commandBlocks[1] == "debug") {
 									debug = true;
 									Console.WriteLine("Entering debug mode");
-									parser = new DefinitionParser(new System.Text.RegularExpressions.Regex(".+"));
 									gameRecognizer = new GameRecognizer();
 									gameRecognizer.helper.AcquireControl();
 									Console.WriteLine("Returned to Main control!");

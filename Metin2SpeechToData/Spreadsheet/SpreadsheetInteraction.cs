@@ -160,22 +160,24 @@ namespace Metin2SpeechToData {
 
 		#region Sheet initializers
 		public void InitAreaSheet(string areaName) {
-			_currentSheet = content.Worksheets[areaName];
-			Dicts dicts = templates.InitializeAreaSheet(DefinitionParser.instance.currentGrammarFile);
+			ExcelWorksheet newSheet = templates.InitAreaSheet(content,DefinitionParser.instance.currentGrammarFile);
+			Dicts dicts = SpreadsheetHelper.LoadSpreadsheet(newSheet, SpreadsheetTemplates.SpreadsheetPresetType.AREA);
 			if (!sheetToAdresses.ContainsKey(areaName)) {
 				sheetToAdresses.Add(areaName, dicts.addresses);
 				sheetToGroups.Add(areaName, dicts.groups);
 			}
+			_currentSheet = content.Worksheets[areaName];
 			Save();
 		}
 
 		public void InitMobSheet(string mobName) {
-			_currentSheet = content.Worksheets[mobName];
-			Dicts dicts = templates.InitializeMobSheet(mobName, Program.gameRecognizer.enemyHandling.mobDrops);
+			ExcelWorksheet newSheet = templates.InitEnemySheet(content, mobName, Program.gameRecognizer.enemyHandling.mobDrops);
+			Dicts dicts = SpreadsheetHelper.LoadSpreadsheet(newSheet, SpreadsheetTemplates.SpreadsheetPresetType.ENEMY);
 			if (!sheetToAdresses.ContainsKey(mobName)) {
 				sheetToAdresses.Add(mobName, dicts.addresses);
 				sheetToGroups.Add(mobName, dicts.groups);
 			}
+			_currentSheet = content.Worksheets[mobName];
 			Save();
 		}
 		#endregion
@@ -184,6 +186,7 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Dynamically append new entries to the current sheet
 		/// </summary>
+		[Obsolete("FIX,TIHS",true)]
 		public void AddItemEntryToCurrentSheet(DefinitionParserData.Item entry) {
 
 			ExcelCellAddress current = new ExcelCellAddress(2, 1 + Program.gameRecognizer.enemyHandling.mobDrops.GetGroupNumberForEnemy(_currentSheet.Name, entry.group) * 4);
@@ -215,6 +218,7 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Dynamically remove new entries from the current sheet
 		/// </summary>
+		[Obsolete("FIX,TIHS", true)]
 		public void RemoveItemEntryFromCurrentSheet(DefinitionParserData.Item entry) {
 			ExcelCellAddress current = new ExcelCellAddress("A2");
 			int maxDetph = 10;
@@ -232,6 +236,9 @@ namespace Metin2SpeechToData {
 			sheetToAdresses[_currentSheet.Name].Remove(entry.mainPronounciation);
 		}
 
+		/// <summary>
+		/// Adds a new sheet to current workbook as 'type' spreadsheet
+		/// </summary>
 		public ExcelWorksheet AddSheet(string name, SpreadsheetTemplates.SpreadsheetPresetType type) {
 			if(content.Worksheets[name] != null) {
 				throw new CustomException("File already contains sheet named " + name);
@@ -254,9 +261,9 @@ namespace Metin2SpeechToData {
 					selected = reference["Session"];
 					break;
 				}
-			}
-			if(reference == null) {
-				throw new CustomException("Unable to load template sheet!");
+				default: {
+					throw new CustomException("Invalid Preset type!");
+				}
 			}
 			content.Worksheets.Add(name, selected);
 			templates.Dispose();

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Speech.Recognition;
 using System.Threading;
-using static Metin2SpeechToData.SpeechHelperBase;
 using OfficeOpenXml;
 using Metin2SpeechToData.Structures;
 

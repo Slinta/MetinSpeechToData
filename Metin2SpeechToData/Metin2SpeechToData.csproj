@@ -61,7 +61,7 @@
     <Compile Include="File Parsers\DefinitionParser.cs" />
     <Compile Include="File Parsers\DefinitionParserData.cs" />
     <Compile Include="DropOutStack.cs" />
-    <Compile Include="EnemyHandling.cs" />
+    <Compile Include="Recognition\EnemyHandling.cs" />
     <Compile Include="File Parsers\HotkeyPresetParser.cs" />
     <Compile Include="File Parsers\MobAsociatedDrops.cs" />
     <Compile Include="File Parsers\MobParserData.cs" />
@@ -72,6 +72,7 @@
     <Compile Include="Recognition\RecognitionBase.cs" />
     <Compile Include="Recognition\SpeechHelperBase.cs" />
     <Compile Include="Recognition\SpeechRecognitionHelper.cs" />
+    <Compile Include="Spreadsheet\SessionSheet.cs" />
     <Compile Include="Spreadsheet\SsConstants.cs" />
     <Compile Include="Structures.cs" />
     <Compile Include="Spreadsheet\SpreadsheetHelper.cs" />
