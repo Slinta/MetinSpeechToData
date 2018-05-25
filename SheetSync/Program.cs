@@ -32,6 +32,12 @@ namespace SheetSync {
 			ExcelPackage sheetsFile = new ExcelPackage(cfg.xlsxFile);
 
 			sessions = currentDirectory.GetDirectories("Sessions")[0].GetFiles("*.xlsx");
+			List<int> unmergedFiles = new List<int>();
+			for (int i = 0; i < sessions.Length; i++) {
+				if (sessions[i].Attributes == FileAttributes.ReadOnly) {
+					unmergedFiles.Add(i);
+				}
+			}
 
 			Item[] allItems = GetItems(currFiles);
 			differences = FindDiffs(allItems.ToDictionary((str) => str.name, (data) => data), sheetsFile);
@@ -39,14 +45,6 @@ namespace SheetSync {
 				Console.WriteLine("Evertying looks the way it should ;]\nPress enter to quit");
 				Console.ReadLine();
 				Environment.Exit(0);
-			}
-
-			if(sessions.Length > 0) {
-				Console.WriteLine("Found session files in 'Sessions' folder...");
-				if(Confirmation.WrittenConfirmation("Merge with main file (create new sheets in main file with time stamp)?")) {
-					Console.WriteLine("Sorry, not suppoted yet!");
-					//TODO session merging with main file
-				}
 			}
 
 			Console.WriteLine();
@@ -74,7 +72,22 @@ namespace SheetSync {
 				Console.ReadLine();
 			}
 			sheetsFile.Save();
+
+			if (unmergedFiles.Count > 0) {
+				Console.WriteLine("Found unmerged session files in 'Sessions' folder...");
+				foreach (int i in unmergedFiles) {
+					if (Confirmation.WrittenConfirmation("Merge '" + sessions[i].Name + "' with main file?")) {
+						MergeSession(sessions[i]);
+						sessions[i].Attributes = FileAttributes.Normal;
+					}
+				}
+			}
+			sheetsFile.SaveAs(new FileInfo(sheetsFile.File.FullName.Replace(".xlsx", "_NEW.xlsx"))); //TODO once it works, overwrite
 			Console.WriteLine("All done");
+		}
+
+		private static void MergeSession(FileInfo fileInfo) {
+			throw new NotImplementedException();
 		}
 
 		private static void ResolveTypos() {
@@ -85,7 +98,7 @@ namespace SheetSync {
 				Console.Write("Alternatives: ");
 				for (int i = 0; i < typos[j].alternatives.Length - 1; i++) {
 					Console.Write("(" + (i + 1) + ")-" + typos[j].alternatives[i] + ", ");
-					m.AssignToHotkey(Keys.D1 + i, i+ 1, Resolve);
+					m.AssignToHotkey(Keys.D1 + i, i + 1, Resolve);
 				}
 				Console.WriteLine("(" + (typos[j].alternatives.Length) + ")-" + typos[j].alternatives[typos[j].alternatives.Length - 1]);
 				m.AssignToHotkey(Keys.D1 + typos[j].alternatives.Length - 1, typos[j].alternatives.Length - 1, Resolve);
@@ -95,7 +108,7 @@ namespace SheetSync {
 
 		private static int currentIndex = 0;
 		private static void Resolve(int selected) {
-			Console.WriteLine("Replaced '" + typos[currentIndex].originalTypo+"' with '"+ typos[currentIndex].alternatives[selected] + "'");
+			Console.WriteLine("Replaced '" + typos[currentIndex].originalTypo + "' with '" + typos[currentIndex].alternatives[selected] + "'");
 			typos[currentIndex].sheet.SetValue(typos[currentIndex].location.Address, typos[currentIndex].alternatives[selected]);
 			evnt.Set();
 			currentIndex++;
@@ -181,7 +194,7 @@ namespace SheetSync {
 							}
 						}
 						Console.WriteLine("Possibly '" + curr_min + "'?");
-						Typos t = new Typos(sheetItemName, curr_min.Replace("' or '", "_").Trim('\'', ' ').Split('_'),currAddr, sheet);
+						Typos t = new Typos(sheetItemName, curr_min.Replace("' or '", "_").Trim('\'', ' ').Split('_'), currAddr, sheet);
 						currTypos.Add(t);
 						currAddr = SpreadsheetHelper.Advance(sheet, currAddr);
 						if (currAddr == null) {
@@ -220,7 +233,7 @@ namespace SheetSync {
 		public string originalTypo { get; }
 		public string[] alternatives { get; }
 		public ExcelCellAddress location { get; }
-		public ExcelWorksheet sheet{ get; }
+		public ExcelWorksheet sheet { get; }
 
 	}
 
