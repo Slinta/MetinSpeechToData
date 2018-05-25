@@ -45,7 +45,7 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		public ExcelWorksheet InitEnemySheet(ExcelWorkbook current, string name, MobAsociatedDrops data) {
 			ExcelWorksheet sheet = CreateFromTemplate(current, SpreadsheetPresetType.ENEMY, name);
-			FillHeadder(current.Worksheets[name], data, name);
+			FillHeadder(current.Worksheets[name], name);
 			Dictionary<string, string[]> items = data.GetDropsForMob(name);
 
 			//Group setup
@@ -158,7 +158,7 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Fill headder information of 'curr' according to 'data'
 		/// </summary>
-		private void FillHeadder(ExcelWorksheet curr, MobAsociatedDrops data, string name) {
+		private void FillHeadder(ExcelWorksheet curr, string name) {
 
 			FormLink(interaction.mainSheet, curr, name);
 			curr.SetValue(SsControl.C_SHEET_NAME, name);

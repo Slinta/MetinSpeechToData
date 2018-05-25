@@ -131,15 +131,18 @@ namespace Metin2SpeechToData {
 			}
 		}
 
+		public void ForceKill() {
+			EnemyTargetingModifierRecognized(this, new ModiferRecognizedEventArgs(CCommands.Speech.TARGET_KILLED, ""));
+		}
+
 		/// <summary>
 		/// Increases number count to 'item' in current speadsheet
 		/// </summary>
 		public void ItemDropped(DefinitionParserData.Item item, int amount = 1) {
 			if (!string.IsNullOrWhiteSpace(currentEnemy)) {
 				mobDrops.UpdateDrops(currentEnemy, item);
-				Program.interaction.currentSession.Add(item, currentEnemy, DateTime.Now);
-
 			}
+			Program.interaction.currentSession.Add(item, currentEnemy, DateTime.Now);
 			//ExcelCellAddress address = Program.interaction.GetAddress(item.mainPronounciation);
 			//Program.interaction.AddNumberTo(address, amount);
 			//stack.Push(new ItemInsertion(address,amount));

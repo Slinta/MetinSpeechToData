@@ -2,7 +2,6 @@
 using System.IO;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using static Metin2SpeechToData.Spreadsheet.SsConstants;
 
 namespace Metin2SpeechToData {
@@ -24,18 +23,19 @@ namespace Metin2SpeechToData {
 		private ExcelCellAddress currFreeAddress;
 
 		private readonly Data data;
-
 		private readonly ExcelPackage package;
+
+		private readonly Queue<ItemMeta> itemQ;
 
 		public SessionSheet(string name) {
 			string sessionsDir = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Sessions" + Path.DirectorySeparatorChar;
-			string fileName = "_" + DateTime.Now.ToLongDateString() + "_" + DateTime.Now.ToLongTimeString().Replace(':', '-') + ".xlsx";
+			string fileName = "Session " + DateTime.Now.ToShortDateString() + "--" + DateTime.Now.ToLongTimeString().Replace(':', '-') + ".xlsx";
 			package = new ExcelPackage(new FileInfo(sessionsDir + fileName));
 			SpreadsheetTemplates template = new SpreadsheetTemplates();
 			current = template.InitSessionSheet(package.Workbook);
 			currFreeAddress = new ExcelCellAddress(ITEM_ROW, ITEM_COL);
-			current.SetValue(SsControl.C_SHEET_NAME, "Session:(_) " + DateTime.Now.ToLongDateString());
 			data = new Data();
+			itemQ = new Queue<ItemMeta>();
 			package.Save();
 		}
 
@@ -47,39 +47,71 @@ namespace Metin2SpeechToData {
 			data.UpdateDataEnemy(enemy, true, killTime);
 		}
 
-		public void Add(string itemName, string group, string enemy, DateTime dropTime, uint value) {
-			current.SetValue(currFreeAddress.Address, itemName);
-			current.SetValue(SpreadsheetHelper.OffsetAddressString(currFreeAddress, 0, 7), enemy == "" ? UNSPEICIFIED_ENEMY : enemy);
-			current.SetValue(SpreadsheetHelper.OffsetAddressString(currFreeAddress, 0, 4), group);
-			current.SetValue(SpreadsheetHelper.OffsetAddressString(currFreeAddress, 0, 10), dropTime.ToShortTimeString());
-			current.SetValue(SpreadsheetHelper.OffsetAddressString(currFreeAddress, 0, 13), value);
-			currFreeAddress = SpreadsheetHelper.OffsetAddress(currFreeAddress, 1, 0);
-			data.UpdateDataItem(itemName, enemy == "" ? UNSPEICIFIED_ENEMY : enemy, dropTime);
-			package.Save();
-		}
 		public void Add(DefinitionParserData.Item item, string enemy, DateTime dropTime) {
-			Add(item.mainPronounciation, item.group, enemy, dropTime, item.yangValue);
+			itemQ.Enqueue(new ItemMeta(item, enemy, dropTime));
+			if (itemQ.Count >= 5) {
+				WriteOut();
+			}
+		}
+
+
+		private void PrepareRows(int rowCount) {
+			current.Select(currFreeAddress.Address + ":" + SpreadsheetHelper.OffsetAddress(currFreeAddress, 0, 15).Address);
+			ExcelRange yellow = current.SelectedRange;
+			for (int i = 1; i <= rowCount; i++) {
+				current.Select(SpreadsheetHelper.OffsetAddress(currFreeAddress, i, 0).Address);
+				yellow.Copy(current.SelectedRange);
+			}
+		}
+
+		private void WriteOut() {
+			PrepareRows(itemQ.Count);
+
+			while (itemQ.Count != 0) {
+				ItemMeta item = itemQ.Dequeue();
+				current.SetValue(currFreeAddress.Address, item.itemBase.mainPronounciation);
+
+				current.SetValue(SpreadsheetHelper.OffsetAddressString(currFreeAddress, 0, 7), item.comesFromEnemy == "" ? UNSPEICIFIED_ENEMY : item.comesFromEnemy);
+				current.SetValue(SpreadsheetHelper.OffsetAddressString(currFreeAddress, 0, 4), item.itemBase.group);
+				current.SetValue(SpreadsheetHelper.OffsetAddressString(currFreeAddress, 0, 10), item.dropTime.ToLongTimeString());
+				current.SetValue(SpreadsheetHelper.OffsetAddressString(currFreeAddress, 0, 13), item.itemBase.yangValue);
+
+				currFreeAddress = SpreadsheetHelper.OffsetAddress(currFreeAddress, 1, 0);
+
+				data.UpdateDataItem(item);
+			}
+			package.Save();
 		}
 
 		public void Finish() {
 			PopulateHeadder(data);
+			WriteOut();
+			Console.WriteLine("This sessions name: ");
+			string sessionName = Console.ReadLine();
+			current.SetValue(SsControl.C_SHEET_NAME, "Session: " + sessionName + " " + DateTime.Now.ToLongDateString() + " " + DateTime.Now.ToShortTimeString());
+			current.SetValue(SpreadsheetHelper.OffsetAddress(AVG_EARN, 0, -1).Address,
+				(Configuration.minutesAverageDropValueInterval.TotalMinutes < 60 ?
+				string.Format("Average Yang per {0} minutes", Configuration.minutesAverageDropValueInterval.TotalMinutes) : "Average Yang per hour"));
+			package.File.Attributes = FileAttributes.ReadOnly;
+			package.Dispose();
 		}
 
 		private void PopulateHeadder(Data data) {
 			current.SetValue(ENEMY_KILLS, data.enemiesKilled);
 			current.SetValue(AVERAGE_KILL_REWARD, data.totalValue / data.enemiesKilled);
 			current.SetValue(MOST_COMMON_ENEMY, data.GetMostCommonEntity(data.commonEnemy));
-			current.SetValue(AVERAGE_TIME_BETWEEN_KILLS, TimeSpan.FromSeconds(data.GetAverageTimeBetweenInSeconds(data.enemyKillTimes)));
-			current.SetValue(SESSION_DURATION, DateTime.Now.Subtract(data.start));
+			current.SetValue(AVERAGE_TIME_BETWEEN_KILLS, TimeSpan.FromSeconds(data.GetAverageTimeBetweenInSeconds(data.enemyKillTimes)).ToString());
+			current.SetValue(SESSION_DURATION, DateTime.Now.Subtract(data.start).ToString());
 			current.SetValue(TOTAL_ITEM_VALUE, data.totalValue);
 			current.SetValue(GROUP_NO, data.currentGroups.Count);
 			current.SetValue(ITEM_NO, data.itemDropTimes.Count);
-			current.SetValue(AVG_EARN, (data.totalValue / DateTime.Now.Subtract(data.start).TotalMinutes) * Configuration.minutesAverageDropValueInterval.TotalMinutes);
+			current.SetValue(AVG_EARN, ((data.totalValue / DateTime.Now.Subtract(data.start).TotalMinutes) * Configuration.minutesAverageDropValueInterval.TotalMinutes));
 			current.SetValue(MOST_COMMON_ITEM, data.GetMostCommonEntity(data.items));
-			package.Save();
 		}
 
+
 		private sealed class Data {
+
 			public DateTime start { get; }
 			public uint enemiesKilled { get; set; }
 			public Dictionary<string, int> commonEnemy { get; }
@@ -98,19 +130,19 @@ namespace Metin2SpeechToData {
 				currentGroups = new List<string>();
 			}
 
-			public void UpdateDataItem(string itemName, string enemy, DateTime dropTime) {
-				if (!items.ContainsKey(itemName)) {
-					items.Add(itemName, 1);
+			public void UpdateDataItem(ItemMeta item) {
+				if (!items.ContainsKey(item.itemBase.mainPronounciation)) {
+					items.Add(item.itemBase.mainPronounciation, 1);
 				}
 				else {
-					items[itemName] += 1;
+					items[item.itemBase.mainPronounciation] += 1;
 				}
-				itemDropTimes.Add(dropTime);
-				string itemGroup = DefinitionParser.instance.getDefinitions[0].GetGroup(itemName);
+				itemDropTimes.Add(item.dropTime);
+				string itemGroup = DefinitionParser.instance.getDefinitions[0].GetGroup(item.itemBase.mainPronounciation);
 				if (!currentGroups.Contains(itemGroup)) {
 					currentGroups.Add(itemGroup);
 				}
-				totalValue += DefinitionParser.instance.getDefinitions[0].GetYangValue(itemName);
+				totalValue += DefinitionParser.instance.getDefinitions[0].GetYangValue(item.itemBase.mainPronounciation);
 
 			}
 			public void UpdateDataEnemy(string enemyName, bool killed, DateTime enemyActionTime) {
@@ -128,17 +160,18 @@ namespace Metin2SpeechToData {
 
 			public string GetMostCommonEntity(Dictionary<string, int> dict) {
 				int mostCommon = -1;
-				string mostCommons = "";
+				string name = "";
 				foreach (string key in dict.Keys) {
 					if (dict[key] > mostCommon) {
 						mostCommon = dict[key];
-						mostCommons = key;
+						name = key;
+						continue;
 					}
 					if (dict[key] == mostCommon) {
-						mostCommons += (", " + key);
+						name += (", " + key);
 					}
 				}
-				return mostCommons;
+				return name;
 			}
 
 			public float GetAverageTimeBetweenInSeconds(List<DateTime> list) {
@@ -153,6 +186,18 @@ namespace Metin2SpeechToData {
 				}
 				return (float)(totalSeconds / list.Count);
 			}
+		}
+
+		private struct ItemMeta {
+			public ItemMeta(DefinitionParserData.Item itemBase, string comesFromEnemy, DateTime dropTime) {
+				this.itemBase = itemBase;
+				this.comesFromEnemy = comesFromEnemy;
+				this.dropTime = dropTime;
+			}
+
+			public DefinitionParserData.Item itemBase { get; }
+			public string comesFromEnemy { get; }
+			public DateTime dropTime { get; }
 		}
 	}
 }

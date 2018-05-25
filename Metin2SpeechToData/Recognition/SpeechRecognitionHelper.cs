@@ -12,17 +12,21 @@ namespace Metin2SpeechToData {
 			CHEST,
 			CUSTOM,
 		}
-		private UnderlyingRecognizer currentMode;
+		private readonly UnderlyingRecognizer currentMode;
+		public GameRecognizer _gameRecognizer { get; }
+		public ChestRecognizer _chestRecognizer { get; }
 
 		#region Constructor
 		public SpeechRecognitionHelper(GameRecognizer master) : base(master) {
 			currentMode = UnderlyingRecognizer.AREA;
 			InitializeControl();
+			_gameRecognizer = master;
 		}
 
 		public SpeechRecognitionHelper(ChestRecognizer master) : base(master) {
 			currentMode = UnderlyingRecognizer.CHEST;
 			InitializeControl();
+			_chestRecognizer = master;
 		}
 
 		/// <summary>
@@ -82,11 +86,11 @@ namespace Metin2SpeechToData {
 					DefinitionParser.instance.hotkeyParser.SetKeysActiveState(true);
 					break;
 				}
-				case CCommands.Speech.START_SESSION: {
-					//TODO Session starting
-					break;
-				}
 				case CCommands.Speech.STOP: {
+					if(currentMode == UnderlyingRecognizer.AREA && _gameRecognizer.enemyHandling.state == EnemyHandling.EnemyState.FIGHTING) {
+						_gameRecognizer.enemyHandling.ForceKill();
+					}
+					Program.interaction.StopSession();
 					baseRecognizer.OnRecognitionStateChanged(this, RecognitionBase.RecognitionState.STOPPED);
 					baseRecognizer.Dispose();
 					Dispose();
@@ -213,6 +217,7 @@ namespace Metin2SpeechToData {
 							  "(F4) or '" + CCommands.getStopCommand + "' to stop");
 			baseRecognizer.currentState = RecognitionBase.RecognitionState.GRAMMAR_SELECTED;
 		}
+
 	}
 
 }

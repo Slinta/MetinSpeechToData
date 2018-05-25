@@ -56,13 +56,18 @@ namespace Metin2SpeechToData {
 		#endregion
 
 		public void StartSession(string grammar) {
-			if(currentSession != null) {
+			if (currentSession != null) {
 				currentSession.Finish();
 				currentSession = new SessionSheet(grammar);
 			}
 			else {
 				currentSession = new SessionSheet(grammar);
 			}
+		}
+
+		public void StopSession() {
+			currentSession.Finish();
+			currentSession = null;
 		}
 
 		/// <summary>
