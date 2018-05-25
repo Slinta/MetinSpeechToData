@@ -21,11 +21,15 @@ namespace Metin2SpeechToData {
 		private const uint DEFAULT_INTERNAL_MODIFICATION_COUNT = 1;
 		private const float DEFAULT_SPEECH_ACCEPTANCE_THRESHOLD = 0.8f;
 		private const SheetViewer DEFAULT_SHEET_VIEWER = SheetViewer.EXCEL;
+		private const int DEFAULT_AVERAGE_COMPUTATION_TIMESTEP = 15;
+		private static int prsedTimeStampAverage = DEFAULT_AVERAGE_COMPUTATION_TIMESTEP;
 
-		public static uint undoHistoryLength { get; private set; } =  DEFAULT_STACK_DEPHT;
+
+		public static uint undoHistoryLength { get; private set; } = DEFAULT_STACK_DEPHT;
 		public static uint sheetChangesBeforeSaving { get; private set; } = DEFAULT_INTERNAL_MODIFICATION_COUNT;
 		public static float acceptanceThreshold { get; private set; } = DEFAULT_SPEECH_ACCEPTANCE_THRESHOLD;
 		public static SheetViewer sheetViewer { get; private set; } = DEFAULT_SHEET_VIEWER;
+		public static TimeSpan minutesAverageDropValueInterval { get => new TimeSpan(0, prsedTimeStampAverage, 0);}
 
 		public Configuration(string filePath) {
 			if (!File.Exists(filePath)) {
@@ -42,16 +46,16 @@ namespace Metin2SpeechToData {
 		private void ValidateDirectory() {
 			string commonDir = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar;
 
-			if (!Directory.Exists(commonDir + "Definitions")){
+			if (!Directory.Exists(commonDir + "Definitions")) {
 				Directory.CreateDirectory(commonDir + "Definitions");
 			}
-			if(!Directory.Exists(commonDir + "Hotkeys")){
+			if (!Directory.Exists(commonDir + "Hotkeys")) {
 				Directory.CreateDirectory(commonDir + "Hotkeys");
 			}
 			if (!Directory.Exists(commonDir + "Sessions")) {
 				Directory.CreateDirectory(commonDir + "Sessions");
 			}
-			if(!Directory.Exists(commonDir + "Templates")) {
+			if (!Directory.Exists(commonDir + "Templates")) {
 				Directory.CreateDirectory(commonDir + "Templates");
 			}
 		}
@@ -97,6 +101,9 @@ namespace Metin2SpeechToData {
 				sw.Write("# Spcecify which program do you use for opening .xlsx files, because LO Calc and MS Excel are not fully compatible | DEFAUL=EXCEL {'EXCEL','CALC'}\n");
 				sw.Write("DEFAULT_SHEET_EDITOR= " + DEFAULT_SHEET_VIEWER + "\n");
 				sw.WriteLine();
+				sw.Write("# Specify the interval for \"Average drop value per ____\" in session sheet (as minutes!) | DEFAULT=15 {5--60}");
+				sw.Write("DEFAULT_AVERAGE_COMPUTATION_TIMESTEP= 15");
+				sw.WriteLine();
 			}
 		}
 
@@ -131,7 +138,7 @@ namespace Metin2SpeechToData {
 						string[] split = line.Split('=');
 						if (split[0] == "UNDO_HISTORY_LENGTH") {
 							undoHistoryLength = uint.Parse(split[1].Trim('\n', ' ', '\t'));
-							if(undoHistoryLength > 1000 && undoHistoryLength < 1) {
+							if (undoHistoryLength > 1000 && undoHistoryLength < 1) {
 								throw new CustomException("The value for UNDO_HISTORY_LENGTH in 'config.cfg' is out of bounds!");
 							}
 						}
@@ -153,6 +160,12 @@ namespace Metin2SpeechToData {
 							}
 							else {
 								sheetViewer = _sheetViewer;
+							}
+						}
+						else if (split[0] == "DEFAULT_AVERAGE_COMPUTATION_TIMESTEP") {
+							prsedTimeStampAverage = int.Parse(split[1].Trim('\n', ' ', '\t'));
+							if (prsedTimeStampAverage > 60 && prsedTimeStampAverage < 5) {
+								throw new CustomException("The value for DEFAULT_AVERAGE_COMPUTATION_TIMESTEP in 'config.cfg' is out of bounds!");
 							}
 						}
 					}

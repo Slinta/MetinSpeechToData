@@ -27,9 +27,11 @@ namespace Metin2SpeechToData {
 
 		public void UpdateDrops(string mobName, DefinitionParserData.Item item) {
 			List<string> list;
+
 			for (int i = 0; i < getAllDropsFile.Length; i++) {
 				if (getAllDropsFile[i].Contains("{")) {
 					string[] splt = getAllDropsFile[i].Split('{');
+
 					if (splt[0] == mobName) {
 						if (!CheckGroupExists(i + 1, item.group)) {
 							list = new List<string>(getAllDropsFile);
@@ -43,8 +45,7 @@ namespace Metin2SpeechToData {
 						}
 
 						int line = GetGroupLine(i + 1, item.group);
-						bool edit = !CheckItemExists(getAllDropsFile[line], item.mainPronounciation);
-						if (edit) {
+						if (!CheckItemExists(getAllDropsFile[line], item.mainPronounciation)) {
 							getAllDropsFile[line] = getAllDropsFile[line] + "," + item.mainPronounciation;
 							Program.interaction.AddItemEntryToCurrentSheet(item);
 							SaveChanges();
@@ -58,6 +59,7 @@ namespace Metin2SpeechToData {
 			SaveChanges();
 		}
 
+
 		private void AddMobEntry(string mobName, DefinitionParserData.Item item) {
 			getAllDropsFile = new string[3] {
 				mobName + "{",
@@ -66,40 +68,6 @@ namespace Metin2SpeechToData {
 			};
 		}
 
-		/// <summary>
-		/// Prompts user to remove item from mob asociations, used when Undoing
-		/// </summary>
-		public bool RemoveItemEntry(string mobName, string itemName, bool yes) {
-			DefinitionParserData.Item item = DefinitionParser.instance.currentGrammarFile.GetItemEntry(itemName);
-			if (yes) {
-				List<string> AllDropsFileList = new List<string>(getAllDropsFile);
-				for (int i = 0; i < getAllDropsFile.Length; i++) {
-					if (getAllDropsFile[i].Contains(mobName)) {
-						string targetGroup = DefinitionParser.instance.currentGrammarFile.GetGroup(itemName);
-						int itemLineIndex = GetGroupLine(i + 1, targetGroup);
-						string[] split = getAllDropsFile[itemLineIndex].Split(':')[1].Split(',');
-						if (split.Length != 1) {
-							split[split.Length - 1] = "";
-							getAllDropsFile[itemLineIndex] = "\t-" + targetGroup + ":" + string.Join(",", split.Where(str => str != ""));
-							Console.WriteLine("Entry removed!");
-						}
-						else {
-							AllDropsFileList.RemoveAt(itemLineIndex);
-							getAllDropsFile = AllDropsFileList.ToArray();
-						}
-						SaveChanges();
-						Program.interaction.RemoveItemEntryFromCurrentSheet(item);
-						return true;
-					}
-				}
-				Console.WriteLine("Entry not found?!");
-				return false;
-			}
-			else {
-				Console.WriteLine("Entry not removed!");
-				return false;
-			}
-		}
 
 		private bool CheckItemExists(string line, string itemName) {
 			line = line.Split(':')[1];
@@ -111,7 +79,6 @@ namespace Metin2SpeechToData {
 			}
 			return false;
 		}
-
 
 		private bool CheckGroupExists(int mobLine, string groupName) {
 			foreach (int line in GetLinesOfEnemy(mobLine)) {

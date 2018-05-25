@@ -61,18 +61,16 @@ namespace Metin2SpeechToData {
 		/// <param name="args">Always supply at least string.Empty as args!</param>
 		private void EnemyTargetingModifierRecognized(object sender, ModiferRecognizedEventArgs args) {
 			if (args.modifier == CCommands.Speech.NEW_TARGET) {
-
 				switch (state) {
 					case EnemyState.NO_ENEMY: {
 						string enemy = GetEnemy();
 						evnt.Reset();
 						if (enemy == CCommands.getRemoveTargetCommand) {
-							Console.WriteLine("Targetting calcelled!");
+							Console.WriteLine("Targetting cancelled!");
 							return;
 						}
 						string actualEnemyName = DefinitionParser.instance.currentMobGrammarFile.GetMainPronounciation(enemy);
 						state = EnemyState.FIGHTING;
-						Program.interaction.OpenWorksheet(actualEnemyName);
 						currentEnemy = actualEnemyName;
 						Console.WriteLine("Acquired target: " + currentEnemy);
 						stack.Clear();
@@ -81,7 +79,9 @@ namespace Metin2SpeechToData {
 					case EnemyState.FIGHTING: {
 						state = EnemyState.NO_ENEMY;
 						Console.WriteLine("Killed " + currentEnemy + ", the death count increased");
-						Program.interaction.AddNumberTo(new ExcelCellAddress(1, 5), 1);
+						//Program.interaction.AddNumberTo(new ExcelCellAddress(1, 5), 1);
+						//TODO: set in session file
+
 						currentEnemy = "";
 						stack.Clear();
 						EnemyTargetingModifierRecognized(this, args);
@@ -91,16 +91,16 @@ namespace Metin2SpeechToData {
 			}
 			else if (args.modifier == CCommands.Speech.TARGET_KILLED) {
 				Console.WriteLine("Killed " + currentEnemy + ", the death count increased");
-				Program.interaction.AddNumberTo(new ExcelCellAddress(1, 5), 1);
+				//Program.interaction.AddNumberTo(new ExcelCellAddress(1, 5), 1);
+				//TODO: set in session file
 				EnemyTargetingModifierRecognized(this, new ModiferRecognizedEventArgs(CCommands.Speech.REMOVE_TARGET,""));
 			}
 			else if (args.modifier == CCommands.Speech.REMOVE_TARGET) {
-				Program.interaction.OpenWorksheet(DefinitionParser.instance.currentGrammarFile.ID);
 				currentEnemy = "";
 				currentItem = "";
 				state = EnemyState.NO_ENEMY;
 				stack.Clear();
-				Console.WriteLine("Reset current target to 'None', switching to " + DefinitionParser.instance.currentGrammarFile.ID + " sheet.");
+				Console.WriteLine("Reset current target to 'None'");
 			}
 			else if (args.modifier == CCommands.Speech.UNDO) {
 				ItemInsertion action = stack.Peek();
@@ -108,22 +108,22 @@ namespace Metin2SpeechToData {
 					Console.WriteLine("Nothing else to undo!");
 					return;
 				}
-				Console.WriteLine("Would remove " + action.count + " items from " + Program.interaction.currentSheet.Cells[action.address.Row, action.address.Column - 2].Value);
+				Console.WriteLine("Would remove " + action.count + " items from " + Program.interaction.currentSession.current.Cells[action.address.Row, action.address.Column - 2].Value);
 
 				bool resultUndo = Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'?");
 				if (resultUndo) {
 					action = stack.Pop();
 					Program.interaction.AddNumberTo(action.address, -action.count);
-					if (Program.interaction.currentSheet.Cells[action.address.Row, action.address.Column].GetValue<int>() == 0 && currentEnemy != "") {
-						string itemName = Program.interaction.currentSheet.Cells[action.address.Row, action.address.Column - 2].Value.ToString();
-						Console.WriteLine("Remove " + currentItem + " from current enemy's (" + currentEnemy + ") item list?");
+					if (Program.interaction.currentSession.current.Cells[action.address.Row, action.address.Column].GetValue<int>() == 0 && currentEnemy != "") {
+						string itemName = Program.interaction.currentSession.current.Cells[action.address.Row, action.address.Column - 2].Value.ToString();
+						Console.WriteLine("Remove " + currentItem + " from current  session?");
 						bool resultRemoveFromFile = Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'?");
 						if (resultRemoveFromFile) {
 							currentItem = itemName;
-							mobDrops.RemoveItemEntry(currentEnemy, currentItem, true);
+							//TODO remove item from session
 						}
 						else {
-							Console.WriteLine("Enemy file NOT modified!");
+							Console.WriteLine("Session data NOT modified!");
 						}
 					}
 				}
@@ -139,6 +139,7 @@ namespace Metin2SpeechToData {
 		public void ItemDropped(DefinitionParserData.Item item, int amount = 1) {
 			if (!string.IsNullOrWhiteSpace(currentEnemy)) {
 				mobDrops.UpdateDrops(currentEnemy, item);
+				//TODO redirect to SessionSheet
 			}
 			ExcelCellAddress address = Program.interaction.GetAddress(item.mainPronounciation);
 			Program.interaction.AddNumberTo(address, amount);

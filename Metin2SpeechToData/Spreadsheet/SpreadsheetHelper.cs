@@ -2,46 +2,38 @@
 using OfficeOpenXml;
 using Metin2SpeechToData.Structures;
 using static Metin2SpeechToData.Spreadsheet.SsConstants;
-using System;
 
 namespace Metin2SpeechToData {
 	public class SpreadsheetHelper {
 
-		private readonly SpreadsheetInteraction interaction;
-
-		public SpreadsheetHelper(SpreadsheetInteraction interaction) {
-			this.interaction = interaction;
-		}
-
 		/// <summary>
 		/// Adjusts collumn width of current sheet
 		/// </summary>
-		public void AutoAdjustColumns(Dictionary<string, SpreadsheetInteraction.Group>.ValueCollection values) {
+		public static void AutoAdjustColumns(ExcelWorksheet sheet, Dictionary<string, SpreadsheetInteraction.Group>.ValueCollection values) {
 			double currMaxWidth = 0;
 			foreach (SpreadsheetInteraction.Group g in values) {
 				string groupStartAddress = g.elementNameFirstIndex.Address;
 
 				for (int i = 0; i < g.totalEntries; i++) {
-					interaction.currentSheet.Cells[OffsetAddressString(groupStartAddress,i,0)].AutoFitColumns();
-					if (interaction.currentSheet.Column(g.elementNameFirstIndex.Column).Width >= currMaxWidth) {
-						currMaxWidth = interaction.currentSheet.Column(g.elementNameFirstIndex.Column).Width;
+					sheet.Cells[OffsetAddressString(groupStartAddress,i,0)].AutoFitColumns();
+					if (sheet.Column(g.elementNameFirstIndex.Column).Width >= currMaxWidth) {
+						currMaxWidth = sheet.Column(g.elementNameFirstIndex.Column).Width;
 					}
 				}
 
-				interaction.currentSheet.Column(g.elementNameFirstIndex.Column).Width = currMaxWidth;
+				sheet.Column(g.elementNameFirstIndex.Column).Width = currMaxWidth;
 				currMaxWidth = 0;
 
 				for (int i = 0; i < g.totalEntries; i++) {
-					int s = interaction.currentSheet.GetValue<int>(g.elementNameFirstIndex.Row + i, g.elementNameFirstIndex.Column + 1);
-					interaction.currentSheet.Column(g.elementNameFirstIndex.Column + 1).Width = GetCellWidth(s);
-					if (interaction.currentSheet.Column(g.elementNameFirstIndex.Column + 1).Width > currMaxWidth) {
-						currMaxWidth = interaction.currentSheet.Column(g.elementNameFirstIndex.Column + 1).Width;
+					int s = sheet.GetValue<int>(g.elementNameFirstIndex.Row + i, g.elementNameFirstIndex.Column + 1);
+					sheet.Column(g.elementNameFirstIndex.Column + 1).Width = GetCellWidth(s);
+					if (sheet.Column(g.elementNameFirstIndex.Column + 1).Width > currMaxWidth) {
+						currMaxWidth = sheet.Column(g.elementNameFirstIndex.Column + 1).Width;
 					}
 				}
-				interaction.currentSheet.Column(g.elementNameFirstIndex.Column + 1).Width = currMaxWidth;
+				sheet.Column(g.elementNameFirstIndex.Column + 1).Width = currMaxWidth;
 				currMaxWidth = 0;
 			}
-			interaction.Save();
 		}
 
 		/// <summary>
@@ -181,7 +173,7 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Helper function for AutoAjdustComluns
 		/// </summary>
-		private double GetCellWidth(int number) {
+		private static double GetCellWidth(int number) {
 			int count = number.ToString().Length;
 			int spaces = count / 3;
 			return spaces + count;
@@ -191,65 +183,65 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Sums cells in 'range' and puts result into 'result'
 		/// </summary>
-		public void Sum(ExcelCellAddress result, ExcelRange range) {
-			interaction.currentSheet.Cells[result.Address].Formula = "SUM(" + range.Start.Address + ':' + range.End.Address + ")";
+		public void Sum(ExcelWorksheet sheet, ExcelCellAddress result, ExcelRange range) {
+			sheet.Cells[result.Address].Formula = "SUM(" + range.Start.Address + ':' + range.End.Address + ")";
 		}
 
 		/// <summary>
 		/// Sums cells in scattered range 'addresses' and puts result into 'result'
 		/// </summary>
-		public void Sum(ExcelCellAddress result, ExcelCellAddress[] addresses) {
+		public void Sum(ExcelWorksheet sheet, ExcelCellAddress result, ExcelCellAddress[] addresses) {
 			string s = "";
 			foreach (ExcelCellAddress addr in addresses) {
 				s = string.Join(",", s, addr.Address);
 			}
 			s = s.TrimStart(',');
-			interaction.currentSheet.Cells[result.Address].Formula = "SUM(" + s + ")";
+			sheet.Cells[result.Address].Formula = "SUM(" + s + ")";
 		}
 
 		/// <summary>
 		/// Averages cells in 'range' and puts result into 'result'
 		/// </summary>
-		public void Average(ExcelCellAddress result, ExcelRange range) {
-			interaction.currentSheet.Cells[result.Address].Formula = "AVERAGE(" + range + ")";
+		public void Average(ExcelWorksheet sheet, ExcelCellAddress result, ExcelRange range) {
+			sheet.Cells[result.Address].Formula = "AVERAGE(" + range + ")";
 		}
 
 		/// <summary>
 		/// Averages cells in scattered range 'addresses' and puts result into 'result'
 		/// </summary>
-		public void Average(ExcelCellAddress result, ExcelCellAddress[] addresses) {
+		public void Average(ExcelWorksheet sheet, ExcelCellAddress result, ExcelCellAddress[] addresses) {
 			string s = "";
 			foreach (ExcelCellAddress addr in addresses) {
 				s = string.Join(",", s, addr.Address);
 			}
 			s = s.TrimStart(',');
-			interaction.currentSheet.Cells[result.Address].Formula = "AVERAGE(" + s + ")";
+			sheet.Cells[result.Address].Formula = "AVERAGE(" + s + ")";
 		}
 
 		/// <summary>
 		/// Preforms a Sum of 'numerator' and divides it by a value in 'denominator' puts the result into 'result'
 		/// </summary>
-		public void DivideBy(ExcelCellAddress result, ExcelRange numerator, ExcelCellAddress denominator) {
-			interaction.currentSheet.Cells[result.Address].Formula = "SUM(" + numerator.Start.Address + ':' + numerator.End.Address + ")/" + denominator.Address;
+		public void DivideBy(ExcelWorksheet sheet, ExcelCellAddress result, ExcelRange numerator, ExcelCellAddress denominator) {
+			sheet.Cells[result.Address].Formula = "SUM(" + numerator.Start.Address + ':' + numerator.End.Address + ")/" + denominator.Address;
 		}
 
 		/// <summary>
 		/// Gets continuous range between two addressess
 		/// </summary>
-		public ExcelRange GetRangeContinuous(ExcelCellAddress addr1, ExcelCellAddress addr2) {
-			interaction.currentSheet.Select(addr1.Address + ":" + addr2.Address);
-			ExcelRange range = interaction.currentSheet.SelectedRange;
-			interaction.currentSheet.Select("A1");
+		public ExcelRange GetRangeContinuous(ExcelWorksheet sheet, ExcelCellAddress addr1, ExcelCellAddress addr2) {
+			sheet.Select(addr1.Address + ":" + addr2.Address);
+			ExcelRange range = sheet.SelectedRange;
+			sheet.Select("A1");
 			return range;
 		}
 
 		/// <summary>
 		/// Gets continuous range between two addressess as strings
 		/// </summary>
-		public ExcelRange GetRangeContinuous(string addr1, string addr2) {
-			interaction.currentSheet.Select(addr1 + ":" + addr2);
-			ExcelRange range = interaction.currentSheet.SelectedRange;
-			interaction.currentSheet.Select("A1");
+		public ExcelRange GetRangeContinuous(ExcelWorksheet sheet, string addr1, string addr2) {
+			sheet.Select(addr1 + ":" + addr2);
+			ExcelRange range = sheet.SelectedRange;
+			sheet.Select("A1");
 			return range;
 		}
 		#endregion

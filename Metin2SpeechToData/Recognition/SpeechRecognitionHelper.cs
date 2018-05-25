@@ -187,7 +187,7 @@ namespace Metin2SpeechToData {
 			for (int i = (int)Keys.D1; i < (int)Keys.D9; i++) {
 				Program.mapper.FreeSpecific((Keys)i, true);
 			}
-			DefinitionParser.instance.UpdateCurrents(e.text);
+			//DefinitionParser.instance.UpdateCurrents(e.text);
 
 			baseRecognizer.SwitchGrammar(e.text);
 			baseRecognizer.isPrimaryDefinitionLoaded = true;
@@ -198,7 +198,8 @@ namespace Metin2SpeechToData {
 			}
 			controlingRecognizer.UnloadGrammar(controlingRecognizer.Grammars[_currentGrammars.Count]);
 
-			Program.interaction.OpenWorksheet(e.text);
+			//Program.interaction.OpenWorksheet(e.text);
+			Program.interaction.StartSession(e.text);
 			Program.mapper.RemapHotkey(Keys.F1, Control_SpeechRecognized, new SpeechRecognizedArgs(CCommands.getStartCommand, 100));
 			Program.mapper.AssignToHotkey(Keys.F2, Control_SpeechRecognized, new SpeechRecognizedArgs(CCommands.getStartSessionCommand, 100));
 			Program.mapper.SetInactive(Keys.F4, false);
