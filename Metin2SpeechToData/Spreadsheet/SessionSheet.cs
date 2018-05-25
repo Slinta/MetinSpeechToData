@@ -61,28 +61,32 @@ namespace Metin2SpeechToData {
 
 		private void PopulateHeadder(Data data) {
 			current.SetValue(ENEMY_KILLS, data.enemiesKilled);
-			current.SetValue(AVERAGE_KILL_REWARD, ""/*how even*/); //TODO average kill reward
-			current.SetValue(MOST_COMMON_ENEMY, data.GetMostCommon(data.items));
-			current.SetValue(AVERAGE_TIME_BETWEEN_KILLS, data.GetAvgTimeToKill());
-			current.SetValue(TOTAL_ITEM_VALUE, data.items.Values.Sum());
+			current.SetValue(AVERAGE_KILL_REWARD, data.totalValue / data.enemiesKilled);
+			current.SetValue(MOST_COMMON_ENEMY, data.GetMostCommonEntity(data.commonEnemy));
+			current.SetValue(AVERAGE_TIME_BETWEEN_KILLS, TimeSpan.FromSeconds(data.GetAverageTimeBetweenInSeconds(data.enemyKillTimes)));
+			current.SetValue(SESSION_DURATION, DateTime.Now.Subtract(data.start));
+			current.SetValue(TOTAL_ITEM_VALUE, data.totalValue);
 			current.SetValue(GROUP_NO, data.currentGroups.Count);
-			current.SetValue(ITEM_NO, data.items.Count);
-			current.SetValue(AVG_EARN, data.GetAvgRewardFromEnemy()/*...*/); //TODO average earn per _TIME_PERIOD
-			current.SetValue(MOST_COMMON_ITEM, data.GetMostCommon(data.commonEnemy));
+			current.SetValue(ITEM_NO, data.itemDropTimes.Count);
+			current.SetValue(AVG_EARN, (data.totalValue / DateTime.Now.Subtract(data.start).TotalMinutes) * Configuration.minutesAverageDropValueInterval.TotalMinutes);
+			current.SetValue(MOST_COMMON_ITEM, data.GetMostCommonEntity(data.items));
 		}
 
 		private sealed class Data {
 			public DateTime start { get; }
 			public uint enemiesKilled { get; set; }
 			public Dictionary<string, int> commonEnemy { get; }
-			public List<DateTime> dropTimes { get; }
+			public List<DateTime> enemyKillTimes { get; }
+			public List<DateTime> itemDropTimes { get; }
 			public Dictionary<string, int> items { get; }
 			public List<string> currentGroups { get; }
+			public uint totalValue { get; set; }
 
 			public Data() {
 				start = DateTime.Now;
 				commonEnemy = new Dictionary<string, int>();
-				dropTimes = new List<DateTime>();
+				enemyKillTimes = new List<DateTime>();
+				itemDropTimes = new List<DateTime>();
 				items = new Dictionary<string, int>();
 				currentGroups = new List<string>();
 			}
@@ -94,16 +98,16 @@ namespace Metin2SpeechToData {
 				else {
 					items[itemName] += 1;
 				}
-				dropTimes.Add(dropTime);
-				string group = DefinitionParser.instance.currentGrammarFile.GetGroup(itemName);
-				if (!currentGroups.Contains(group)) {
-					currentGroups.Add(group);
+				itemDropTimes.Add(dropTime);
+				string itemGroup = DefinitionParser.instance.getDefinitions[0].GetGroup(itemName);
+				if (!currentGroups.Contains(itemGroup)) {
+					currentGroups.Add(itemGroup);
 				}
+				totalValue += DefinitionParser.instance.getDefinitions[0].GetYangValue(itemName);
+
 			}
-
-
-			public void UpdateDataEnemy(string enemyName, bool killed, DateTime dropTime) {
-				if (killed) {
+			public void UpdateDataEnemy(string enemyName, bool killed, DateTime enemyActionTime) {
+				if(killed) {
 					enemiesKilled += 1;
 					if (!commonEnemy.ContainsKey(enemyName)) {
 						commonEnemy.Add(enemyName, 1);
@@ -111,28 +115,36 @@ namespace Metin2SpeechToData {
 					else {
 						commonEnemy[enemyName] += 1;
 					}
+					enemyKillTimes.Add(enemyActionTime);
 				}
 			}
 
-			public string GetMostCommon(Dictionary<string, int> dict) {
-				int max = 0;
-				string name = "";
-				foreach (KeyValuePair<string, int> item in dict) {
-					if (item.Value < max) {
-						max = item.Value;
-						name = item.Key;
+			public string GetMostCommonEntity(Dictionary<string,int> dict) {
+				int mostCommon = -1;
+				string mostCommons = "";
+				foreach(string key in dict.Keys) {
+					if (dict[key] > mostCommon) {
+						mostCommon = dict[key];
+						mostCommons = key;
+					}
+					if(dict[key] == mostCommon) {
+						mostCommons += (", " + key);
 					}
 				}
-				return name + string.Format("({0})", max);
+				return mostCommons;
 			}
 
-			public string GetAvgTimeToKill() {
-				return "";
-			}
-
-			public float GetAvgRewardFromEnemy() {
-				TimeSpan step = Configuration.minutesAverageDropValueInterval;
-				return 1f;
+			public float GetAverageTimeBetweenInSeconds(List<DateTime> list) {
+				double totalSeconds = 0;
+				for (int i = 0; i < list.Count; i++) {
+					if (i == 0) {
+						totalSeconds += (list[0].Subtract(start)).TotalSeconds;
+					}
+					else {
+						totalSeconds += (list[i].Subtract(list[i - 1])).TotalSeconds;
+					}
+				}
+				return (float)(totalSeconds / list.Count);
 			}
 		}
 	}
