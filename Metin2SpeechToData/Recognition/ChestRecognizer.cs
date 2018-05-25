@@ -40,7 +40,7 @@ namespace Metin2SpeechToData {
 		}
 
 		protected override void SpeechRecognized(object sender, SpeechRecognizedArgs args) {
-			if (SpeechRecognitionHelper.reverseModifierDict.ContainsKey(args.text)) {
+			if (SpeechHelperBase.reverseModifierDict.ContainsKey(args.text)) {
 				ModifierRecognized(this, args);
 				return;
 			}
@@ -66,7 +66,7 @@ namespace Metin2SpeechToData {
 						Console.WriteLine("Nothing else to undo...");
 						return;
 					}
-					Console.WriteLine("Undoing... " + Program.interaction.currentSheet.Cells[peeked.address.Row, peeked.address.Column - 2].GetValue<string>() + " with " + peeked.count + " items");
+					Console.WriteLine("Undoing... " + Program.interaction.currentSession.current.Cells[peeked.address.Row, peeked.address.Column - 2].GetValue<string>() + " with " + peeked.count + " items");
 					if (Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'")) {
 						Console.Write("Confirming");
 						ItemInsertion poped = stack.Pop();

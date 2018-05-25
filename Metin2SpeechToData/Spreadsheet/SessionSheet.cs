@@ -2,10 +2,11 @@
 using System.IO;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using static Metin2SpeechToData.Spreadsheet.SsConstants;
 
-namespace Metin2SpeechToData.Spreadsheet {
-	class SessionSheet {
+namespace Metin2SpeechToData {
+	public class SessionSheet {
 
 		public const string ENEMY_KILLS = "J5";
 		public const string AVERAGE_KILL_REWARD = "J6";
@@ -22,9 +23,9 @@ namespace Metin2SpeechToData.Spreadsheet {
 
 		private ExcelCellAddress currFreeAddress;
 
-		private Data data;
+		private readonly Data data;
 
-		public SessionSheet() {
+		public SessionSheet(string name) {
 			string sessionsDir = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Sessions" + Path.DirectorySeparatorChar;
 			string fileName = "_" + DateTime.Now.ToLongDateString() + ".xlsx";
 			File.Create(sessionsDir + fileName);
@@ -32,15 +33,16 @@ namespace Metin2SpeechToData.Spreadsheet {
 			SpreadsheetTemplates template = new SpreadsheetTemplates();
 			current = template.InitSessionSheet(package.Workbook);
 			currFreeAddress = new ExcelCellAddress(ITEM_ROW, ITEM_COL);
+			current.SetValue(SsControl.C_SHEET_NAME, "Session:(_) " + DateTime.Now.ToLongDateString());
 			data = new Data();
 		}
 
 		public void NewEnemy(string enemy, DateTime meetTime) {
-			data.UpdateDataEnemy(enemy,false,meetTime);
+			data.UpdateDataEnemy(enemy, false, meetTime);
 		}
 
 		public void EnemyKilled(string enemy, DateTime killTime) {
-			data.UpdateDataEnemy(enemy,true,killTime);
+			data.UpdateDataEnemy(enemy, true, killTime);
 		}
 
 		public void Add(string itemName, string group, string enemy, DateTime dropTime, uint value) {
@@ -50,7 +52,7 @@ namespace Metin2SpeechToData.Spreadsheet {
 			current.SetValue(SpreadsheetHelper.OffsetAddressString(currFreeAddress, 0, 10), dropTime.ToShortTimeString());
 			current.SetValue(SpreadsheetHelper.OffsetAddressString(currFreeAddress, 0, 13), value);
 			currFreeAddress = SpreadsheetHelper.OffsetAddress(currFreeAddress, 1, 0);
-			data.UpdateDataItem(itemName, group, enemy, dropTime, value);
+			data.UpdateDataItem(itemName, enemy, dropTime);
 		}
 
 		public void Finish() {
@@ -66,7 +68,7 @@ namespace Metin2SpeechToData.Spreadsheet {
 			current.SetValue(TOTAL_ITEM_VALUE, data.totalValue);
 			current.SetValue(GROUP_NO, data.currentGroups.Count);
 			current.SetValue(ITEM_NO, data.itemDropTimes.Count);
-			current.SetValue(AVG_EARN, data.totalValue / data.itemDropTimes.Count);
+			current.SetValue(AVG_EARN, (data.totalValue / DateTime.Now.Subtract(data.start).TotalMinutes) * Configuration.minutesAverageDropValueInterval.TotalMinutes);
 			current.SetValue(MOST_COMMON_ITEM, data.GetMostCommonEntity(data.items));
 		}
 
@@ -74,8 +76,6 @@ namespace Metin2SpeechToData.Spreadsheet {
 			public DateTime start { get; }
 			public uint enemiesKilled { get; set; }
 			public Dictionary<string, int> commonEnemy { get; }
-			//TODO: Redundant dictionary?
-			//public Dictionary<string, int> commonItem { get; }
 			public List<DateTime> enemyKillTimes { get; }
 			public List<DateTime> itemDropTimes { get; }
 			public Dictionary<string, int> items { get; }
@@ -84,9 +84,14 @@ namespace Metin2SpeechToData.Spreadsheet {
 
 			public Data() {
 				start = DateTime.Now;
+				commonEnemy = new Dictionary<string, int>();
+				enemyKillTimes = new List<DateTime>();
+				itemDropTimes = new List<DateTime>();
+				items = new Dictionary<string, int>();
+				currentGroups = new List<string>();
 			}
 
-			public void UpdateDataItem(string itemName, string group, string enemy, DateTime dropTime, uint value) {
+			public void UpdateDataItem(string itemName, string enemy, DateTime dropTime) {
 				if (!items.ContainsKey(itemName)) {
 					items.Add(itemName, 1);
 				}
@@ -94,10 +99,11 @@ namespace Metin2SpeechToData.Spreadsheet {
 					items[itemName] += 1;
 				}
 				itemDropTimes.Add(dropTime);
-				if (!currentGroups.Contains(DefinitionParser.instance.getDefinitions[0].GetGroup(itemName))) {
-					currentGroups.Add(DefinitionParser.instance.getDefinitions[0].GetGroup(itemName));
+				string itemGroup = DefinitionParser.instance.getDefinitions[0].GetGroup(itemName);
+				if (!currentGroups.Contains(itemGroup)) {
+					currentGroups.Add(itemGroup);
 				}
-				totalValue += value;
+				totalValue += DefinitionParser.instance.getDefinitions[0].GetYangValue(itemName);
 
 			}
 			public void UpdateDataEnemy(string enemyName, bool killed, DateTime enemyActionTime) {
@@ -111,8 +117,6 @@ namespace Metin2SpeechToData.Spreadsheet {
 					}
 					enemyKillTimes.Add(enemyActionTime);
 				}
-				
-
 			}
 
 			public string GetMostCommonEntity(Dictionary<string,int> dict) {
