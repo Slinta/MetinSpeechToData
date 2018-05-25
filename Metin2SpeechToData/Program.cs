@@ -27,7 +27,7 @@ namespace Metin2SpeechToData {
 
 		[STAThread]
 		static void Main(string[] args) {
-			// Init
+
 			config = new Configuration(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
 			interaction = new SpreadsheetInteraction(config.xlsxFile);
 			Confirmation.Initialize();

@@ -187,7 +187,7 @@ namespace Metin2SpeechToData {
 			for (int i = (int)Keys.D1; i < (int)Keys.D9; i++) {
 				Program.mapper.FreeSpecific((Keys)i, true);
 			}
-			//DefinitionParser.instance.UpdateCurrents(e.text);
+			DefinitionParser.instance.UpdateCurrents(e.text);
 
 			baseRecognizer.SwitchGrammar(e.text);
 			baseRecognizer.isPrimaryDefinitionLoaded = true;

@@ -25,16 +25,18 @@ namespace Metin2SpeechToData {
 
 		private readonly Data data;
 
+		private readonly ExcelPackage package;
+
 		public SessionSheet(string name) {
 			string sessionsDir = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Sessions" + Path.DirectorySeparatorChar;
-			string fileName = "_" + DateTime.Now.ToLongDateString() + ".xlsx";
-			File.Create(sessionsDir + fileName);
-			ExcelPackage package = new ExcelPackage(new FileInfo(sessionsDir + fileName));
+			string fileName = "_" + DateTime.Now.ToLongDateString() + "_" + DateTime.Now.ToLongTimeString().Replace(':', '-') + ".xlsx";
+			package = new ExcelPackage(new FileInfo(sessionsDir + fileName));
 			SpreadsheetTemplates template = new SpreadsheetTemplates();
 			current = template.InitSessionSheet(package.Workbook);
 			currFreeAddress = new ExcelCellAddress(ITEM_ROW, ITEM_COL);
 			current.SetValue(SsControl.C_SHEET_NAME, "Session:(_) " + DateTime.Now.ToLongDateString());
 			data = new Data();
+			package.Save();
 		}
 
 		public void NewEnemy(string enemy, DateTime meetTime) {
@@ -47,12 +49,16 @@ namespace Metin2SpeechToData {
 
 		public void Add(string itemName, string group, string enemy, DateTime dropTime, uint value) {
 			current.SetValue(currFreeAddress.Address, itemName);
-			current.SetValue(SpreadsheetHelper.OffsetAddressString(currFreeAddress, 0, 4), enemy);
-			current.SetValue(SpreadsheetHelper.OffsetAddressString(currFreeAddress, 0, 7), group);
+			current.SetValue(SpreadsheetHelper.OffsetAddressString(currFreeAddress, 0, 7), enemy == "" ? UNSPEICIFIED_ENEMY : enemy);
+			current.SetValue(SpreadsheetHelper.OffsetAddressString(currFreeAddress, 0, 4), group);
 			current.SetValue(SpreadsheetHelper.OffsetAddressString(currFreeAddress, 0, 10), dropTime.ToShortTimeString());
 			current.SetValue(SpreadsheetHelper.OffsetAddressString(currFreeAddress, 0, 13), value);
 			currFreeAddress = SpreadsheetHelper.OffsetAddress(currFreeAddress, 1, 0);
-			data.UpdateDataItem(itemName, enemy, dropTime);
+			data.UpdateDataItem(itemName, enemy == "" ? UNSPEICIFIED_ENEMY : enemy, dropTime);
+			package.Save();
+		}
+		public void Add(DefinitionParserData.Item item, string enemy, DateTime dropTime) {
+			Add(item.mainPronounciation, item.group, enemy, dropTime, item.yangValue);
 		}
 
 		public void Finish() {
@@ -70,6 +76,7 @@ namespace Metin2SpeechToData {
 			current.SetValue(ITEM_NO, data.itemDropTimes.Count);
 			current.SetValue(AVG_EARN, (data.totalValue / DateTime.Now.Subtract(data.start).TotalMinutes) * Configuration.minutesAverageDropValueInterval.TotalMinutes);
 			current.SetValue(MOST_COMMON_ITEM, data.GetMostCommonEntity(data.items));
+			package.Save();
 		}
 
 		private sealed class Data {
@@ -107,7 +114,7 @@ namespace Metin2SpeechToData {
 
 			}
 			public void UpdateDataEnemy(string enemyName, bool killed, DateTime enemyActionTime) {
-				if(killed) {
+				if (killed) {
 					enemiesKilled += 1;
 					if (!commonEnemy.ContainsKey(enemyName)) {
 						commonEnemy.Add(enemyName, 1);
@@ -119,15 +126,15 @@ namespace Metin2SpeechToData {
 				}
 			}
 
-			public string GetMostCommonEntity(Dictionary<string,int> dict) {
+			public string GetMostCommonEntity(Dictionary<string, int> dict) {
 				int mostCommon = -1;
 				string mostCommons = "";
-				foreach(string key in dict.Keys) {
+				foreach (string key in dict.Keys) {
 					if (dict[key] > mostCommon) {
 						mostCommon = dict[key];
 						mostCommons = key;
 					}
-					if(dict[key] == mostCommon) {
+					if (dict[key] == mostCommon) {
 						mostCommons += (", " + key);
 					}
 				}

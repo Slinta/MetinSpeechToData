@@ -79,8 +79,7 @@ namespace Metin2SpeechToData {
 					case EnemyState.FIGHTING: {
 						state = EnemyState.NO_ENEMY;
 						Console.WriteLine("Killed " + currentEnemy + ", the death count increased");
-						//Program.interaction.AddNumberTo(new ExcelCellAddress(1, 5), 1);
-						//TODO: set in session file
+						Program.interaction.currentSession.EnemyKilled(currentEnemy, DateTime.Now);
 
 						currentEnemy = "";
 						stack.Clear();
@@ -91,8 +90,7 @@ namespace Metin2SpeechToData {
 			}
 			else if (args.modifier == CCommands.Speech.TARGET_KILLED) {
 				Console.WriteLine("Killed " + currentEnemy + ", the death count increased");
-				//Program.interaction.AddNumberTo(new ExcelCellAddress(1, 5), 1);
-				//TODO: set in session file
+				Program.interaction.currentSession.EnemyKilled(currentEnemy, DateTime.Now);
 				EnemyTargetingModifierRecognized(this, new ModiferRecognizedEventArgs(CCommands.Speech.REMOVE_TARGET,""));
 			}
 			else if (args.modifier == CCommands.Speech.REMOVE_TARGET) {
@@ -139,11 +137,12 @@ namespace Metin2SpeechToData {
 		public void ItemDropped(DefinitionParserData.Item item, int amount = 1) {
 			if (!string.IsNullOrWhiteSpace(currentEnemy)) {
 				mobDrops.UpdateDrops(currentEnemy, item);
-				//TODO redirect to SessionSheet
+				Program.interaction.currentSession.Add(item, currentEnemy, DateTime.Now);
+
 			}
-			ExcelCellAddress address = Program.interaction.GetAddress(item.mainPronounciation);
-			Program.interaction.AddNumberTo(address, amount);
-			stack.Push(new ItemInsertion(address,amount));
+			//ExcelCellAddress address = Program.interaction.GetAddress(item.mainPronounciation);
+			//Program.interaction.AddNumberTo(address, amount);
+			//stack.Push(new ItemInsertion(address,amount));
 		}
 		public void ItemDropped(string item, int amount = 1) {
 			ItemDropped(DefinitionParser.instance.currentGrammarFile.GetItemEntry(item), amount);

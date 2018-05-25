@@ -39,7 +39,8 @@ namespace Metin2SpeechToData {
 
 							list[i + 1] = list[i + 1] + item.mainPronounciation;
 							getAllDropsFile = list.ToArray();
-							Program.interaction.AddItemEntryToCurrentSheet(item);
+							//TODO: comment
+							//Program.interaction.AddItemEntryToCurrentSheet(item);
 							SaveChanges();
 							return;
 						}
@@ -47,7 +48,7 @@ namespace Metin2SpeechToData {
 						int line = GetGroupLine(i + 1, item.group);
 						if (!CheckItemExists(getAllDropsFile[line], item.mainPronounciation)) {
 							getAllDropsFile[line] = getAllDropsFile[line] + "," + item.mainPronounciation;
-							Program.interaction.AddItemEntryToCurrentSheet(item);
+							//Program.interaction.AddItemEntryToCurrentSheet(item);
 							SaveChanges();
 						}
 						return;
@@ -55,7 +56,7 @@ namespace Metin2SpeechToData {
 				}
 			}
 			AddMobEntry(mobName, item);
-			Program.interaction.AddItemEntryToCurrentSheet(item);
+			//Program.interaction.AddItemEntryToCurrentSheet(item);
 			SaveChanges();
 		}
 
