@@ -213,7 +213,6 @@ namespace Metin2SpeechToData {
 			Console.WriteLine("Grammar initialized!");
 			DefinitionParser.instance.LoadHotkeys(e.text);
 			Console.WriteLine("(F1) or '" + CCommands.getStartCommand + "' to start\n" +
-							  "(F2) or '" + CCommands.getStartSessionCommand + "'to start as session\n" +
 							  "(F4) or '" + CCommands.getStopCommand + "' to stop");
 			baseRecognizer.currentState = RecognitionBase.RecognitionState.GRAMMAR_SELECTED;
 		}

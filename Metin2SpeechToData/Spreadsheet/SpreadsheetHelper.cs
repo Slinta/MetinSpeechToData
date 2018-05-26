@@ -15,7 +15,7 @@ namespace Metin2SpeechToData {
 				string groupStartAddress = g.elementNameFirstIndex.Address;
 
 				for (int i = 0; i < g.totalEntries; i++) {
-					sheet.Cells[OffsetAddressString(groupStartAddress,i,0)].AutoFitColumns();
+					sheet.Cells[OffsetAddressString(groupStartAddress, i, 0)].AutoFitColumns();
 					if (sheet.Column(g.elementNameFirstIndex.Column).Width >= currMaxWidth) {
 						currMaxWidth = sheet.Column(g.elementNameFirstIndex.Column).Width;
 					}
@@ -66,6 +66,13 @@ namespace Metin2SpeechToData {
 					string.Format("HYPERLINK(\"#{0}.{1}\",\"{2}\")", otherSheet.Name, locationAddress, displayText);
 			}
 			currentSheet.Cells[currentCellAddress].Calculate();
+		}
+
+		/// <summary>
+		/// Creates a hyperlink in 'currentSheet' at 'currentCellAddress' pointing to 'other' file containing 'otherSheet' to defined 'locationAddress', hide link syntax with 'displeyText'
+		/// </summary>
+		public static void HyperlinkAcrossFiles(System.IO.FileInfo other, string otherSheet, string otherAddress, ExcelWorksheet current, string currAddress, string displayText) {
+			current.Cells[currAddress].Formula = string.Format("HYPERLINK(\"[{0}]'{1}'!{2}\",\"{3}\")", other.FullName, otherSheet, otherAddress, displayText);
 		}
 
 		/// <summary>

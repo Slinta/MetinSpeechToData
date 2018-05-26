@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OfficeOpenXml;
+using System;
 using System.IO;
 using System.Windows.Forms;
 
@@ -65,9 +66,12 @@ namespace Metin2SpeechToData {
 				bool yes = GetBoolInput("Do you want the .xlsx file in the current directory ?\ny/n");
 				if (yes) {
 					xlsxFile = new FileInfo(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + DEFAULT_FILE_NAME);
-					OfficeOpenXml.ExcelPackage package = new OfficeOpenXml.ExcelPackage(xlsxFile);
-					package.Workbook.Worksheets.Add("Metin2 Drop Analyzer");
+					ExcelPackage package = new ExcelPackage(xlsxFile);
+					SpreadsheetTemplates templates = new SpreadsheetTemplates();
+					ExcelWorksheets sheets = templates.LoadTemplates();
+					package.Workbook.Worksheets.Add("Metin2 Drop Analyzer",sheets["Main"]);
 					package.SaveAs(xlsxFile);
+					templates.Dispose();
 				}
 				else {
 					FolderBrowserDialog folderBrowser = new FolderBrowserDialog();
@@ -82,7 +86,7 @@ namespace Metin2SpeechToData {
 						return;
 					}
 					xlsxFile = new FileInfo(folderBrowser.SelectedPath + Path.DirectorySeparatorChar + DEFAULT_FILE_NAME);
-					OfficeOpenXml.ExcelPackage package = new OfficeOpenXml.ExcelPackage(xlsxFile);
+					OfficeOpenXml.ExcelPackage package = new ExcelPackage(xlsxFile);
 					package.Workbook.Worksheets.Add("Metin2 Drop Analyzer");
 					package.SaveAs(xlsxFile);
 				}

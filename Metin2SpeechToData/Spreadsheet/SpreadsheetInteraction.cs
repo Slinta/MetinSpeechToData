@@ -58,10 +58,10 @@ namespace Metin2SpeechToData {
 		public void StartSession(string grammar) {
 			if (currentSession != null) {
 				currentSession.Finish();
-				currentSession = new SessionSheet(grammar);
+				currentSession = new SessionSheet(this, grammar, xlsxFile.File);
 			}
 			else {
-				currentSession = new SessionSheet(grammar);
+				currentSession = new SessionSheet(this, grammar, xlsxFile.File);
 			}
 		}
 
@@ -128,6 +128,23 @@ namespace Metin2SpeechToData {
 		}
 		#endregion
 
+
+		public string UnmergedLinkSpot(string sessionName) {
+			string currentAddr = MAIN_UNMERGED_LINKS;
+
+			while (currentSheet.Cells[currentAddr].Value != null) {
+				currentAddr = SpreadsheetHelper.OffsetAddress(currentAddr, 1, 0).Address;
+			}
+			currentSheet.Select(currentAddr + ":" + SpreadsheetHelper.OffsetAddressString(currentAddr,0,3));
+			ExcelRange yellow = currentSheet.SelectedRange;
+			currentSheet.Select(SpreadsheetHelper.OffsetAddress(currentAddr, 1, 0).Address + ":" + SpreadsheetHelper.OffsetAddress(currentAddr, 1, 3).Address);
+			yellow.Copy(currentSheet.SelectedRange);
+
+			SpreadsheetHelper.HyperlinkAcrossFiles(currentSession.package.File, "Session", SessionSheet.LINK_TO_MAIN, mainSheet, currentAddr, sessionName);
+			currentSheet.Select("A1");
+			Save();
+			return currentAddr;
+		}
 
 		/// <summary>
 		/// Dynamically append new entries to the current sheet

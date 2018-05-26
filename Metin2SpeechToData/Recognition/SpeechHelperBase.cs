@@ -50,16 +50,14 @@ namespace Metin2SpeechToData {
 			string quitC = CCommands.getStopCommand;
 
 			controlingRecognizer.LoadGrammar(new Grammar(new Choices(startC)) { Name = startC, Enabled = false });
-			controlingRecognizer.LoadGrammar(new Grammar(new Choices(startSessionC)) { Name = startSessionC, Enabled = false });
 			controlingRecognizer.LoadGrammar(new Grammar(new Choices(pauseC)) { Name = pauseC, Enabled = false });
 			controlingRecognizer.LoadGrammar(new Grammar(new Choices(switchC)) { Name = switchC, Enabled = true });
 			controlingRecognizer.LoadGrammar(new Grammar(new Choices(quitC)) { Name = quitC, Enabled = true });
 
 			_currentGrammars.Add(startC, (0, false));
-			_currentGrammars.Add(startSessionC, (1, false));
-			_currentGrammars.Add(pauseC, (2, false));
-			_currentGrammars.Add(switchC, (3, true));
-			_currentGrammars.Add(quitC, (4, true));
+			_currentGrammars.Add(pauseC, (1, false));
+			_currentGrammars.Add(switchC, (2, true));
+			_currentGrammars.Add(quitC, (3, true));
 
 			controlingRecognizer.SetInputToDefaultAudioDevice();
 			controlingRecognizer.SpeechRecognized += Control_SpeechRecognized_Wrapper;

@@ -7,6 +7,7 @@ using static Metin2SpeechToData.Spreadsheet.SsConstants;
 namespace Metin2SpeechToData {
 	public class SessionSheet {
 
+		public const string LINK_TO_MAIN = "B5";
 		public const string ENEMY_KILLS = "J5";
 		public const string AVERAGE_KILL_REWARD = "J6";
 		public const string MOST_COMMON_ENEMY = "J7";
@@ -19,23 +20,27 @@ namespace Metin2SpeechToData {
 		public const string MOST_COMMON_ITEM = "P9";
 
 		public ExcelWorksheet current { get; }
+		private FileInfo mainFile { get; }
+		private SpreadsheetInteraction interaction { get; }
 
 		private ExcelCellAddress currFreeAddress;
 
 		private readonly Data data;
-		private readonly ExcelPackage package;
+		public ExcelPackage package { get; }
 
 		private readonly Queue<ItemMeta> itemQ;
 
-		public SessionSheet(string name) {
+		public SessionSheet(SpreadsheetInteraction interaction, string name, FileInfo mainSheet) {
 			string sessionsDir = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Sessions" + Path.DirectorySeparatorChar;
 			string fileName = "Session " + DateTime.Now.ToShortDateString() + "--" + DateTime.Now.ToLongTimeString().Replace(':', '-') + ".xlsx";
 			package = new ExcelPackage(new FileInfo(sessionsDir + fileName));
+			mainFile = mainSheet;
 			SpreadsheetTemplates template = new SpreadsheetTemplates();
 			current = template.InitSessionSheet(package.Workbook);
 			currFreeAddress = new ExcelCellAddress(ITEM_ROW, ITEM_COL);
 			data = new Data();
 			itemQ = new Queue<ItemMeta>();
+			this.interaction = interaction;
 			package.Save();
 		}
 
@@ -86,19 +91,22 @@ namespace Metin2SpeechToData {
 		public void Finish() {
 			PopulateHeadder(data);
 			WriteOut();
-			Console.WriteLine("This sessions name: ");
+			Console.Write("This sessions name: ");
 			string sessionName = Console.ReadLine();
-			current.SetValue(SsControl.C_SHEET_NAME, "Session: " + sessionName + " " + DateTime.Now.ToLongDateString() + " " + DateTime.Now.ToShortTimeString());
-			current.SetValue(SpreadsheetHelper.OffsetAddress(AVG_EARN, 0, -1).Address,
+			current.SetValue(SsControl.C_SHEET_NAME, "Session: " + sessionName + " | " + DateTime.Now.ToLongDateString() + " " + DateTime.Now.ToShortTimeString());
+			current.SetValue(SpreadsheetHelper.OffsetAddress(AVG_EARN, 0, -3).Address,
 				(Configuration.minutesAverageDropValueInterval.TotalMinutes < 60 ?
 				string.Format("Average Yang per {0} minutes", Configuration.minutesAverageDropValueInterval.TotalMinutes) : "Average Yang per hour"));
+			SpreadsheetHelper.HyperlinkAcrossFiles(mainFile, H_DEFAULT_SHEET_NAME, interaction.UnmergedLinkSpot(sessionName), current, LINK_TO_MAIN, ">>Main Sheet<<");
+
+			package.Save();
 			package.File.Attributes = FileAttributes.ReadOnly;
 			package.Dispose();
 		}
 
 		private void PopulateHeadder(Data data) {
 			current.SetValue(ENEMY_KILLS, data.enemiesKilled);
-			current.SetValue(AVERAGE_KILL_REWARD, data.totalValue / data.enemiesKilled);
+			current.SetValue(AVERAGE_KILL_REWARD, (data.enemiesKilled != 0 ? (data.totalValue / data.enemiesKilled) : float.NaN));
 			current.SetValue(MOST_COMMON_ENEMY, data.GetMostCommonEntity(data.commonEnemy));
 			current.SetValue(AVERAGE_TIME_BETWEEN_KILLS, TimeSpan.FromSeconds(data.GetAverageTimeBetweenInSeconds(data.enemyKillTimes)).ToString());
 			current.SetValue(SESSION_DURATION, DateTime.Now.Subtract(data.start).ToString());
@@ -113,7 +121,7 @@ namespace Metin2SpeechToData {
 		private sealed class Data {
 
 			public DateTime start { get; }
-			public uint enemiesKilled { get; set; }
+			public int enemiesKilled { get; set; }
 			public Dictionary<string, int> commonEnemy { get; }
 			public List<DateTime> enemyKillTimes { get; }
 			public List<DateTime> itemDropTimes { get; }

@@ -28,7 +28,6 @@ namespace Metin2SpeechToData {
 		public enum Speech {
 			NONE,
 			START,
-			START_SESSION,
 			STOP,
 			PAUSE,
 			SWITCH_GRAMMAR,
@@ -56,9 +55,6 @@ namespace Metin2SpeechToData {
 			}
 			else if (text == getRefusalCommand) {
 				return Speech.REFUSE;
-			}
-			else if (text == getStartSessionCommand) {
-				return Speech.START_SESSION;
 			}
 			else if (text == getNewTargetCommand) {
 				return Speech.NEW_TARGET;
@@ -121,9 +117,6 @@ namespace Metin2SpeechToData {
 				case Speech.ASSIGN_HOTKEY_TO_ITEM: {
 					return getHotkeyAssignCommand;
 				}
-				case Speech.START_SESSION: {
-					return getStartSessionCommand;
-				}
 			}
 			throw new NotSupportedException();
 		}
@@ -183,10 +176,6 @@ namespace Metin2SpeechToData {
 						}
 						case "HOTKEY_ASSIGN": {
 							getHotkeyAssignCommand = modified;
-							break;
-						}
-						case "SESSION_START": {
-							getStartSessionCommand = modified;
 							break;
 						}
 						default: {

@@ -43,10 +43,10 @@
 			public const string AREA_TOTAL_DROPED_ITEMS = "P4";
 		}
 
-		public static class SsSession {
-			public const string C_SHEET_NAME = "B2";
-			public const string C_RETURN_LINK = "B5";
-		}
+		public const string MAIN_SHEET_LINKS = "D7";
+		public const string MAIN_MERGED_LINKS = "J7";
+		public const string MAIN_UNMERGED_LINKS = "P7";
+		
 
 		public const int GROUP_COL = 3;
 		public const int GROUP_ROW = 12;
