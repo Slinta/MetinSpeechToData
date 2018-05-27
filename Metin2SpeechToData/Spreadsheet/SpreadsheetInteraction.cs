@@ -44,14 +44,6 @@ namespace Metin2SpeechToData {
 			currentSheet = content.Worksheets["Metin2 Drop Analyzer"];
 			mainSheet = currentSheet;
 			templates = new SpreadsheetTemplates(this);
-
-			//TODO this testing stuff
-			//SpreadsheetHelper.HyperlinkCell(currentSheet, "Q1", content.Worksheets[1], "B2", "Link to B2");
-			//templates.InitAreaSheet(content, new DefinitionParserData("AA", new string[3] { "AAA", "BBBB", "CCC" }, new DefinitionParserData.Item[2] {
-			//	new DefinitionParserData.Item("AAAAAAAA", new string[0],1000,"AAA"),
-			//	new DefinitionParserData.Item("CSCSCSCSC", new string[0], 1000000, "CCC"),
-			//}));
-			//Save();
 		}
 		#endregion
 
@@ -70,65 +62,6 @@ namespace Metin2SpeechToData {
 			currentSession = null;
 		}
 
-		/// <summary>
-		/// Adds a 'number' to the number cell at 'address' and saves the document
-		/// </summary>
-		public void AddNumberTo(ExcelCellAddress address, int number) {
-			if (currentSheet == null) {
-				throw new CustomException("No sheet open!");
-			}
-			int numberInCell = 0;
-			//If the cell is empty set its value
-			if (currentSheet.Cells[address.Row, address.Column].Value == null) {
-				currentSheet.SetValue(address.Address, number);
-			}
-			//if the cell already has a number add the value
-			else if (int.TryParse(currentSheet.Cells[address.Row, address.Column].Value.ToString(), out numberInCell)) {
-				currentSheet.SetValue(address.Address, number + numberInCell);
-			}
-			else {
-				Console.WriteLine("Unable to change cell at:" + address.Address + " containing " + currentSheet.GetValue(address.Row, address.Column));
-				return;
-			}
-			currModificationsToXlsx++;
-			Console.WriteLine("Cell[" + address.Address + "] = " + (number + numberInCell));
-			Save();
-		}
-
-		/// <summary>
-		/// Insert 'value' into cell at 'address' in current worksheet
-		/// </summary>
-		public void InsertValue<T>(ExcelCellAddress address, T value) {
-			if (currentSheet == null) {
-				throw new CustomException("No sheet open!");
-			}
-			currentSheet.SetValue(address.Address, value);
-			Console.WriteLine("Cell[" + address.Address + "] = " + value);
-			Save();
-		}
-
-
-		#region Sheet initializers
-		public void InitAreaSheet(string areaName) {
-			ExcelWorksheet newSheet = templates.InitAreaSheet(content, DefinitionParser.instance.currentGrammarFile);
-			Dicts dicts = SpreadsheetHelper.LoadSpreadsheet(newSheet, SpreadsheetTemplates.SpreadsheetPresetType.AREA);
-			currentNameToConutAddress = dicts.addresses;
-			currentGroupsByName = dicts.groups;
-			currentSheet = content.Worksheets[areaName];
-			Save();
-		}
-
-		public void InitMobSheet(string mobName) {
-			ExcelWorksheet newSheet = templates.InitEnemySheet(content, mobName, Program.gameRecognizer.enemyHandling.mobDrops);
-			Dicts dicts = SpreadsheetHelper.LoadSpreadsheet(newSheet, SpreadsheetTemplates.SpreadsheetPresetType.ENEMY);
-			currentNameToConutAddress = dicts.addresses;
-			currentGroupsByName = dicts.groups;
-			currentSheet = content.Worksheets[mobName];
-			Save();
-		}
-		#endregion
-
-
 		public string UnmergedLinkSpot(string sessionName) {
 			string currentAddr = MAIN_UNMERGED_LINKS;
 
@@ -144,48 +77,6 @@ namespace Metin2SpeechToData {
 			currentSheet.Select("A1");
 			Save();
 			return currentAddr;
-		}
-
-		/// <summary>
-		/// Dynamically append new entries to the current sheet
-		/// </summary>
-		public void AddItemEntryToCurrentSheet(DefinitionParserData.Item entry) {
-			ExcelCellAddress current = new ExcelCellAddress(ITEM_ROW, GROUP_COL + Program.gameRecognizer.enemyHandling.mobDrops.GetGroupNumberForEnemy(currentSheet.Name, entry.group) * H_COLUMN_INCREMENT);
-
-			//Add the group if it does't exist
-			if (!currentSheet.Cells[current.Row, current.Column, current.Row, current.Column + 2].Merge) {
-				currentSheet.Cells[current.Row, current.Column, current.Row, current.Column + 2].Merge = true;
-			}
-			currentSheet.Cells[current.Row, current.Column, current.Row, current.Column + 2].Value = entry.group;
-			currentSheet.Cells[current.Row, current.Column, current.Row, current.Column + 2].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
-
-			//Find free spot in the group
-			while (currentSheet.GetValue(current.Row, current.Column) != null) {
-				current = SpreadsheetHelper.Advance(currentSheet, current);
-			}
-
-			//Insert
-			InsertValue(current, entry.mainPronounciation);
-			InsertValue(SpreadsheetHelper.OffsetAddress(current, 0, 1), entry.yangValue);
-			InsertValue(SpreadsheetHelper.OffsetAddress(current, 0, 1), 0);
-			currentNameToConutAddress.Add(entry.mainPronounciation, new ExcelCellAddress(current.Row, current.Column + 2));
-			Save();
-		}
-
-		/// <summary>
-		/// Dynamically remove new entries from the current sheet
-		/// </summary>
-		public void RemoveItemEntryFromCurrentSheet(DefinitionParserData.Item entry) {
-			ExcelCellAddress current = new ExcelCellAddress(ITEM_ROW, GROUP_COL + Program.gameRecognizer.enemyHandling.mobDrops.GetGroupNumberForEnemy(currentSheet.Name, entry.group) * H_COLUMN_INCREMENT);
-
-			while (currentSheet.Cells[current.Address].GetValue<string>() != entry.mainPronounciation) {
-				current = SpreadsheetHelper.Advance(currentSheet, current);
-			}
-
-			InsertValue<object>(current, null);
-			InsertValue<object>(SpreadsheetHelper.OffsetAddress(current, 0, 1), null);
-			InsertValue<object>(SpreadsheetHelper.OffsetAddress(current, 0, 2), null);
-			currentNameToConutAddress.Remove(entry.mainPronounciation);
 		}
 
 

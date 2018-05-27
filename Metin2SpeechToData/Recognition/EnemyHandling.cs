@@ -111,7 +111,6 @@ namespace Metin2SpeechToData {
 				bool resultUndo = Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'?");
 				if (resultUndo) {
 					action = stack.Pop();
-					Program.interaction.AddNumberTo(action.address, -action.count);
 					if (Program.interaction.currentSession.current.Cells[action.address.Row, action.address.Column].GetValue<int>() == 0 && currentEnemy != "") {
 						string itemName = Program.interaction.currentSession.current.Cells[action.address.Row, action.address.Column - 2].Value.ToString();
 						Console.WriteLine("Remove " + currentItem + " from current  session?");

@@ -50,8 +50,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DiffChecker.cs" />
+    <Compile Include="MergeHelper.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Structures.cs" />
+    <Compile Include="TypoResolution.cs" />
     <Compile Include="WordSimilarity.cs" />
   </ItemGroup>
   <ItemGroup>

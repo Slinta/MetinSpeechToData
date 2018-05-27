@@ -44,7 +44,6 @@ namespace Metin2SpeechToData {
 			_currentGrammars = new Dictionary<string, (int, bool)>();
 
 			string startC = CCommands.getStartCommand;
-			string startSessionC = CCommands.getStartSessionCommand;
 			string pauseC = CCommands.getPauseCommand;
 			string switchC = CCommands.getSwitchGrammarCommand;
 			string quitC = CCommands.getStopCommand;

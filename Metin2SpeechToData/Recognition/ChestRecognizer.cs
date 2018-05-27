@@ -53,7 +53,7 @@ namespace Metin2SpeechToData {
 			//Now we have an address and how many items they received
 			Console.WriteLine("Parsed: " + _count);
 			stack.Push(new ItemInsertion(address,_count));
-			Program.interaction.AddNumberTo(address, _count);
+			//Program.interaction.AddNumberTo(address, _count);
 			evnt.Reset();
 		}
 
@@ -70,7 +70,7 @@ namespace Metin2SpeechToData {
 					if (Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'")) {
 						Console.Write("Confirming");
 						ItemInsertion poped = stack.Pop();
-						Program.interaction.AddNumberTo(poped.address, -poped.count);
+						//Program.interaction.AddNumberTo(poped.address, -poped.count);
 					}
 					else {
 						Console.Write("Refusing");

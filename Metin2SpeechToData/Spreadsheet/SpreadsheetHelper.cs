@@ -76,60 +76,6 @@ namespace Metin2SpeechToData {
 		}
 
 		/// <summary>
-		/// Parses spreadsheet
-		/// </summary>
-		/// <param name="book">Current WorkBook</param>
-		/// <param name="sheetName">Name of the sheet as it appears in Excel</param>
-		/// <param name="type">Spreadsheet type to determine parsing method</param>
-		public static Dicts LoadSpreadsheet(ExcelWorksheet sheet, SpreadsheetTemplates.SpreadsheetPresetType type) {
-			Dicts d = new Dicts(true);
-
-			switch (type) {
-				case SpreadsheetTemplates.SpreadsheetPresetType.AREA: {
-					DefinitionParserData data = DefinitionParser.instance.currentGrammarFile;
-					byte[] rowOfEachGroup = new byte[data.groups.Length];
-					byte[] columnOfEachGroup = new byte[data.groups.Length];
-					byte groupcounter = 0;
-					foreach (string group in data.groups) {
-						rowOfEachGroup[groupcounter] = 2;
-						columnOfEachGroup[groupcounter] = (byte)(groupcounter * H_COLUMN_INCREMENT + 1);
-						ExcelCellAddress address = new ExcelCellAddress(rowOfEachGroup[groupcounter], columnOfEachGroup[groupcounter]);
-						groupcounter += 1;
-						SpreadsheetInteraction.Group g = new SpreadsheetInteraction.Group(address, new ExcelCellAddress(address.Row + 1, address.Column));
-						d.groups.Add(group, g);
-					}
-					foreach (DefinitionParserData.Item entry in data.entries) {
-						SpreadsheetInteraction.Group g = d.groups[entry.group];
-						g.totalEntries++;
-						d.groups[entry.group] = g;
-						for (byte i = 0; i < data.groups.Length; i++) {
-							if (data.groups[i] == entry.group) {
-								groupcounter = i;
-							}
-						}
-						rowOfEachGroup[groupcounter] += 1;
-						ExcelCellAddress collected = new ExcelCellAddress(rowOfEachGroup[groupcounter], columnOfEachGroup[groupcounter] + 2);
-
-						d.addresses.Add(entry.mainPronounciation, collected);
-					}
-					return d;
-				}
-				case SpreadsheetTemplates.SpreadsheetPresetType.ENEMY: {
-					ExcelCellAddress current = new ExcelCellAddress("A2");
-
-					while (current != null) {
-						d.addresses.Add(sheet.Cells[current.Row, current.Column].GetValue<string>(), new ExcelCellAddress(current.Row, current.Column + 2));
-						current = Advance(sheet, current);
-					}
-					return d;
-				}
-				default: {
-					throw new CustomException("Uncathegorized sheet entered!");
-				}
-			}
-		}
-
-		/// <summary>
 		/// Takes 'current' address and offsets it by 'rowOffset' rows and'colOffset' columns 
 		/// </summary>
 		public static string OffsetAddressString(string current, int rowOffset, int colOffset) {

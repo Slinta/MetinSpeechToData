@@ -4,18 +4,14 @@ using System.Collections.Generic;
 using System.Linq;
 using OfficeOpenXml;
 using Metin2SpeechToData;
-using static Metin2SpeechToData.Spreadsheet.SsConstants;
 using System.Windows.Forms;
 using System.Threading;
+using static Metin2SpeechToData.Spreadsheet.SsConstants;
+using static SheetSync.Structures;
 
 namespace SheetSync {
 	internal static class Program {
 
-		private static Diffs[] differences;
-		private static Typos[] typos;
-		private static FileInfo[] sessions;
-		private static HotKeyMapper m = new HotKeyMapper();
-		private static ManualResetEventSlim evnt = new ManualResetEventSlim();
 
 		[STAThread]
 		private static void Main(string[] args) {
@@ -28,13 +24,14 @@ namespace SheetSync {
 			if (currentDirectory.GetDirectories("Definitions").Length == 0) {
 				throw new InvalidOperationException("Not inside the program's directory");
 			}
+
 			FileInfo[] currFiles = currentDirectory.GetDirectories("Definitions")[0].GetFiles("*.definition");
 			ExcelPackage sheetsFile = new ExcelPackage(cfg.xlsxFile);
 
 			sessions = currentDirectory.GetDirectories("Sessions")[0].GetFiles("*.xlsx");
 			List<int> unmergedFiles = new List<int>();
 			for (int i = 0; i < sessions.Length; i++) {
-				if (sessions[i].Attributes == FileAttributes.ReadOnly) {
+				if (sessions[i].Attributes == FileAttributes.Archive) {
 					unmergedFiles.Add(i);
 				}
 			}
@@ -75,43 +72,17 @@ namespace SheetSync {
 
 			if (unmergedFiles.Count > 0) {
 				Console.WriteLine("Found unmerged session files in 'Sessions' folder...");
+				ExcelPackage mainP = new ExcelPackage(new FileInfo(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + Configuration.DEFAULT_FILE_NAME));
+				ExcelWorksheet main = mainP.Workbook.Worksheets[H_DEFAULT_SHEET_NAME];
 				foreach (int i in unmergedFiles) {
 					if (Confirmation.WrittenConfirmation("Merge '" + sessions[i].Name + "' with main file?")) {
-						MergeSession(sessions[i]);
-						sessions[i].Attributes = FileAttributes.Normal;
+						//TODO
+						//sessions[i].Attributes = FileAttributes.Normal;
 					}
 				}
 			}
 			sheetsFile.SaveAs(new FileInfo(sheetsFile.File.FullName.Replace(".xlsx", "_NEW.xlsx"))); //TODO once it works, overwrite
 			Console.WriteLine("All done");
-		}
-
-		private static void MergeSession(FileInfo fileInfo) {
-			throw new NotImplementedException();
-		}
-
-		private static void ResolveTypos() {
-			m.hotkeyOverriding = true;
-			for (int j = 0; j < typos.Length; j++) {
-				evnt.Reset();
-				Console.WriteLine("Typo: " + typos[j].originalTypo);
-				Console.Write("Alternatives: ");
-				for (int i = 0; i < typos[j].alternatives.Length - 1; i++) {
-					Console.Write("(" + (i + 1) + ")-" + typos[j].alternatives[i] + ", ");
-					m.AssignToHotkey(Keys.D1 + i, i + 1, Resolve);
-				}
-				Console.WriteLine("(" + (typos[j].alternatives.Length) + ")-" + typos[j].alternatives[typos[j].alternatives.Length - 1]);
-				m.AssignToHotkey(Keys.D1 + typos[j].alternatives.Length - 1, typos[j].alternatives.Length - 1, Resolve);
-				evnt.Wait();
-			}
-		}
-
-		private static int currentIndex = 0;
-		private static void Resolve(int selected) {
-			Console.WriteLine("Replaced '" + typos[currentIndex].originalTypo + "' with '" + typos[currentIndex].alternatives[selected] + "'");
-			typos[currentIndex].sheet.SetValue(typos[currentIndex].location.Address, typos[currentIndex].alternatives[selected]);
-			evnt.Set();
-			currentIndex++;
 		}
 
 		private static void Selected(int selection) {
@@ -135,139 +106,6 @@ namespace SheetSync {
 			Console.WriteLine("Done");
 			Console.WriteLine("Press Enter to save changes and exit...");
 		}
-
-		private static Item[] GetItems(FileInfo[] currFiles) {
-			List<Item> items = new List<Item>();
-			for (int i = 0; i < currFiles.Length; i++) {
-				string[] fileContent = File.ReadAllLines(currFiles[i].FullName);
-				int index = 0;
-				while (fileContent[index].StartsWith("\t") || fileContent[index].Contains("{") ||
-					fileContent[index].StartsWith("}") || string.IsNullOrWhiteSpace(fileContent[index])) {
-					index++;
-				}
-				while (index < fileContent.Length) {
-					if (string.IsNullOrWhiteSpace(fileContent[index]) || fileContent[index].StartsWith("#")) {
-						index++;
-						continue;
-					}
-
-					string[] split = fileContent[index].Split(',');
-					Item item = new Item(split[0].Split('/')[0], currFiles[i].FullName, index, uint.Parse(split[1]));
-					items.Add(item);
-					index++;
-				}
-			}
-			return items.ToArray();
-		}
-
-		private static Diffs[] FindDiffs(IReadOnlyDictionary<string, Item> items, ExcelPackage sheetsFile) {
-			List<Diffs> diffs = new List<Diffs>();
-			ExcelWorksheets sheets = sheetsFile.Workbook.Worksheets;
-			int sheetIndex = 2;
-			if (sheets[1].Name != H_DEFAULT_SHEET_NAME) {
-				Console.WriteLine("Missing fist sheet '" + H_DEFAULT_SHEET_NAME + "'... treating it as data sheet.");
-				sheetIndex = 1;
-			}
-			List<Typos> currTypos = new List<Typos>();
-			while (sheetIndex <= sheets.Count) {
-				ExcelWorksheet sheet = sheets[sheetIndex];
-				ExcelCellAddress currAddr = new ExcelCellAddress(3, 1);
-				while (sheet.Cells[currAddr.Address].Value != null) {
-
-					string sheetItemName = sheet.Cells[currAddr.Address].GetValue<string>();
-					try {
-						if (items[sheetItemName].name == sheetItemName) { /*Check wheter all items are spelt properly*/ }
-					}
-					catch {
-						Console.WriteLine("Found invalid entry at '" + currAddr.Address + "' with name: '" + sheetItemName + "' ... skipping");
-						int min = 20;
-						string curr_min = "";
-						foreach (string fileName in items.Keys) {
-							int dist = WordSimilarity.Compute(fileName, sheetItemName);
-							if (dist < min) {
-								min = dist;
-								curr_min = fileName;
-								continue;
-							}
-							if (dist == min) {
-								curr_min = curr_min + "' or '" + fileName;
-							}
-						}
-						Console.WriteLine("Possibly '" + curr_min + "'?");
-						Typos t = new Typos(sheetItemName, curr_min.Replace("' or '", "_").Trim('\'', ' ').Split('_'), currAddr, sheet);
-						currTypos.Add(t);
-						currAddr = SpreadsheetHelper.Advance(sheet, currAddr);
-						if (currAddr == null) {
-							break;
-						}
-						continue;
-					}
-					ExcelCellAddress yangs = new ExcelCellAddress(currAddr.Row, currAddr.Column + 1);
-
-					uint localYangVal = sheet.Cells[yangs.Address].GetValue<uint>();
-					if (localYangVal != items[sheetItemName].yangValue) {
-						diffs.Add(new Diffs(sheet, yangs, items[sheetItemName].fileOrigin, items[sheetItemName].fileLine, localYangVal, items[sheetItemName].yangValue));
-					}
-
-
-					currAddr = SpreadsheetHelper.Advance(sheet, currAddr);
-					if (currAddr == null) {
-						break;
-					}
-				}
-
-				sheetIndex++;
-			}
-			typos = currTypos.ToArray();
-			return diffs.ToArray();
-		}
-	}
-
-	internal struct Typos {
-		public Typos(string word, string[] possible_replacements, ExcelCellAddress sheetLocation, ExcelWorksheet sheet) {
-			originalTypo = word;
-			alternatives = possible_replacements;
-			location = sheetLocation;
-			this.sheet = sheet;
-		}
-		public string originalTypo { get; }
-		public string[] alternatives { get; }
-		public ExcelCellAddress location { get; }
-		public ExcelWorksheet sheet { get; }
-
-	}
-
-
-	internal struct Item {
-		public Item(string name, string fileOrigin, int fileLine, uint yangValue) {
-			this.name = name;
-			this.fileOrigin = fileOrigin;
-			this.fileLine = fileLine;
-			this.yangValue = yangValue;
-		}
-
-		public string name { get; }
-		public string fileOrigin { get; }
-		public int fileLine { get; }
-		public uint yangValue { get; }
-	}
-
-	internal struct Diffs {
-		public Diffs(ExcelWorksheet sheet, ExcelCellAddress address, string fileOrigin, int fileLine, uint sheetVal, uint fileVal) {
-			currentSheet = sheet;
-			location = address;
-			itemDef = fileLine;
-			itemFile = fileOrigin;
-			sheetYangVal = sheetVal;
-			fileYangVal = fileVal;
-		}
-
-		public string itemFile { get; }
-		public ExcelWorksheet currentSheet { get; }
-		public ExcelCellAddress location { get; }
-		public int itemDef { get; }
-		public uint sheetYangVal { get; }
-		public uint fileYangVal { get; }
 	}
 }
 

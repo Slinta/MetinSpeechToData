@@ -13,7 +13,7 @@ namespace Metin2SpeechToData {
 
 		public FileInfo xlsxFile { get; private set; }
 
-		public const string DEFAULT_FILE_NAME = "Metin2 Drop Speadsheet.xlsx";
+		public const string DEFAULT_FILE_NAME = "Metin2 Drop Spreadsheet.xlsx";
 		public const string AREA_REGEXP = @"(Mob_)?\w+$";
 		public const string CHESTS_REGEXP = @"\w+\ (C|c)hest[+-]?";
 		public const string FILE_EXT = ".definition";

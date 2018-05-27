@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using OfficeOpenXml;
-using Metin2SpeechToData.Structures;
 using System;
 using static Metin2SpeechToData.Spreadsheet.SsConstants;
 
@@ -22,7 +21,7 @@ namespace Metin2SpeechToData {
 			this.interaction = interaction;
 		}
 
-		public SpreadsheetTemplates() {	}
+		public SpreadsheetTemplates() { }
 
 		/// <summary>
 		/// Opens and load Template.xlsx file from Templates folder
@@ -40,80 +39,8 @@ namespace Metin2SpeechToData {
 		}
 
 
-		/// <summary>
-		/// Initializes new Enemy sheet for 'name' in 'current' workbook with given 'data'
-		/// </summary>
-		public ExcelWorksheet InitEnemySheet(ExcelWorkbook current, string name, MobAsociatedDrops data) {
-			ExcelWorksheet sheet = CreateFromTemplate(current, SpreadsheetPresetType.ENEMY, name);
-			FillHeadder(current.Worksheets[name], name);
-			Dictionary<string, string[]> items = data.GetDropsForMob(name);
-
-			//Group setup
-			ExcelCellAddress initGroupAddress = new ExcelCellAddress(GROUP_ROW, GROUP_COL);
-			foreach (string group in items.Keys) {
-				sheet.SetValue(initGroupAddress.Address, group);
-				initGroupAddress = SpreadsheetHelper.OffsetAddress(initGroupAddress.Address, 0, H_COLUMN_INCREMENT);
-			}
-
-			//Item setup
-			byte currentGroup = 0;
-			foreach (string[] parsed in items.Values) {
-				for (int i = 0; i < parsed.Length; i++) {
-					ExcelCellAddress nameAddr = new ExcelCellAddress(GROUP_ROW, GROUP_COL + currentGroup * H_COLUMN_INCREMENT);
-
-					sheet.SetValue(nameAddr.Row, nameAddr.Column + 0, parsed[i]);
-					sheet.SetValue(nameAddr.Row, nameAddr.Column + 1, DefinitionParser.instance.currentGrammarFile.GetYangValue(parsed[i]));
-					sheet.SetValue(nameAddr.Row, nameAddr.Column + 2, 0);
-					sheet.Cells[nameAddr.Row, nameAddr.Column + 1].Style.Numberformat.Format = "###,###,###,###,###,###,###,###"; // this sucks
-				}
-				currentGroup += H_COLUMN_INCREMENT;
-			}
-			return sheet;
-		}
-
-		/// <summary>
-		/// Initializes Area styled sheet in 'current' workbook according to given item 'data'
-		/// </summary>
-		public ExcelWorksheet InitAreaSheet(ExcelWorkbook current, DefinitionParserData data) {
-			ExcelWorksheet sheet = CreateFromTemplate(current, SpreadsheetPresetType.AREA, data.ID);
-			FillHeadder(current.Worksheets[data.ID], data);
-
-			//Group setup
-			int[] rowOfEachGroup = new int[data.groups.Length];
-			int[] columnOfEachGroup = new int[data.groups.Length];
-			int groupcounter = 0;
-
-			ExcelCellAddress initGroupAddress = new ExcelCellAddress(GROUP_ROW, GROUP_COL);
-			foreach (string group in data.groups) {
-				rowOfEachGroup[groupcounter] = initGroupAddress.Row;
-				columnOfEachGroup[groupcounter] = initGroupAddress.Column;
-				groupcounter += 1;
-
-				sheet.SetValue(initGroupAddress.Address, group);
-				initGroupAddress = SpreadsheetHelper.OffsetAddress(initGroupAddress.Address, 0, H_COLUMN_INCREMENT);
-			}
-
-			//Item setup
-			foreach (DefinitionParserData.Item entry in data.entries) {
-				for (int i = 0; i < data.groups.Length; i++) {
-					if (data.groups[i] == entry.group) {
-						groupcounter = i;
-					}
-				}
-				rowOfEachGroup[groupcounter] += 1;
-				ExcelCellAddress nameAddr = new ExcelCellAddress(rowOfEachGroup[groupcounter], columnOfEachGroup[groupcounter]);
-
-				sheet.SetValue(nameAddr.Row, nameAddr.Column + 0, entry.mainPronounciation);
-				sheet.SetValue(nameAddr.Row, nameAddr.Column + 1, entry.yangValue);
-				sheet.SetValue(nameAddr.Row, nameAddr.Column + 2, 0);
-				sheet.Cells[nameAddr.Row, nameAddr.Column + 1].Style.Numberformat.Format = "###,###,###,###,###,###,###,###"; // this sucks
-			}
-			return sheet;
-		}
-
 		public ExcelWorksheet InitSessionSheet(ExcelWorkbook current) {
 			ExcelWorksheet sheet = CreateFromTemplate(current, SpreadsheetPresetType.SESSION, "Session");
-			//TODO some init here
 			return sheet;
 		}
 

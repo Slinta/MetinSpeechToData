@@ -8,6 +8,7 @@ namespace Metin2SpeechToData {
 	public class SessionSheet {
 
 		public const string LINK_TO_MAIN = "B5";
+		public const string SESSION_AREA_NAME = "B7";
 		public const string ENEMY_KILLS = "J5";
 		public const string AVERAGE_KILL_REWARD = "J6";
 		public const string MOST_COMMON_ENEMY = "J7";
@@ -100,7 +101,7 @@ namespace Metin2SpeechToData {
 			SpreadsheetHelper.HyperlinkAcrossFiles(mainFile, H_DEFAULT_SHEET_NAME, interaction.UnmergedLinkSpot(sessionName), current, LINK_TO_MAIN, ">>Main Sheet<<");
 
 			package.Save();
-			package.File.Attributes = FileAttributes.ReadOnly;
+			package.File.Attributes = FileAttributes.Archive;
 			package.Dispose();
 		}
 
@@ -196,7 +197,7 @@ namespace Metin2SpeechToData {
 			}
 		}
 
-		private struct ItemMeta {
+		public struct ItemMeta {
 			public ItemMeta(DefinitionParserData.Item itemBase, string comesFromEnemy, DateTime dropTime) {
 				this.itemBase = itemBase;
 				this.comesFromEnemy = comesFromEnemy;
