@@ -5,12 +5,71 @@ using System.IO;
 using Metin2SpeechToData;
 using static SheetSync.Structures;
 using static Metin2SpeechToData.Spreadsheet.SsConstants;
+using System.Linq;
+using System.Windows.Forms;
 
 namespace SheetSync {
 
-	private static Diffs[] differences;
 
 	class DiffChecker {
+		public Typos[] typos;
+		private readonly HotKeyMapper m = new HotKeyMapper();
+
+
+		public DiffChecker(ExcelPackage sheetsFile, FileInfo[] currFiles) {
+			Item[] allItems = GetItems(currFiles);
+			getDiffs = FindDiffs(allItems.ToDictionary((str) => str.name, (data) => data), sheetsFile);
+
+			Console.WriteLine();
+			Console.WriteLine("Found " + getDiffs.Length + " differences:");
+
+			foreach (Diffs diff in getDiffs) {
+				Console.WriteLine("Item named '{3}' in sheet '{2}' is assigned as {0} Yang, but as {1} Yang in definition!",
+					diff.sheetYangVal.ToString("C").Replace(",00 Kč", ""),
+					diff.fileYangVal.ToString("C").Replace(",00 Kč", ""),
+					diff.currentSheet.Name,
+					diff.currentSheet.GetValue<string>(diff.location.Row, diff.location.Column - 1));
+			}
+
+			if (getDiffs.Length > 0) {
+				Console.WriteLine();
+				Console.WriteLine("(1) Sync data from definition files into the sheet.");
+				Console.WriteLine("(2) Sync data from spreadsheet into definition files.");
+				m.AssignToHotkey(Keys.D1, 1, Selected);
+				m.AssignToHotkey(Keys.D2, 2, Selected);
+				Console.ReadLine();
+			}
+			sheetsFile.Save();
+		}
+
+		public Typos[] getTypos {
+			get { return typos; }
+		}
+
+		public Diffs[] getDiffs { get; }
+
+		private void Selected(int selection) {
+			if (selection == 1) {
+				//Definition into Sheet
+				foreach (Diffs difference in getDiffs) {
+					difference.currentSheet.SetValue(difference.location.Address, difference.fileYangVal);
+				}
+			}
+			else {
+				string fileName = "";
+				string[] currFile;
+				foreach (Diffs diff in getDiffs) {
+					fileName = diff.itemFile;
+					currFile = File.ReadAllLines(fileName);
+
+					currFile[diff.itemDef] = currFile[diff.itemDef].Replace(diff.fileYangVal.ToString(), diff.sheetYangVal.ToString());
+					File.WriteAllLines(fileName, currFile);
+				}
+			}
+			Console.WriteLine("Done");
+			Console.WriteLine("Press Enter to save changes and exit...");
+		}
+
 		private static Item[] GetItems(FileInfo[] currFiles) {
 			List<Item> items = new List<Item>();
 			for (int i = 0; i < currFiles.Length; i++) {
@@ -35,7 +94,7 @@ namespace SheetSync {
 			return items.ToArray();
 		}
 
-		private static Diffs[] FindDiffs(IReadOnlyDictionary<string, Item> items, ExcelPackage sheetsFile) {
+		private Diffs[] FindDiffs(IReadOnlyDictionary<string, Item> items, ExcelPackage sheetsFile) {
 			List<Diffs> diffs = new List<Diffs>();
 			ExcelWorksheets sheets = sheetsFile.Workbook.Worksheets;
 			int sheetIndex = 2;

@@ -1,40 +1,8 @@
-﻿using System.Collections.Generic;
-using OfficeOpenXml;
-using Metin2SpeechToData.Structures;
+﻿using OfficeOpenXml;
 using static Metin2SpeechToData.Spreadsheet.SsConstants;
 
 namespace Metin2SpeechToData {
 	public class SpreadsheetHelper {
-
-		/// <summary>
-		/// Adjusts collumn width of current sheet
-		/// </summary>
-		public static void AutoAdjustColumns(ExcelWorksheet sheet, Dictionary<string, SpreadsheetInteraction.Group>.ValueCollection values) {
-			double currMaxWidth = 0;
-			foreach (SpreadsheetInteraction.Group g in values) {
-				string groupStartAddress = g.elementNameFirstIndex.Address;
-
-				for (int i = 0; i < g.totalEntries; i++) {
-					sheet.Cells[OffsetAddressString(groupStartAddress, i, 0)].AutoFitColumns();
-					if (sheet.Column(g.elementNameFirstIndex.Column).Width >= currMaxWidth) {
-						currMaxWidth = sheet.Column(g.elementNameFirstIndex.Column).Width;
-					}
-				}
-
-				sheet.Column(g.elementNameFirstIndex.Column).Width = currMaxWidth;
-				currMaxWidth = 0;
-
-				for (int i = 0; i < g.totalEntries; i++) {
-					int s = sheet.GetValue<int>(g.elementNameFirstIndex.Row + i, g.elementNameFirstIndex.Column + 1);
-					sheet.Column(g.elementNameFirstIndex.Column + 1).Width = GetCellWidth(s);
-					if (sheet.Column(g.elementNameFirstIndex.Column + 1).Width > currMaxWidth) {
-						currMaxWidth = sheet.Column(g.elementNameFirstIndex.Column + 1).Width;
-					}
-				}
-				sheet.Column(g.elementNameFirstIndex.Column + 1).Width = currMaxWidth;
-				currMaxWidth = 0;
-			}
-		}
 
 		/// <summary>
 		/// If given address containing itemName
@@ -103,33 +71,6 @@ namespace Metin2SpeechToData {
 		public static ExcelCellAddress OffsetAddress(string current, int rowOffset, int colOffset) {
 			ExcelCellAddress a = new ExcelCellAddress(current);
 			return new ExcelCellAddress(a.Row + rowOffset, a.Column + colOffset);
-		}
-
-		/// <summary>
-		/// Cathegorizes sheet based on in which file its name is located
-		/// </summary>
-		public SpreadsheetTemplates.SpreadsheetPresetType GetSheetType(string sheetName) {
-			foreach (string locationName in DefinitionParser.instance.getDefinitionNames) {
-				if (locationName == sheetName) {
-					return SpreadsheetTemplates.SpreadsheetPresetType.AREA;
-				}
-			}
-
-			foreach (MobParserData.Enemy enemy in DefinitionParser.instance.currentMobGrammarFile.enemies) {
-				if (enemy.mobMainPronounciation == sheetName) {
-					return SpreadsheetTemplates.SpreadsheetPresetType.ENEMY;
-				}
-			}
-			return SpreadsheetTemplates.SpreadsheetPresetType.MAIN;
-		}
-
-		/// <summary>
-		/// Helper function for AutoAjdustComluns
-		/// </summary>
-		private static double GetCellWidth(int number) {
-			int count = number.ToString().Length;
-			int spaces = count / 3;
-			return spaces + count;
 		}
 
 		#region Formula functions

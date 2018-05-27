@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using OfficeOpenXml;
+﻿using OfficeOpenXml;
 
 namespace Metin2SpeechToData.Structures{
 	public struct SpeechRecognizedArgs {
@@ -14,16 +13,6 @@ namespace Metin2SpeechToData.Structures{
 		public bool asHotkey { get; }
 		public string text { get; }
 		public float confidence { get; }
-	}
-
-	public struct Dicts {
-		public Dicts(bool initialize) {
-			addresses = new Dictionary<string, ExcelCellAddress>();
-			groups = new Dictionary<string, SpreadsheetInteraction.Group>();
-		}
-
-		public Dictionary<string, ExcelCellAddress> addresses { get; }
-		public Dictionary<string, SpreadsheetInteraction.Group> groups { get; }
 	}
 
 	public struct ItemInsertion {

@@ -1,39 +1,42 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Metin2SpeechToData;
+using System;
+using System.Threading;
+using System.Windows.Forms;
+using static SheetSync.Structures;
 
 namespace SheetSync {
 	class TypoResolution {
-		private static ManualResetEventSlim evnt = new ManualResetEventSlim();
-		private static HotKeyMapper m = new HotKeyMapper();
-		private static Typos[] typos;
+		private readonly ManualResetEventSlim evnt = new ManualResetEventSlim();
+		private readonly HotKeyMapper m = new HotKeyMapper();
 
-		public TypoResolution() {
-
+		public TypoResolution(Typos[] typos) {
+			if (typos.Length > 0 && Confirmation.WrittenConfirmation("Resovle name typos?")) {
+				ResolveTypos();
+			}
 		}
+
+		public Typos[] getTypos { get; }
 
 		private void ResolveTypos() {
 			m.hotkeyOverriding = true;
-			for (int j = 0; j < typos.Length; j++) {
+			for (int j = 0; j < getTypos.Length; j++) {
 				evnt.Reset();
-				Console.WriteLine("Typo: " + typos[j].originalTypo);
+				Console.WriteLine("Typo: " + getTypos[j].originalTypo);
 				Console.Write("Alternatives: ");
-				for (int i = 0; i < typos[j].alternatives.Length - 1; i++) {
-					Console.Write("(" + (i + 1) + ")-" + typos[j].alternatives[i] + ", ");
+				for (int i = 0; i < getTypos[j].alternatives.Length - 1; i++) {
+					Console.Write("(" + (i + 1) + ")-" + getTypos[j].alternatives[i] + ", ");
 					m.AssignToHotkey(Keys.D1 + i, i + 1, Resolve);
 				}
-				Console.WriteLine("(" + (typos[j].alternatives.Length) + ")-" + typos[j].alternatives[typos[j].alternatives.Length - 1]);
-				m.AssignToHotkey(Keys.D1 + typos[j].alternatives.Length - 1, typos[j].alternatives.Length - 1, Resolve);
+				Console.WriteLine("(" + (getTypos[j].alternatives.Length) + ")-" + getTypos[j].alternatives[getTypos[j].alternatives.Length - 1]);
+				m.AssignToHotkey(Keys.D1 + getTypos[j].alternatives.Length - 1, getTypos[j].alternatives.Length - 1, Resolve);
 				evnt.Wait();
 			}
 		}
 
 		private int currentIndex = 0;
 		private void Resolve(int selected) {
-			Console.WriteLine("Replaced '" + typos[currentIndex].originalTypo + "' with '" + typos[currentIndex].alternatives[selected] + "'");
-			typos[currentIndex].sheet.SetValue(typos[currentIndex].location.Address, typos[currentIndex].alternatives[selected]);
+			Console.WriteLine("Replaced '" + getTypos[currentIndex].originalTypo + "' with '" + getTypos[currentIndex].alternatives[selected] + "'");
+			getTypos[currentIndex].sheet.SetValue(getTypos[currentIndex].location.Address, getTypos[currentIndex].alternatives[selected]);
 			evnt.Set();
 			currentIndex++;
 		}
