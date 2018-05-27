@@ -99,11 +99,19 @@ namespace Metin2SpeechToData {
 					if (currentState != RecognitionState.PAUSED) {
 						BeginRecognition(true);
 					}
+					else {
+						foreach (int index in getCurrentGrammars.Values) {
+							mainRecognizer.Grammars[index].Enabled = true;
+						}
+					}
 					break;
 				}
 				case RecognitionState.PAUSED: {
 					if (Program.debug) {
 						Console.WriteLine("Currently paused");
+					}
+					foreach (int index  in getCurrentGrammars.Values) {
+						mainRecognizer.Grammars[index].Enabled = false;
 					}
 					break;
 				}

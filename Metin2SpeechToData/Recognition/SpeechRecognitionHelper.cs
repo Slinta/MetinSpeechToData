@@ -78,7 +78,7 @@ namespace Metin2SpeechToData {
 					SetGrammarState(CCommands.getSwitchGrammarCommand, false);
 					SetGrammarState(CCommands.getPauseCommand, true);
 
-					Console.WriteLine("Pausing will reenable control.");
+					Console.WriteLine("Pausing will reenable recognition control commands. (" + CCommands.getStopCommand + "," + CCommands.getSwitchGrammarCommand + ", etc.)");
 					Console.WriteLine("To pause: " + KeyModifiers.Control + " + " + KeyModifiers.Shift + " + " + Keys.F4 +
 									  " or '" + CCommands.getPauseCommand + "'");
 					Program.mapper.AssignToHotkey(Keys.F4, KeyModifiers.Control, KeyModifiers.Shift, Control_SpeechRecognized,

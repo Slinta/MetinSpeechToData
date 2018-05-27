@@ -3,7 +3,6 @@
 # !DO NOT MODIFY KEYWORDS BEFORE ':' YOU HAVE BEEN WARNED!
 
 START: Computer start recognition
-SESSION_START: Computer start session
 PAUSE: Computer pause recognition
 STOP: Computer stop and quit
 SWITCH: Computer switch grammar
