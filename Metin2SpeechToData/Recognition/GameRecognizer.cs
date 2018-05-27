@@ -43,7 +43,11 @@ namespace Metin2SpeechToData {
 				case RecognitionState.PAUSED: {
 					if (currentState == RecognitionState.ACTIVE) {
 						DefinitionParser.instance.hotkeyParser.SetKeysActiveState(false);
-						Console.WriteLine("Pausing Recognition");
+						Console.WriteLine();
+						Console.WriteLine("Pausing item and mob recognition");
+						Console.WriteLine("Reenable with: " + CCommands.getStartCommand);
+						Console.WriteLine("Availible commands: " + CCommands.getStopCommand + "," + CCommands.getStartCommand + "," + CCommands.getSwitchGrammarCommand +".");
+
 					}
 					else {
 						Console.WriteLine("Recognition not running!");

@@ -15,7 +15,7 @@ namespace Metin2SpeechToData {
 		private readonly SpeechRecognitionEngine masterMobRecognizer;
 		private readonly ManualResetEventSlim evnt;
 		public MobAsociatedDrops mobDrops { get; private set; }
-		private readonly DropOutStack<ItemInsertion> stack;
+		//private readonly DropOutStack<ItemInsertion> stack;
 		private string currentEnemy = "";
 		private string currentItem = "";
 		private readonly GameRecognizer asociated;
@@ -24,7 +24,7 @@ namespace Metin2SpeechToData {
 			asociated = recognizer;
 			recognizer.OnModifierRecognized += EnemyTargetingModifierRecognized;
 			mobDrops = new MobAsociatedDrops();
-			stack = new DropOutStack<ItemInsertion>(Configuration.undoHistoryLength);
+			//stack = new DropOutStack<ItemInsertion>(Configuration.undoHistoryLength);
 			evnt = new ManualResetEventSlim(false);
 			masterMobRecognizer = new SpeechRecognitionEngine();
 			masterMobRecognizer.SetInputToDefaultAudioDevice();
@@ -72,23 +72,27 @@ namespace Metin2SpeechToData {
 						string actualEnemyName = DefinitionParser.instance.currentMobGrammarFile.GetMainPronounciation(enemy);
 						state = EnemyState.FIGHTING;
 						currentEnemy = actualEnemyName;
+						
 						Console.WriteLine("Acquired target: " + currentEnemy);
-						stack.Clear();
+						Console.WriteLine();
+
 						return;
 					}
 					case EnemyState.FIGHTING: {
 						state = EnemyState.NO_ENEMY;
+
+						Console.WriteLine();
 						Console.WriteLine("Killed " + currentEnemy + ", the death count increased");
 						Program.interaction.currentSession.EnemyKilled(currentEnemy, DateTime.Now);
 
 						currentEnemy = "";
-						stack.Clear();
 						EnemyTargetingModifierRecognized(this, args);
 						return;
 					}
 				}
 			}
 			else if (args.modifier == CCommands.Speech.TARGET_KILLED) {
+				Console.WriteLine();
 				Console.WriteLine("Killed " + currentEnemy + ", the death count increased");
 				Program.interaction.currentSession.EnemyKilled(currentEnemy, DateTime.Now);
 				EnemyTargetingModifierRecognized(this, new ModiferRecognizedEventArgs(CCommands.Speech.REMOVE_TARGET,""));
@@ -97,37 +101,39 @@ namespace Metin2SpeechToData {
 				currentEnemy = "";
 				currentItem = "";
 				state = EnemyState.NO_ENEMY;
-				stack.Clear();
+				
 				Console.WriteLine("Reset current target to 'None'");
 			}
 			else if (args.modifier == CCommands.Speech.UNDO) {
-				ItemInsertion action = stack.Peek();
-				if (action.address == null) {
+				
+				if (Program.interaction.currentSession.itemInsertionList.Count == 0) {
 					Console.WriteLine("Nothing else to undo!");
 					return;
 				}
-				Console.WriteLine("Would remove " + action.count + " items from " + Program.interaction.currentSession.current.Cells[action.address.Row, action.address.Column - 2].Value);
+				SessionSheet.ItemMeta action = Program.interaction.currentSession.itemInsertionList.First.Value;
+				Console.WriteLine("Would remove " + action.itemBase.mainPronounciation);
 
 				bool resultUndo = Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'?");
 				if (resultUndo) {
-					action = stack.Pop();
-					Program.interaction.AddNumberTo(action.address, -action.count);
-					if (Program.interaction.currentSession.current.Cells[action.address.Row, action.address.Column].GetValue<int>() == 0 && currentEnemy != "") {
-						string itemName = Program.interaction.currentSession.current.Cells[action.address.Row, action.address.Column - 2].Value.ToString();
-						Console.WriteLine("Remove " + currentItem + " from current  session?");
-						bool resultRemoveFromFile = Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'?");
-						if (resultRemoveFromFile) {
-							currentItem = itemName;
-							//TODO remove item from session
-						}
-						else {
-							Console.WriteLine("Session data NOT modified!");
-						}
-					}
+					Program.interaction.currentSession.itemInsertionList.RemoveFirst();
+					Console.WriteLine("Removed " + action.itemBase.mainPronounciation + " from the stack");
+					//if (Program.interaction.currentSession.current.Cells[action.address.Row, action.address.Column].GetValue<int>() == 0 && currentEnemy != "") {
+					//	string itemName = Program.interaction.currentSession.current.Cells[action.address.Row, action.address.Column - 2].Value.ToString();
+					//	Console.WriteLine("Remove " + currentItem + " from current  session?");
+					//	bool resultRemoveFromFile = Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'?");
+					//	if (resultRemoveFromFile) {
+					//		currentItem = itemName;
+					//		//TODO remove item from session
+					//	}
+					//	else {
+					//		Console.WriteLine("Session data NOT modified!");
+					//	}
+					//}
 				}
 				else {
 					Console.WriteLine("Undo refused!");
 				}
+				Console.WriteLine();
 			}
 		}
 
@@ -159,7 +165,7 @@ namespace Metin2SpeechToData {
 				if (disposing) {
 					state = EnemyState.NO_ENEMY;
 					mobDrops = null;
-					stack.Clear();
+					//stack.Clear();
 					asociated.OnModifierRecognized -= EnemyTargetingModifierRecognized;
 					masterMobRecognizer.SpeechRecognized -= MasterMobRecognizer_SpeechRecognized;
 				}
