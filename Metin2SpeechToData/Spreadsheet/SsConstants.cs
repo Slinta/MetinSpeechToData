@@ -39,6 +39,9 @@
 			/// </summary>
 			public const string A_ENEMIES_FIRST_LINK = "F5";
 
+			public const string E_TOTAL_KILLED = "H5";
+
+
 
 			public const string AREA_TOTAL_DROPED_ITEMS = "P4";
 		}

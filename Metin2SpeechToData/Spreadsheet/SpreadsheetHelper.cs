@@ -10,14 +10,16 @@ namespace Metin2SpeechToData {
 		/// until it reaches an empty cell in next data column, then it returns null
 		/// <para>A3 > A4 > A5 .. Ax is null continue next column E3 > E4 ... I3 is empty >> NULL</para>
 		/// </summary>
-		public static ExcelCellAddress Advance(ExcelWorksheet sheet, ExcelCellAddress currAddr) {
+		public static ExcelCellAddress Advance(ExcelWorksheet sheet, ExcelCellAddress currAddr, out bool nextGroup) {
 			currAddr = new ExcelCellAddress(currAddr.Row + 1, currAddr.Column);
 			if (sheet.Cells[currAddr.Address].Value == null) {
 				currAddr = new ExcelCellAddress(H_FIRST_ROW, currAddr.Column + H_COLUMN_INCREMENT);
+				nextGroup = true;
 				if (sheet.Cells[currAddr.Address].Value == null) {
 					return null;
 				}
 			}
+			nextGroup = false;
 			return currAddr;
 		}
 

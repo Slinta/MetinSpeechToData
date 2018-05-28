@@ -130,7 +130,7 @@ namespace SheetSync {
 						Console.WriteLine("Possibly '" + curr_min + "'?");
 						Typos t = new Typos(sheetItemName, curr_min.Replace("' or '", "_").Trim('\'', ' ').Split('_'), currAddr, sheet);
 						currTypos.Add(t);
-						currAddr = SpreadsheetHelper.Advance(sheet, currAddr);
+						currAddr = SpreadsheetHelper.Advance(sheet, currAddr, out bool nextGroup_);
 						if (currAddr == null) {
 							break;
 						}
@@ -144,7 +144,7 @@ namespace SheetSync {
 					}
 
 
-					currAddr = SpreadsheetHelper.Advance(sheet, currAddr);
+					currAddr = SpreadsheetHelper.Advance(sheet, currAddr, out bool nextGroup);
 					if (currAddr == null) {
 						break;
 					}

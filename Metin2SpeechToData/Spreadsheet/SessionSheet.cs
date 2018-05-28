@@ -29,9 +29,7 @@ namespace Metin2SpeechToData {
 		private readonly Data data;
 		public ExcelPackage package { get; }
 
-		//private readonly Queue<ItemMeta> itemQ;
-
-		public readonly LinkedList<ItemMeta> itemInsertionList;
+		public LinkedList<ItemMeta> itemInsertionList { get; }
 
 		public SessionSheet(SpreadsheetInteraction interaction, string name, FileInfo mainSheet) {
 			string sessionsDir = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Sessions" + Path.DirectorySeparatorChar;
@@ -42,9 +40,9 @@ namespace Metin2SpeechToData {
 			current = template.InitSessionSheet(package.Workbook);
 			currFreeAddress = new ExcelCellAddress(ITEM_ROW, ITEM_COL);
 			data = new Data();
-			//itemQ = new Queue<ItemMeta>();
 			itemInsertionList = new LinkedList<ItemMeta>();
 			this.interaction = interaction;
+			current.SetValue(SESSION_AREA_NAME, name);
 			package.Save();
 		}
 
@@ -140,6 +138,7 @@ namespace Metin2SpeechToData {
 			public uint totalValue { get; set; }
 			public uint totalValueFromEnemies { get; set; }
 
+
 			public Data() {
 				start = DateTime.Now;
 				commonEnemy = new Dictionary<string, int>();
@@ -162,7 +161,7 @@ namespace Metin2SpeechToData {
 					currentGroups.Add(itemGroup);
 				}
 				totalValue += DefinitionParser.instance.getDefinitions[0].GetYangValue(item.itemBase.mainPronounciation);
-				if ((item.comesFromEnemy != "")) {
+				if (item.comesFromEnemy != "") {
 					totalValueFromEnemies += DefinitionParser.instance.getDefinitions[0].GetYangValue(item.itemBase.mainPronounciation);
 				}
 

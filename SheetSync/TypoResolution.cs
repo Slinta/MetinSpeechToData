@@ -13,6 +13,7 @@ namespace SheetSync {
 			if (typos.Length > 0 && Confirmation.WrittenConfirmation("Resovle name typos?")) {
 				ResolveTypos();
 			}
+			getTypos = typos;
 		}
 
 		public Typos[] getTypos { get; }

@@ -48,7 +48,7 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Creates new spreadsheet named 'name' in 'current' workbook of type 'type'
 		/// </summary>
-		private ExcelWorksheet CreateFromTemplate(ExcelWorkbook current, SpreadsheetPresetType type, string name) {
+		public ExcelWorksheet CreateFromTemplate(ExcelWorkbook current, SpreadsheetPresetType type, string name) {
 			ExcelWorksheets _sheets = LoadTemplates();
 			switch (type) {
 				case SpreadsheetPresetType.MAIN: {

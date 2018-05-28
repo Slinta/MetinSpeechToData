@@ -15,16 +15,13 @@ namespace Metin2SpeechToData {
 		private readonly SpeechRecognitionEngine masterMobRecognizer;
 		private readonly ManualResetEventSlim evnt;
 		public MobAsociatedDrops mobDrops { get; private set; }
-		//private readonly DropOutStack<ItemInsertion> stack;
 		private string currentEnemy = "";
-		private string currentItem = "";
 		private readonly GameRecognizer asociated;
 
 		public EnemyHandling(GameRecognizer recognizer) {
 			asociated = recognizer;
 			recognizer.OnModifierRecognized += EnemyTargetingModifierRecognized;
 			mobDrops = new MobAsociatedDrops();
-			//stack = new DropOutStack<ItemInsertion>(Configuration.undoHistoryLength);
 			evnt = new ManualResetEventSlim(false);
 			masterMobRecognizer = new SpeechRecognitionEngine();
 			masterMobRecognizer.SetInputToDefaultAudioDevice();
@@ -99,7 +96,6 @@ namespace Metin2SpeechToData {
 			}
 			else if (args.modifier == CCommands.Speech.REMOVE_TARGET) {
 				currentEnemy = "";
-				currentItem = "";
 				state = EnemyState.NO_ENEMY;
 				
 				Console.WriteLine("Reset current target to 'None'");

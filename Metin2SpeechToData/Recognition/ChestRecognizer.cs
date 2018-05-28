@@ -45,14 +45,14 @@ namespace Metin2SpeechToData {
 				return;
 			}
 			Console.WriteLine(args.text + " -- " + args.confidence);
-			string mainPronounciation =  DefinitionParser.instance.currentGrammarFile.GetMainPronounciation(args.text);
-			ExcelCellAddress address = Program.interaction.GetAddress(mainPronounciation);
+			//string mainPronounciation =  DefinitionParser.instance.currentGrammarFile.GetMainPronounciation(args.text);
+			//ExcelCellAddress address = Program.interaction.GetAddress(mainPronounciation);
 			StopRecognition();
 			numbers.RecognizeAsync(RecognizeMode.Multiple);
 			evnt.Wait();
 			//Now we have an address and how many items they received
 			Console.WriteLine("Parsed: " + _count);
-			stack.Push(new ItemInsertion(address,_count));
+			//stack.Push(new ItemInsertion(address,_count));
 			//Program.interaction.AddNumberTo(address, _count);
 			evnt.Reset();
 		}
