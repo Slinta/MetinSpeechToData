@@ -9,6 +9,7 @@ namespace Metin2SpeechToData {
 
 		public const string LINK_TO_MAIN = "B5";
 		public const string SESSION_AREA_NAME = "B7";
+		public const string MERGED_STATUS = "B9";
 		public const string ENEMY_KILLS = "J5";
 		public const string AVERAGE_KILL_REWARD = "J6";
 		public const string MOST_COMMON_ENEMY = "J7";
@@ -43,6 +44,7 @@ namespace Metin2SpeechToData {
 			itemInsertionList = new LinkedList<ItemMeta>();
 			this.interaction = interaction;
 			current.SetValue(SESSION_AREA_NAME, name);
+			current.SetValue(MERGED_STATUS, "Not merged!");
 			package.Save();
 		}
 
@@ -59,7 +61,6 @@ namespace Metin2SpeechToData {
 				WriteOut();
 			}
 			itemInsertionList.AddFirst(new ItemMeta(item, enemy, dropTime));
-			
 		}
 
 

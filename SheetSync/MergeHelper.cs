@@ -15,6 +15,8 @@ namespace SheetSync {
 		private readonly Dictionary<string, Dictionary<string, ExcelCellAddress>> sheetToNameToDropCountAddress = new Dictionary<string, Dictionary<string, ExcelCellAddress>>();
 		private readonly Dictionary<string, Dictionary<string, Group>> sheetToNameToGroupAddress = new Dictionary<string, Dictionary<string, Group>>();
 
+		private List<(string sheetName, SpreadsheetTemplates.SpreadsheetPresetType sheetType)> modifiedLists = new List<(string, SpreadsheetTemplates.SpreadsheetPresetType)>();
+
 		public MergeHelper(ExcelPackage main, FileInfo[] sessions) {
 			List<int> list = new List<int>();
 
@@ -39,6 +41,7 @@ namespace SheetSync {
 			ExcelPackage package = new ExcelPackage(fileInfo);
 
 			ExcelWorksheet session = package.Workbook.Worksheets["Session"];
+			session.SetValue(SessionSheet.MERGED_STATUS, "Merged!");
 
 			string currAddress = DATA_FIRST_ENTRY;
 
@@ -51,7 +54,9 @@ namespace SheetSync {
 				);
 				string enemy = (string)session.Cells[SpreadsheetHelper.OffsetAddress(currAddress, 0, 7).Address].Value;
 				string currentSheetName = enemy != UNSPEICIFIED_ENEMY ? enemy : (string)session.Cells[SessionSheet.SESSION_AREA_NAME].Value;
-
+				if (!modifiedLists.Contains((currentSheetName, (enemy == currentSheetName ? SpreadsheetTemplates.SpreadsheetPresetType.ENEMY : SpreadsheetTemplates.SpreadsheetPresetType.AREA)))) {
+					modifiedLists.Add((currentSheetName, (enemy == currentSheetName ? SpreadsheetTemplates.SpreadsheetPresetType.ENEMY : SpreadsheetTemplates.SpreadsheetPresetType.AREA)));
+				}
 				bool exists = VerifyExistence(main, currentSheetName);
 				ExcelWorksheet currMain;
 				if (!exists) {
@@ -72,6 +77,7 @@ namespace SheetSync {
 				}
 
 
+
 				if (!sheetToNameToDropCountAddress.ContainsKey(currentSheetName)) {
 					Dictionaries d = LoadSpreadsheet(main.Workbook.Worksheets[currentSheetName], enemy != UNSPEICIFIED_ENEMY ? SpreadsheetTemplates.SpreadsheetPresetType.ENEMY : SpreadsheetTemplates.SpreadsheetPresetType.AREA);
 					sheetToNameToDropCountAddress.Add(currentSheetName, d.addresses);
@@ -84,9 +90,6 @@ namespace SheetSync {
 					nameToGroup = sheetToNameToGroupAddress[currentSheetName];
 				}
 
-
-
-
 				if (nameToDropCoutAddress.ContainsKey(item.mainPronounciation)) {
 					int currValue = (int)currMain.Cells[nameToDropCoutAddress[item.mainPronounciation].Row, nameToDropCoutAddress[item.mainPronounciation].Column].Value;
 					currMain.SetValue(nameToDropCoutAddress[item.mainPronounciation].Address, currValue + 1);
@@ -94,12 +97,43 @@ namespace SheetSync {
 				else {
 					AddItemEntry(currMain, item);
 				}
-
-
-
 				currAddress = SpreadsheetHelper.OffsetAddressString(currAddress, 1, 0);
 			}
+			UpdateLinks(main, package);
 			main.Save();
+			package.Save();
+		}
+
+		private void UpdateLinks(ExcelPackage main, ExcelPackage session) {
+			ExcelWorksheet mainInMain = main.Workbook.Worksheets[H_DEFAULT_SHEET_NAME];
+			ExcelWorksheet area = null;
+			for (int i = 0; i < modifiedLists.Count; i++) {
+				SpreadsheetHelper.HyperlinkAcrossFiles(session.File, "Session", "A1", main.Workbook.Worksheets[modifiedLists[i].sheetName], SsControl.C_LAST_SESSION_LINK, "Last Session");
+				if (modifiedLists[i].sheetType == SpreadsheetTemplates.SpreadsheetPresetType.AREA) {
+					area = main.Workbook.Worksheets[modifiedLists[i].sheetName];
+				}
+			}
+			ExcelCellAddress freeSheetLink = new ExcelCellAddress(MAIN_SHEET_LINKS);
+			while(mainInMain.Cells[freeSheetLink.Address].Value != null) {
+				freeSheetLink = SpreadsheetHelper.OffsetAddress(freeSheetLink, 1, 0);
+			}
+			SpreadsheetHelper.HyperlinkCell(mainInMain, freeSheetLink.Address, area, "A1", area.Name);
+			SpreadsheetHelper.HyperlinkCell(area, SsControl.C_RETURN_LINK, mainInMain, "A1", ">>Main Sheet<<");
+
+			ExcelCellAddress start = new ExcelCellAddress(SsControl.A_ENEMIES_FIRST_LINK);
+			byte counter = 0;
+			for (int i = 0; i < modifiedLists.Count; i++) {
+				if(modifiedLists[i].sheetType != SpreadsheetTemplates.SpreadsheetPresetType.AREA) {
+					SpreadsheetHelper.HyperlinkCell(area, start.Address, main.Workbook.Worksheets[modifiedLists[i].sheetName], "A1", modifiedLists[i].sheetName);
+					SpreadsheetHelper.HyperlinkCell(main.Workbook.Worksheets[modifiedLists[i].sheetName], SsControl.C_RETURN_LINK, area, "A1", "Back to " + area.Name);
+					start = SpreadsheetHelper.OffsetAddress(start, 1, 0);
+					counter++;
+					if(counter == 5) {
+						counter = 0;
+						start = SpreadsheetHelper.OffsetAddress(start, -5, 4);
+					}
+				}
+			}
 		}
 
 		private bool VerifyExistence(ExcelPackage main, string sheetName) {
@@ -306,7 +340,7 @@ namespace SheetSync {
 
 			Dictionary<string, string[]> itemEntries = data.GetDropsForMob(mobName);
 
-			ExcelCellAddress startAddr = new ExcelCellAddress(GROUP_ROW,GROUP_COL);
+			ExcelCellAddress startAddr = new ExcelCellAddress(GROUP_ROW, GROUP_COL);
 			foreach (string key in itemEntries.Keys) {
 				sheet.Cells[startAddr.Address].Value = key;
 				startAddr = SpreadsheetHelper.OffsetAddress(startAddr, 1, 0);

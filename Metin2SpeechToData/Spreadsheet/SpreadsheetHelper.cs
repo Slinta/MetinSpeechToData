@@ -42,7 +42,12 @@ namespace Metin2SpeechToData {
 		/// Creates a hyperlink in 'currentSheet' at 'currentCellAddress' pointing to 'other' file containing 'otherSheet' to defined 'locationAddress', hide link syntax with 'displeyText'
 		/// </summary>
 		public static void HyperlinkAcrossFiles(System.IO.FileInfo other, string otherSheet, string otherAddress, ExcelWorksheet current, string currAddress, string displayText) {
-			current.Cells[currAddress].Formula = string.Format("HYPERLINK(\"[{0}]'{1}'!{2}\",\"{3}\")", other.FullName, otherSheet, otherAddress, displayText);
+			if (Configuration.sheetViewer == Configuration.SheetViewer.EXCEL) {
+				current.Cells[currAddress].Formula = string.Format("HYPERLINK(\"[{0}]'{1}'!{2}\",\"{3}\")", other.FullName, otherSheet, otherAddress, displayText);
+			}
+			else {
+				current.Cells[currAddress].Formula = string.Format("HYPERLINK(\"file:///{0}#{1}.{2}\",\"{3}\")", other.FullName, otherSheet, otherAddress, displayText);
+			}
 		}
 
 		/// <summary>
