@@ -99,13 +99,13 @@ namespace Metin2SpeechToData {
 				sw.Write("# How many changes are made internally before writing into the file, lower is better for stability reasons, higher is less CPU intesive | DEAFULT=1 {1--100}\n");
 				sw.Write("WRITE_XSLX_AFTER_NO_OF_MODIFICATIONS= " + DEFAULT_INTERNAL_MODIFICATION_COUNT + "\n");
 				sw.WriteLine();
-				sw.Write("# The threshold for recognition, if the recognizer is less confident in waht you said than this value, it will ignore the word/sentence | DEAFULT=0.8 {0,5--0,95}\n");
+				sw.Write("# The threshold for recognition, if the recognizer is less confident in what you said than this value, it will ignore the word/sentence | DEAFULT=0.8 {0,5--0,95}\n");
 				sw.Write("SPEECH_ACCEPTANCE_THRESHOLD= " + DEFAULT_SPEECH_ACCEPTANCE_THRESHOLD + "\n");
 				sw.WriteLine();
-				sw.Write("# Spcecify which program do you use for opening .xlsx files, because LO Calc and MS Excel are not fully compatible | DEFAUL=EXCEL {'EXCEL','CALC'}\n");
+				sw.Write("# Specify which program do you use for opening .xlsx files, because LO Calc and MS Excel are not fully compatible | DEFAUL=EXCEL {'EXCEL','CALC'}\n");
 				sw.Write("DEFAULT_SHEET_EDITOR= " + DEFAULT_SHEET_VIEWER + "\n");
 				sw.WriteLine();
-				sw.Write("# Specify the interval for \"Average drop value per ____\" in session sheet (as minutes!) | DEFAULT=15 {5--60}");
+				sw.Write("# Specify the interval for \"Average drop value per ____\" in session sheet (as minutes!) | DEFAULT=15 {5--60}\n");
 				sw.Write("DEFAULT_AVERAGE_COMPUTATION_TIMESTEP= 15");
 				sw.WriteLine();
 			}

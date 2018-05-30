@@ -12,14 +12,12 @@ namespace Metin2SpeechToData {
 		public EnemyState state { get; set; }
 		private readonly SpeechRecognitionEngine masterMobRecognizer;
 		private readonly ManualResetEventSlim evnt;
-		public MobAsociatedDrops mobDrops { get; private set; }
 		private string currentEnemy = "";
 		private readonly GameRecognizer asociated;
 
 		public EnemyHandling(GameRecognizer recognizer) {
 			asociated = recognizer;
 			recognizer.OnModifierRecognized += EnemyTargetingModifierRecognized;
-			mobDrops = new MobAsociatedDrops();
 			evnt = new ManualResetEventSlim(false);
 			masterMobRecognizer = new SpeechRecognitionEngine();
 			masterMobRecognizer.SetInputToDefaultAudioDevice();
@@ -138,13 +136,7 @@ namespace Metin2SpeechToData {
 		/// Increases number count to 'item' in current speadsheet
 		/// </summary>
 		public void ItemDropped(DefinitionParserData.Item item, int amount = 1) {
-			//if (!string.IsNullOrWhiteSpace(currentEnemy)) {
-			//	mobDrops.UpdateDrops(currentEnemy, item);
-			//}
 			Program.interaction.currentSession.Add(item, currentEnemy, DateTime.Now);
-			//ExcelCellAddress address = Program.interaction.GetAddress(item.mainPronounciation);
-			//Program.interaction.AddNumberTo(address, amount);
-			//stack.Push(new ItemInsertion(address,amount));
 		}
 		public void ItemDropped(string item, int amount = 1) {
 			ItemDropped(DefinitionParser.instance.currentGrammarFile.GetItemEntry(item), amount);
@@ -157,8 +149,6 @@ namespace Metin2SpeechToData {
 			if (!disposedValue) {
 				if (disposing) {
 					state = EnemyState.NO_ENEMY;
-					mobDrops = null;
-					//stack.Clear();
 					asociated.OnModifierRecognized -= EnemyTargetingModifierRecognized;
 					masterMobRecognizer.SpeechRecognized -= MasterMobRecognizer_SpeechRecognized;
 				}

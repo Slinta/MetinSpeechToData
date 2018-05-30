@@ -3,6 +3,7 @@ using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using static Metin2SpeechToData.Spreadsheet.SsConstants;
 
 
@@ -10,12 +11,14 @@ namespace SheetSync {
 	class MergeHelper {
 
 		private Dictionary<string, ExcelCellAddress> nameToDropCoutAddress = new Dictionary<string, ExcelCellAddress>();
-		private Dictionary<string, Group> nameToGroup = new Dictionary<string, Group>();
 
 		private readonly Dictionary<string, Dictionary<string, ExcelCellAddress>> sheetToNameToDropCountAddress = new Dictionary<string, Dictionary<string, ExcelCellAddress>>();
-		private readonly Dictionary<string, Dictionary<string, Group>> sheetToNameToGroupAddress = new Dictionary<string, Dictionary<string, Group>>();
 
-		private List<(string sheetName, SpreadsheetTemplates.SpreadsheetPresetType sheetType)> modifiedLists = new List<(string, SpreadsheetTemplates.SpreadsheetPresetType)>();
+		private readonly List<(string sheetName, SpreadsheetTemplates.SpreadsheetPresetType sheetType)> modifiedLists = new List<(string, SpreadsheetTemplates.SpreadsheetPresetType)>();
+
+		private readonly Dictionary<string, int> totalDropedItemsPerSheet = new Dictionary<string, int>();
+
+		private SessionSheet.ItemMeta[] itemArray;
 
 		public MergeHelper(ExcelPackage main, FileInfo[] sessions) {
 			List<int> list = new List<int>();
@@ -37,6 +40,7 @@ namespace SheetSync {
 			}
 		}
 
+
 		public void MergeSession(ExcelPackage main, FileInfo fileInfo) {
 			ExcelPackage package = new ExcelPackage(fileInfo);
 
@@ -44,7 +48,7 @@ namespace SheetSync {
 			session.SetValue(SessionSheet.MERGED_STATUS, "Merged!");
 
 			string currAddress = DATA_FIRST_ENTRY;
-
+			List<SessionSheet.ItemMeta> items = new List<SessionSheet.ItemMeta>();
 			while (session.Cells[currAddress].Value != null) {
 				DefinitionParserData.Item item = new DefinitionParserData.Item(
 					(string)session.Cells[currAddress].Value,
@@ -54,8 +58,18 @@ namespace SheetSync {
 				);
 				string enemy = (string)session.Cells[SpreadsheetHelper.OffsetAddress(currAddress, 0, 7).Address].Value;
 				string currentSheetName = enemy != UNSPEICIFIED_ENEMY ? enemy : (string)session.Cells[SessionSheet.SESSION_AREA_NAME].Value;
+
+				SessionSheet.ItemMeta meta = new SessionSheet.ItemMeta(item, currentSheetName, default(DateTime));
+				items.Add(meta);
+
 				if (!modifiedLists.Contains((currentSheetName, (enemy == currentSheetName ? SpreadsheetTemplates.SpreadsheetPresetType.ENEMY : SpreadsheetTemplates.SpreadsheetPresetType.AREA)))) {
 					modifiedLists.Add((currentSheetName, (enemy == currentSheetName ? SpreadsheetTemplates.SpreadsheetPresetType.ENEMY : SpreadsheetTemplates.SpreadsheetPresetType.AREA)));
+				}
+				if (totalDropedItemsPerSheet.ContainsKey(currentSheetName)) {
+					totalDropedItemsPerSheet[currentSheetName] = totalDropedItemsPerSheet[currentSheetName] + 1;
+				}
+				else {
+					totalDropedItemsPerSheet.Add(currentSheetName, 1);
 				}
 				bool exists = VerifyExistence(main, currentSheetName);
 				ExcelWorksheet currMain;
@@ -76,18 +90,13 @@ namespace SheetSync {
 					currMain = main.Workbook.Worksheets[currentSheetName];
 				}
 
-
-
 				if (!sheetToNameToDropCountAddress.ContainsKey(currentSheetName)) {
 					Dictionaries d = LoadSpreadsheet(main.Workbook.Worksheets[currentSheetName], enemy != UNSPEICIFIED_ENEMY ? SpreadsheetTemplates.SpreadsheetPresetType.ENEMY : SpreadsheetTemplates.SpreadsheetPresetType.AREA);
 					sheetToNameToDropCountAddress.Add(currentSheetName, d.addresses);
-					sheetToNameToGroupAddress.Add(currentSheetName, d.groups);
 					nameToDropCoutAddress = sheetToNameToDropCountAddress[currentSheetName];
-					nameToGroup = sheetToNameToGroupAddress[currentSheetName];
 				}
 				else {
 					nameToDropCoutAddress = sheetToNameToDropCountAddress[currentSheetName];
-					nameToGroup = sheetToNameToGroupAddress[currentSheetName];
 				}
 
 				if (nameToDropCoutAddress.ContainsKey(item.mainPronounciation)) {
@@ -99,9 +108,49 @@ namespace SheetSync {
 				}
 				currAddress = SpreadsheetHelper.OffsetAddressString(currAddress, 1, 0);
 			}
+			itemArray = items.ToArray();
 			UpdateLinks(main, package);
+			UpdateSheetHeadders(main);
 			main.Save();
 			package.Save();
+		}
+
+
+		public void UpdateSheetHeadders(ExcelPackage package) {
+			for (int i = 0; i < modifiedLists.Count; i++) {
+				ExcelWorksheet current = package.Workbook.Worksheets[modifiedLists[i].sheetName];
+				int itemCount = CountItems(current);
+				current.SetValue(SsControl.C_TOTAL_DROPED_ITEMS, current.Cells[SsControl.C_TOTAL_DROPED_ITEMS].GetValue<int>() + totalDropedItemsPerSheet[modifiedLists[i].sheetName]);
+				current.SetValue(SsControl.C_TOTAL_DROPED_VALUE, current.Cells[SsControl.C_TOTAL_DROPED_VALUE].GetValue<int>() + itemArray.Where((x) => x.comesFromEnemy == modifiedLists[i].sheetName).Sum((x) => x.itemBase.yangValue));
+				current.SetValue(SsControl.A_E_TOTAL_GROUPS, CountGroups(current));
+				current.SetValue(SsControl.C_TOTAL_ITEMS, itemCount);
+				current.SetValue(SsControl.A_E_TOTAL_MERGED_SESSIONS, current.Cells[SsControl.A_E_TOTAL_MERGED_SESSIONS].GetValue<int>() + 1);
+				current.SetValue(SsControl.A_E_LAST_MODIFICATION, DateTime.Now.ToShortDateString() +" | "+ DateTime.Now.ToShortTimeString());
+
+				if (modifiedLists[i].sheetType == SpreadsheetTemplates.SpreadsheetPresetType.ENEMY) {
+					current.SetValue(SsControl.E_TOTAL_KILLED, current.Cells[SsControl.E_TOTAL_KILLED].GetValue<int>() + 1);
+					current.SetValue(SsControl.E_AVERAGE_DROP, GetAverage(current.Cells[SsControl.E_AVERAGE_DROP].GetValue<float>(), itemCount, itemArray.Where((x) => x.comesFromEnemy == modifiedLists[i].sheetName).ToArray()));
+				}
+			}
+		}
+
+		private int GetAverage(float currAverage, int currItemCount, SessionSheet.ItemMeta[] newItems) {
+			Console.WriteLine("Not Implemented");
+			return -1;
+			throw new NotImplementedException(); //TODO implement average drop calculation
+		}
+
+		private int CountItems(ExcelWorksheet current) {
+			ExcelCellAddress start = new ExcelCellAddress(DATA_FIRST_ENTRY);
+			if(current.Cells[start.Address].Value == null) {
+				return 0;
+			}
+			int counter = 1;
+			while(start != null) {
+				start = SpreadsheetHelper.Advance(current, start, out bool nextGroup);
+				counter++;
+			}
+			return counter;
 		}
 
 		private void UpdateLinks(ExcelPackage main, ExcelPackage session) {
@@ -113,6 +162,10 @@ namespace SheetSync {
 					area = main.Workbook.Worksheets[modifiedLists[i].sheetName];
 				}
 			}
+			if (area == null) {
+				throw new CustomException("Session doesn't have primary recognizer attached to it!");
+			}
+
 			ExcelCellAddress freeSheetLink = new ExcelCellAddress(MAIN_SHEET_LINKS);
 			while (mainInMain.Cells[freeSheetLink.Address].Value != null) {
 				freeSheetLink = SpreadsheetHelper.OffsetAddress(freeSheetLink, 1, 0);
@@ -266,7 +319,6 @@ namespace SheetSync {
 			Dictionaries dicts = InitializeAreaSheet(DefinitionParser.instance.GetDefinitionByName(areaName), sheet);
 			if (!nameToDropCoutAddress.ContainsKey(areaName)) {
 				sheetToNameToDropCountAddress.Add(areaName, dicts.addresses);
-				sheetToNameToGroupAddress.Add(areaName, dicts.groups);
 			}
 		}
 
@@ -276,7 +328,6 @@ namespace SheetSync {
 				addresses = new Dictionary<string, ExcelCellAddress>(),
 				groups = new Dictionary<string, Group>()
 			};
-
 
 			sheet.SetValue(SsControl.C_SHEET_NAME, "Spreadsheet for " + sheet.Name);
 
@@ -313,8 +364,6 @@ namespace SheetSync {
 				sheet.SetValue(nameAddr.Address, entry.mainPronounciation);
 				sheet.SetValue(yangVal.Address, entry.yangValue);
 				sheet.SetValue(collected.Address, 0);
-
-				sheet.Cells[yangVal.Address].Style.Numberformat.Format = "# ###";
 				d.addresses.Add(entry.mainPronounciation, collected);
 			}
 			return d;
@@ -324,7 +373,6 @@ namespace SheetSync {
 			Dictionaries dicts = InitializeMobSheet(mobName, underlyingArea, sheet);
 			if (!sheetToNameToDropCountAddress.ContainsKey(mobName)) {
 				sheetToNameToDropCountAddress.Add(mobName, dicts.addresses);
-				sheetToNameToGroupAddress.Add(mobName, dicts.groups);
 			}
 		}
 

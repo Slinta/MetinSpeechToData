@@ -67,7 +67,7 @@ namespace Metin2SpeechToData {
 
 
 		protected override void SpeechRecognized(object sender, SpeechRecognizedArgs args) {
-			if (SpeechRecognitionHelper.reverseModifierDict.ContainsKey(args.text)) {
+			if (SpeechHelperBase.reverseModifierDict.ContainsKey(args.text)) {
 				ModifierRecognized(this, args);
 				return;
 			}

@@ -38,8 +38,6 @@ namespace Metin2SpeechToData {
 			return false;
 		}
 
-
-
 		private static void Confimer_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {
 			bool speechValidated = false;
 			if (e.Result.Text == _boolConfirmation[0]) {

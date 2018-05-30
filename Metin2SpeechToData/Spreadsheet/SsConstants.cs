@@ -13,7 +13,10 @@
 			/// Last session that was merged to this sheet, works for AREA and ENEMY
 			/// </summary>
 			public const string C_LAST_SESSION_LINK = "B7";
-
+			/// <summary>
+			/// Total droped items on this sheet
+			/// </summary>
+			public const string C_TOTAL_DROPED_ITEMS = "P4";
 			/// <summary>
 			/// Sum of all yangs gaind from this sheet, works for all sheet types
 			/// </summary>
@@ -23,7 +26,7 @@
 			/// </summary>
 			public const string A_E_TOTAL_GROUPS = "P6";
 			/// <summary>
-			/// Total item count on this sheet (droped)
+			/// Total item count on this sheet
 			/// </summary>
 			public const string C_TOTAL_ITEMS = "P7";
 			/// <summary>
@@ -38,12 +41,14 @@
 			/// Link to asociated enemy sheet, works only for AREA
 			/// </summary>
 			public const string A_ENEMIES_FIRST_LINK = "F5";
-
+			/// <summary>
+			/// How many of this enemy did user kill
+			/// </summary>
 			public const string E_TOTAL_KILLED = "H5";
-
-
-
-			public const string AREA_TOTAL_DROPED_ITEMS = "P4";
+			/// <summary>
+			/// How much does user gain on average from this enemy
+			/// </summary>
+			public const string E_AVERAGE_DROP = "H6";
 		}
 
 		public const string MAIN_SHEET_LINKS = "D7";
@@ -64,7 +69,7 @@
 		public const string MAIN_HLINK_OFFSET = "A1";
 		public const string MAIN_FIRST_HLINK = "B2";
 
-		public const byte H_FIRST_ROW = 3/*13*/;
+		public const byte H_FIRST_ROW = 13;
 		public const byte H_COLUMN_INCREMENT = 4;
 
 		public const string H_DEFAULT_SHEET_NAME = "Metin2 Drop Analyzer";
