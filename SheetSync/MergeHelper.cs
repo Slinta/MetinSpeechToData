@@ -91,7 +91,7 @@ namespace SheetSync {
 				}
 
 				if (nameToDropCoutAddress.ContainsKey(item.mainPronounciation)) {
-					int currValue = (int)currMain.Cells[nameToDropCoutAddress[item.mainPronounciation].Row, nameToDropCoutAddress[item.mainPronounciation].Column].Value;
+					int currValue = currMain.GetValue<int>(nameToDropCoutAddress[item.mainPronounciation].Row, nameToDropCoutAddress[item.mainPronounciation].Column);
 					currMain.SetValue(nameToDropCoutAddress[item.mainPronounciation].Address, currValue + 1);
 				}
 				else {
@@ -114,7 +114,7 @@ namespace SheetSync {
 				}
 			}
 			ExcelCellAddress freeSheetLink = new ExcelCellAddress(MAIN_SHEET_LINKS);
-			while(mainInMain.Cells[freeSheetLink.Address].Value != null) {
+			while (mainInMain.Cells[freeSheetLink.Address].Value != null) {
 				freeSheetLink = SpreadsheetHelper.OffsetAddress(freeSheetLink, 1, 0);
 			}
 			SpreadsheetHelper.HyperlinkCell(mainInMain, freeSheetLink.Address, area, "A1", area.Name);
@@ -123,12 +123,12 @@ namespace SheetSync {
 			ExcelCellAddress start = new ExcelCellAddress(SsControl.A_ENEMIES_FIRST_LINK);
 			byte counter = 0;
 			for (int i = 0; i < modifiedLists.Count; i++) {
-				if(modifiedLists[i].sheetType != SpreadsheetTemplates.SpreadsheetPresetType.AREA) {
+				if (modifiedLists[i].sheetType != SpreadsheetTemplates.SpreadsheetPresetType.AREA) {
 					SpreadsheetHelper.HyperlinkCell(area, start.Address, main.Workbook.Worksheets[modifiedLists[i].sheetName], "A1", modifiedLists[i].sheetName);
 					SpreadsheetHelper.HyperlinkCell(main.Workbook.Worksheets[modifiedLists[i].sheetName], SsControl.C_RETURN_LINK, area, "A1", "Back to " + area.Name);
 					start = SpreadsheetHelper.OffsetAddress(start, 1, 0);
 					counter++;
-					if(counter == 5) {
+					if (counter == 5) {
 						counter = 0;
 						start = SpreadsheetHelper.OffsetAddress(start, -5, 4);
 					}
@@ -197,8 +197,8 @@ namespace SheetSync {
 					byte groupcounter = 0;
 
 					for (int i = 0; i < totalGroups; i++) {
-						rowOfEachGroup[groupcounter] = 2;
-						columnOfEachGroup[groupcounter] = (byte)(groupcounter * H_COLUMN_INCREMENT + 1);
+						rowOfEachGroup[groupcounter] = GROUP_ROW;
+						columnOfEachGroup[groupcounter] = (byte)(GROUP_COL + groupcounter * H_COLUMN_INCREMENT);
 						ExcelCellAddress address = new ExcelCellAddress(rowOfEachGroup[groupcounter], columnOfEachGroup[groupcounter]);
 						groupcounter += 1;
 						Group g = new Group(address, new ExcelCellAddress(address.Row + 1, address.Column));
@@ -224,7 +224,7 @@ namespace SheetSync {
 				case SpreadsheetTemplates.SpreadsheetPresetType.ENEMY: {
 					ExcelCellAddress current = new ExcelCellAddress(DATA_FIRST_ENTRY);
 
-					while (sheet.Cells[current.Address].Value != null) {
+					while (current != null && sheet.Cells[current.Address].Value != null) {
 						d.addresses.Add(sheet.Cells[current.Row, current.Column].GetValue<string>(), new ExcelCellAddress(current.Row, current.Column + 2));
 						current = SpreadsheetHelper.Advance(sheet, current, out bool nextGroup);
 					}
@@ -240,11 +240,11 @@ namespace SheetSync {
 			List<DefinitionParserData.Item> items = new List<DefinitionParserData.Item>();
 			byte currColumn = 0;
 			ExcelCellAddress currItemAddress = new ExcelCellAddress(DATA_FIRST_ENTRY);
-			while (sheet.Cells[currItemAddress.Address].Value != null) {
+			while (currItemAddress != null && sheet.Cells[currItemAddress.Address].Value != null) {
 				string currGroup = (string)sheet.Cells[GROUP_ROW, GROUP_COL + currColumn * H_COLUMN_INCREMENT].Value;
 
 				string mainPron = (string)sheet.GetValue(currItemAddress.Row, currItemAddress.Column);
-				uint yangVal = uint.Parse((string)sheet.Cells[SpreadsheetHelper.OffsetAddress(currItemAddress, 0, 1).Address].Value);
+				uint yangVal = sheet.GetValue<uint>(currItemAddress.Row, currItemAddress.Column + 1);
 				DefinitionParserData.Item item = new DefinitionParserData.Item(
 					mainPron,
 					new string[0],
@@ -262,8 +262,8 @@ namespace SheetSync {
 
 
 		public void InitAreaSheet(string areaName, ExcelWorksheet sheet) {
-			DefinitionParser parser = new DefinitionParser();
-			Dictionaries dicts = InitializeAreaSheet(parser.GetDefinitionByName(areaName), sheet);
+
+			Dictionaries dicts = InitializeAreaSheet(DefinitionParser.instance.GetDefinitionByName(areaName), sheet);
 			if (!nameToDropCoutAddress.ContainsKey(areaName)) {
 				sheetToNameToDropCountAddress.Add(areaName, dicts.addresses);
 				sheetToNameToGroupAddress.Add(areaName, dicts.groups);
@@ -321,15 +321,14 @@ namespace SheetSync {
 		}
 
 		public void InitMobSheet(string mobName, string underlyingArea, ExcelWorksheet sheet) {
-			MobAsociatedDrops d = new MobAsociatedDrops();
-			Dictionaries dicts = InitializeMobSheet(mobName, underlyingArea, d, sheet);
+			Dictionaries dicts = InitializeMobSheet(mobName, underlyingArea, sheet);
 			if (!sheetToNameToDropCountAddress.ContainsKey(mobName)) {
 				sheetToNameToDropCountAddress.Add(mobName, dicts.addresses);
 				sheetToNameToGroupAddress.Add(mobName, dicts.groups);
 			}
 		}
 
-		public Dictionaries InitializeMobSheet(string mobName, string underlyingArea, MobAsociatedDrops data, ExcelWorksheet sheet) {
+		public Dictionaries InitializeMobSheet(string mobName, string underlyingArea, ExcelWorksheet sheet) {
 			Dictionaries d = new Dictionaries() {
 				addresses = new Dictionary<string, ExcelCellAddress>(),
 				groups = new Dictionary<string, Group>()
@@ -337,25 +336,6 @@ namespace SheetSync {
 
 			sheet.SetValue(SsControl.C_SHEET_NAME, "Spreadsheet for " + sheet.Name);
 			sheet.SetValue(SsControl.E_TOTAL_KILLED, 0);
-
-			Dictionary<string, string[]> itemEntries = data.GetDropsForMob(mobName);
-
-			ExcelCellAddress startAddr = new ExcelCellAddress(GROUP_ROW, GROUP_COL);
-			foreach (string key in itemEntries.Keys) {
-				sheet.Cells[startAddr.Address].Value = key;
-				startAddr = SpreadsheetHelper.OffsetAddress(startAddr, 1, 0);
-
-				for (int i = 0; i < itemEntries[key].Length; i++) {
-					ExcelCellAddress itemName = new ExcelCellAddress(startAddr.Row, startAddr.Column);
-					ExcelCellAddress yangVal = new ExcelCellAddress(startAddr.Row, startAddr.Column + 1);
-					ExcelCellAddress totalDroped = new ExcelCellAddress(startAddr.Row, startAddr.Column + 2);
-					sheet.SetValue(itemName.Address, itemEntries[key][i]);
-					d.addresses.Add(itemEntries[key][i], totalDroped);
-					sheet.SetValue(yangVal.Address, DefinitionParser.instance.GetDefinitionByName(underlyingArea).GetYangValue(itemEntries[key][i]));
-					sheet.SetValue(totalDroped.Address, 0);
-				}
-				startAddr = SpreadsheetHelper.OffsetAddress(startAddr, -1, H_COLUMN_INCREMENT);
-			}
 			return d;
 		}
 

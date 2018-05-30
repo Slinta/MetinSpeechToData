@@ -117,10 +117,7 @@ namespace Metin2SpeechToData {
 									File.Delete(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
 									Console.WriteLine("config.cfg");
 								}
-								if (File.Exists(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + MobAsociatedDrops.MOB_DROPS_FILE)) {
-									File.Delete(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + MobAsociatedDrops.MOB_DROPS_FILE);
-									Console.WriteLine(MobAsociatedDrops.MOB_DROPS_FILE);
-								}
+						
 								if (File.Exists(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + Configuration.DEFAULT_FILE_NAME)) {
 									File.Delete(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + Configuration.DEFAULT_FILE_NAME);
 									Console.WriteLine(Configuration.DEFAULT_FILE_NAME);

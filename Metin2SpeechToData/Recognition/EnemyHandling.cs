@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Speech.Recognition;
 using System.Threading;
-using OfficeOpenXml;
-using Metin2SpeechToData.Structures;
 
 namespace Metin2SpeechToData {
 	public class EnemyHandling : IDisposable {
@@ -72,7 +70,7 @@ namespace Metin2SpeechToData {
 						
 						Console.WriteLine("Acquired target: " + currentEnemy);
 						Console.WriteLine();
-
+						Console.ForegroundColor = ConsoleColor.Green;
 						return;
 					}
 					case EnemyState.FIGHTING: {
@@ -80,6 +78,7 @@ namespace Metin2SpeechToData {
 
 						Console.WriteLine();
 						Console.WriteLine("Killed " + currentEnemy + ", the death count increased");
+						Console.ForegroundColor = ConsoleColor.White;
 						Program.interaction.currentSession.EnemyKilled(currentEnemy, DateTime.Now);
 
 						currentEnemy = "";
@@ -91,6 +90,7 @@ namespace Metin2SpeechToData {
 			else if (args.modifier == CCommands.Speech.TARGET_KILLED) {
 				Console.WriteLine();
 				Console.WriteLine("Killed " + currentEnemy + ", the death count increased");
+				Console.ForegroundColor = ConsoleColor.Gray;
 				Program.interaction.currentSession.EnemyKilled(currentEnemy, DateTime.Now);
 				EnemyTargetingModifierRecognized(this, new ModiferRecognizedEventArgs(CCommands.Speech.REMOVE_TARGET,""));
 			}
@@ -106,6 +106,7 @@ namespace Metin2SpeechToData {
 					Console.WriteLine("Nothing else to undo!");
 					return;
 				}
+				Console.ForegroundColor = ConsoleColor.Red;
 				SessionSheet.ItemMeta action = Program.interaction.currentSession.itemInsertionList.First.Value;
 				Console.WriteLine("Would remove " + action.itemBase.mainPronounciation);
 
@@ -117,6 +118,13 @@ namespace Metin2SpeechToData {
 				}
 				else {
 					Console.WriteLine("Undo refused!");
+				}
+
+				if(currentEnemy == "") {
+					Console.ForegroundColor = ConsoleColor.Gray;
+				}
+				else {
+					Console.ForegroundColor = ConsoleColor.Green;
 				}
 				Console.WriteLine();
 			}
@@ -130,9 +138,9 @@ namespace Metin2SpeechToData {
 		/// Increases number count to 'item' in current speadsheet
 		/// </summary>
 		public void ItemDropped(DefinitionParserData.Item item, int amount = 1) {
-			if (!string.IsNullOrWhiteSpace(currentEnemy)) {
-				mobDrops.UpdateDrops(currentEnemy, item);
-			}
+			//if (!string.IsNullOrWhiteSpace(currentEnemy)) {
+			//	mobDrops.UpdateDrops(currentEnemy, item);
+			//}
 			Program.interaction.currentSession.Add(item, currentEnemy, DateTime.Now);
 			//ExcelCellAddress address = Program.interaction.GetAddress(item.mainPronounciation);
 			//Program.interaction.AddNumberTo(address, amount);

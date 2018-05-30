@@ -22,6 +22,7 @@ namespace SheetSync {
 			ExcelPackage sheetsFile = new ExcelPackage(cfg.xlsxFile);
 			FileInfo[] sessionFiles = currentDirectory.GetDirectories("Sessions")[0].GetFiles("*.xlsx");
 
+			DefinitionParser parser = new DefinitionParser();
 			DiffChecker checker = new DiffChecker(sheetsFile, currFiles);
 			TypoResolution typoRes = new TypoResolution(checker.getTypos);
 			MergeHelper merge = new MergeHelper(sheetsFile, sessionFiles);
