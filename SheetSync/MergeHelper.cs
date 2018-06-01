@@ -42,9 +42,9 @@ namespace SheetSync {
 
 
 		public void MergeSession(ExcelPackage main, FileInfo fileInfo) {
-			ExcelPackage package = new ExcelPackage(fileInfo);
+			ExcelPackage sessionPackage = new ExcelPackage(fileInfo);
 
-			ExcelWorksheet session = package.Workbook.Worksheets["Session"];
+			ExcelWorksheet session = sessionPackage.Workbook.Worksheets["Session"];
 			session.SetValue(SessionSheet.MERGED_STATUS, "Merged!");
 
 			string currAddress = DATA_FIRST_ENTRY;
@@ -59,7 +59,7 @@ namespace SheetSync {
 				string enemy = (string)session.Cells[SpreadsheetHelper.OffsetAddress(currAddress, 0, 7).Address].Value;
 				string currentSheetName = enemy != UNSPEICIFIED_ENEMY ? enemy : (string)session.Cells[SessionSheet.SESSION_AREA_NAME].Value;
 
-				SessionSheet.ItemMeta meta = new SessionSheet.ItemMeta(item, currentSheetName, default(DateTime));
+				SessionSheet.ItemMeta meta = new SessionSheet.ItemMeta(item, currentSheetName, default(DateTime), 1);
 				items.Add(meta);
 
 				if (!modifiedLists.Contains((currentSheetName, (enemy == currentSheetName ? SpreadsheetTemplates.SpreadsheetPresetType.ENEMY : SpreadsheetTemplates.SpreadsheetPresetType.AREA)))) {
@@ -109,10 +109,10 @@ namespace SheetSync {
 				currAddress = SpreadsheetHelper.OffsetAddressString(currAddress, 1, 0);
 			}
 			itemArray = items.ToArray();
-			UpdateLinks(main, package);
+			UpdateLinks(main, sessionPackage);
 			UpdateSheetHeadders(main);
 			main.Save();
-			package.Save();
+			sessionPackage.Save();
 		}
 
 
@@ -125,7 +125,7 @@ namespace SheetSync {
 				current.SetValue(SsControl.A_E_TOTAL_GROUPS, CountGroups(current));
 				current.SetValue(SsControl.C_TOTAL_ITEMS, itemCount);
 				current.SetValue(SsControl.A_E_TOTAL_MERGED_SESSIONS, current.Cells[SsControl.A_E_TOTAL_MERGED_SESSIONS].GetValue<int>() + 1);
-				current.SetValue(SsControl.A_E_LAST_MODIFICATION, DateTime.Now.ToShortDateString() +" | "+ DateTime.Now.ToShortTimeString());
+				current.SetValue(SsControl.A_E_LAST_MODIFICATION, DateTime.Now.ToShortDateString() + " | " + DateTime.Now.ToShortTimeString());
 
 				if (modifiedLists[i].sheetType == SpreadsheetTemplates.SpreadsheetPresetType.ENEMY) {
 					current.SetValue(SsControl.E_TOTAL_KILLED, current.Cells[SsControl.E_TOTAL_KILLED].GetValue<int>() + 1);
@@ -142,11 +142,11 @@ namespace SheetSync {
 
 		private int CountItems(ExcelWorksheet current) {
 			ExcelCellAddress start = new ExcelCellAddress(DATA_FIRST_ENTRY);
-			if(current.Cells[start.Address].Value == null) {
+			if (current.Cells[start.Address].Value == null) {
 				return 0;
 			}
 			int counter = 1;
-			while(start != null) {
+			while (start != null) {
 				start = SpreadsheetHelper.Advance(current, start, out bool nextGroup);
 				counter++;
 			}
@@ -329,21 +329,18 @@ namespace SheetSync {
 				groups = new Dictionary<string, Group>()
 			};
 
-			sheet.SetValue(SsControl.C_SHEET_NAME, "Spreadsheet for " + sheet.Name);
+			sheet.Cells[SsControl.C_SHEET_NAME].Value = "Spreadsheet for " + sheet.Name;
 
 			int[] rowOfEachGroup = new int[data.groups.Length];
 			int[] columnOfEachGroup = new int[data.groups.Length];
-			int groupcounter = 0;
+			int groupCounter = 0;
+
 			foreach (string group in data.groups) {
-				rowOfEachGroup[groupcounter] = GROUP_ROW;
-				columnOfEachGroup[groupcounter] = GROUP_COL + groupcounter * H_COLUMN_INCREMENT;
-				ExcelCellAddress address = new ExcelCellAddress(rowOfEachGroup[groupcounter], columnOfEachGroup[groupcounter]);
-				sheet.Select(new ExcelAddress(address.Row, address.Column, address.Row, address.Column + 2));
-				ExcelRange r = sheet.SelectedRange;
-				r.Merge = true;
-				r.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+				rowOfEachGroup[groupCounter] = GROUP_ROW;
+				columnOfEachGroup[groupCounter] = GROUP_COL + groupCounter * H_COLUMN_INCREMENT;
+				ExcelCellAddress address = new ExcelCellAddress(rowOfEachGroup[groupCounter], columnOfEachGroup[groupCounter]);
 				sheet.SetValue(address.Address, group);
-				groupcounter += 1;
+				groupCounter += 1;
 				Group g = new Group(address, new ExcelCellAddress(address.Row + 1, address.Column));
 				d.groups.Add(group, g);
 			}
@@ -353,13 +350,13 @@ namespace SheetSync {
 				d.groups[entry.group] = g;
 				for (int i = 0; i < data.groups.Length; i++) {
 					if (data.groups[i] == entry.group) {
-						groupcounter = i;
+						groupCounter = i;
 					}
 				}
-				rowOfEachGroup[groupcounter] += 1;
-				ExcelCellAddress nameAddr = new ExcelCellAddress(rowOfEachGroup[groupcounter], columnOfEachGroup[groupcounter]);
-				ExcelCellAddress yangVal = new ExcelCellAddress(rowOfEachGroup[groupcounter], columnOfEachGroup[groupcounter] + 1);
-				ExcelCellAddress collected = new ExcelCellAddress(rowOfEachGroup[groupcounter], columnOfEachGroup[groupcounter] + 2);
+				rowOfEachGroup[groupCounter] += 1;
+				ExcelCellAddress nameAddr = new ExcelCellAddress(rowOfEachGroup[groupCounter], columnOfEachGroup[groupCounter]);
+				ExcelCellAddress yangVal = new ExcelCellAddress(rowOfEachGroup[groupCounter], columnOfEachGroup[groupCounter] + 1);
+				ExcelCellAddress collected = new ExcelCellAddress(rowOfEachGroup[groupCounter], columnOfEachGroup[groupCounter] + 2);
 
 				sheet.SetValue(nameAddr.Address, entry.mainPronounciation);
 				sheet.SetValue(yangVal.Address, entry.yangValue);

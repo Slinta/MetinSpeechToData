@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using OfficeOpenXml;
 using System;
-using static Metin2SpeechToData.Spreadsheet.SsConstants;
 
 namespace Metin2SpeechToData {
 	public class SpreadsheetTemplates : IDisposable {
@@ -15,8 +13,6 @@ namespace Metin2SpeechToData {
 		}
 
 		private ExcelPackage package;
-
-		public SpreadsheetTemplates() { }
 
 		/// <summary>
 		/// Opens and load Template.xlsx file from Templates folder
