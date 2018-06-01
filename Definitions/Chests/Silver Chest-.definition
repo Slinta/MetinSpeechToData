@@ -1,51 +1,46 @@
 Groups{
-	Rods
-	Veins
-	Chests
-	Runes
-	Books
-	Herbs
+	Armor
+	Potions
+	Yang
+	Experience
 	Goodies
 }
 
-Gold rod 500K/ Half a million, 500000, Rods
-Gold rod 1kk/ Million/ Gold rod 1 million, 1000000, Rods
-Gold rod 2kk/ Two million, 2000000, Rods
+Fenický Klobouk +6, 18600, Armor
+Fenický Klobouk +5, 12400, Armor
+Pětihraný Štít +5, 6000, Armor
+Posmívající se přilba +6, 18600, Armor
+Posmívající se přilba +5, 12400, Armor
+Železná přilba +5, 12400, Armor
+Řetězová Kapuce +5, 12400, Armor
+Řetězová Kapuce +6, 18600, Armor
 
-Silver Chest, 800000, Chests
-Silver Chest +, 600000, Chests
-Golden Chest/ Gold Chest, 500000, Chests
-Golden Key/ Gold Key, 500000, Chests
+Červený L., 10, Potions
+Modrý L., 140, Potions
+Červený M., 0, Potions
+Modrý  M., 72, Potions
+Červený S, 6, Potions
+Modrý S, 24, Potions
 
-Gold Vein, 100000, Veins
-Silver Vein, 100000, Veins
-God tear Vein, 100000, Veins
-Silica Vein, 100000, Veins
+Yang - 100000, 100000, Yang
+Yang - 150000, 150000, Yang
+Yang - 250000, 250000, Yang
+Yang - 300000, 300000, Yang
+Yang - 350000, 350000, Yang
+Yang - 500000, 500000, Yang
 
-Enchanted Parchment/ Enchanted pergamen, 1000000, Goodies
-Empower item/ Zesílit předmět, 750000, Goodies
-Cursed thing/ Uhranutá, 1000000, Goodies
-Experience Ring/ Expák/ Exp Ring, 1000000, Goodies
-Theie's Gloves/ Zoldějky/ Zlodějské Rukavice, 1000000, Goodies
-Orb of Transformation/ Orb/ Kulička/ Kulička proměny, 4000000, Goodies
-Meteor Easy, 100000, Goodies
-Meteor Medium, 200000, Goodies
- 
-Seed/ Semínko/ Semeno, 1000000, Herbs
-Blue Herb/ Blue Flower, 10000, Herbs
-Mushroom Tue, 10000, Herbs
 
-Book of Mining, 200, Books
 
-Rune bow/ Rune hwal, 400000, Runes
-Rune shoes/ Rune boots/ Rune gudu, 500000, Runes
-Rune armour/ Rune armor/Rune gabos, 1000000, Runes
-Rune earrings/Rune gwi, 500000, Runes
-Rune dagger/Rune kal, 400000, Runes
-Rune hat/ Rune helmes, 500000, Runes
-Rune sword/ Rune geom, 600000, Runes
-Rune bell/ Rune jong, 400000, Runes
-Rune double handed sword/ Rune chang, 500000, Runes
-Rune bracelet/Rune pai/ Rune paji/ Rune palji, 500000, Runes
-Rune necklace/Rune mog, 500000, Runes
-Rune shield/Rune bangpae, 500000, Runes
+BZK - 2000, 0, Experience
+BZK - 4000, 0, Experience
+BZK - 6000, 0, Experience
+BZK - 8000, 0, Experience
+
+
+Prapor, 1000000, Goodies
+Plášť Statečnosti, 105000, Goodies
+Mušle, 1000000, Goodies
+Šek, 10000000, Goodies
+Bílá Perla,7000000, Goodies
+Modrá Perla, 8000000, Goodies
+Rudá Perla, 14000000, Goodies
