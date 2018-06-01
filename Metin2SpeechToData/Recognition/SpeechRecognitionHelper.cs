@@ -71,6 +71,7 @@ namespace Metin2SpeechToData {
 					}
 					Console.WriteLine(list.Remove(list.Length - 2, 2).ToString());
 					baseRecognizer.OnRecognitionStateChanged(this, RecognitionBase.RecognitionState.ACTIVE);
+					Program.mapper.AttachHotkeyWrapper(_gameRecognizer);
 					Program.mapper.FreeNonCustomHotkeys();
 
 					SetGrammarState(CCommands.getStartCommand, false);
@@ -87,10 +88,13 @@ namespace Metin2SpeechToData {
 					break;
 				}
 				case CCommands.Speech.STOP: {
-					if(currentMode == UnderlyingRecognizer.AREA && _gameRecognizer.enemyHandling.state == EnemyHandling.EnemyState.FIGHTING) {
-						_gameRecognizer.enemyHandling.ForceKill();
+					if (currentMode == UnderlyingRecognizer.AREA) {
+						if (_gameRecognizer.enemyHandling.state == EnemyHandling.EnemyState.FIGHTING) {
+							_gameRecognizer.enemyHandling.ForceKill();
+						}
+						Program.interaction.StopSession();
 					}
-					Program.interaction.StopSession();
+					Program.mapper.DetachHotkeyWrapper();
 					baseRecognizer.OnRecognitionStateChanged(this, RecognitionBase.RecognitionState.STOPPED);
 					baseRecognizer.Dispose();
 					Dispose();

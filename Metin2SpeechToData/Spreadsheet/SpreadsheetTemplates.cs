@@ -14,12 +14,7 @@ namespace Metin2SpeechToData {
 			SESSION
 		}
 
-		private readonly SpreadsheetInteraction interaction;
 		private ExcelPackage package;
-
-		public SpreadsheetTemplates(SpreadsheetInteraction interaction) {
-			this.interaction = interaction;
-		}
 
 		public SpreadsheetTemplates() { }
 
@@ -71,42 +66,6 @@ namespace Metin2SpeechToData {
 			_sheets.Dispose();
 			Dispose();
 			return current.Worksheets[name];
-		}
-
-		/// <summary>
-		/// Fill headder information of 'curr' according to 'data'
-		/// </summary>
-		private void FillHeadder(ExcelWorksheet curr, DefinitionParserData data) {
-			FormLink(interaction.mainSheet, curr, data.ID);
-			curr.SetValue(SsControl.C_SHEET_NAME, data.ID);
-			curr.SetValue(SsControl.A_E_LAST_MODIFICATION, DateTime.Now.ToLongDateString());
-			curr.SetValue(SsControl.A_E_TOTAL_MERGED_SESSIONS, 0);
-		}
-		/// <summary>
-		/// Fill headder information of 'curr' according to 'data'
-		/// </summary>
-		private void FillHeadder(ExcelWorksheet curr, string name) {
-
-			FormLink(interaction.mainSheet, curr, name);
-			curr.SetValue(SsControl.C_SHEET_NAME, name);
-			curr.SetValue(SsControl.A_E_LAST_MODIFICATION, DateTime.Now.ToLongDateString());
-			curr.SetValue(SsControl.A_E_TOTAL_MERGED_SESSIONS, 0);
-		}
-
-		/// <summary>
-		/// Links current sheet with main
-		/// </summary>
-		private void FormLink(ExcelWorksheet mainSheet, ExcelWorksheet curr, string name) {
-			ExcelCellAddress hlinkAddress = new ExcelCellAddress(MAIN_HLINK_OFFSET);
-			int currOffsetMain = mainSheet.GetValue<int>(hlinkAddress.Row, hlinkAddress.Column);
-
-			ExcelCellAddress freeLinkSpot = new ExcelCellAddress(MAIN_FIRST_HLINK);
-			freeLinkSpot = new ExcelCellAddress(freeLinkSpot.Row + currOffsetMain, freeLinkSpot.Column);
-
-			mainSheet.SetValue(MAIN_HLINK_OFFSET, currOffsetMain + 1);
-
-			SpreadsheetHelper.HyperlinkCell(mainSheet, freeLinkSpot.Address, curr, SsControl.C_RETURN_LINK, name);
-			SpreadsheetHelper.HyperlinkCell(curr, SsControl.C_RETURN_LINK, mainSheet, freeLinkSpot.Address, ">>Main Sheet<<");
 		}
 
 		#region IDisposable Support

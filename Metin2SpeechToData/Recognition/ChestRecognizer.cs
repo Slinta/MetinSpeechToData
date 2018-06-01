@@ -1,24 +1,22 @@
 ﻿using System;
 using System.Speech.Recognition;
 using OfficeOpenXml;
+using System.Collections.Generic;
 using System.Threading;
 using Metin2SpeechToData.Structures;
 
 
 namespace Metin2SpeechToData {
 	public class ChestRecognizer : RecognitionBase {
-
 		private readonly SpeechRecognitionEngine numbers;
 
-		private readonly DropOutStack<ItemInsertion> stack;
 		private readonly ManualResetEventSlim evnt;
 
 		public SpeechRecognitionHelper helper { get; }
 
 
-		public ChestRecognizer(): base() {
+		public ChestRecognizer() : base() {
 			helper = new SpeechRecognitionHelper(this);
-			stack = new DropOutStack<ItemInsertion>(5);
 			evnt = new ManualResetEventSlim(false);
 			numbers = new SpeechRecognitionEngine();
 			numbers.SetInputToDefaultAudioDevice();
@@ -45,15 +43,17 @@ namespace Metin2SpeechToData {
 				return;
 			}
 			Console.WriteLine(args.text + " -- " + args.confidence);
-			//string mainPronounciation =  DefinitionParser.instance.currentGrammarFile.GetMainPronounciation(args.text);
-			//ExcelCellAddress address = Program.interaction.GetAddress(mainPronounciation);
 			StopRecognition();
 			numbers.RecognizeAsync(RecognizeMode.Multiple);
 			evnt.Wait();
 			//Now we have an address and how many items they received
 			Console.WriteLine("Parsed: " + _count);
-			//stack.Push(new ItemInsertion(address,_count));
-			//Program.interaction.AddNumberTo(address, _count);
+			Program.interaction.currentSession.Add(
+				DefinitionParser.instance.currentGrammarFile.GetItemEntry(DefinitionParser.instance.currentGrammarFile.GetMainPronounciation(args.text)),
+				"RNG",
+				DateTime.Now,
+				_count
+			);
 			evnt.Reset();
 		}
 
@@ -61,19 +61,18 @@ namespace Metin2SpeechToData {
 			CCommands.Speech current = SpeechHelperBase.reverseModifierDict[args.text];
 			switch (current) {
 				case CCommands.Speech.UNDO: {
-					ItemInsertion peeked = stack.Peek();
-					if (peeked.address == null) {
+					SessionSheet.ItemMeta peeked = Program.interaction.currentSession.itemInsertionList.Last.Value;
+					if (peeked.dropTime == default(DateTime)) {
 						Console.WriteLine("Nothing else to undo...");
 						return;
 					}
-					Console.WriteLine("Undoing... " + Program.interaction.currentSession.current.Cells[peeked.address.Row, peeked.address.Column - 2].GetValue<string>() + " with " + peeked.count + " items");
+					Console.WriteLine("Undoing... " + peeked.itemBase.mainPronounciation + " with " + peeked.amount + " items");
 					if (Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'")) {
-						Console.Write("Confirming");
-						ItemInsertion poped = stack.Pop();
-						//Program.interaction.AddNumberTo(poped.address, -poped.count);
+						Console.Write("Confirmed");
+						Program.interaction.currentSession.itemInsertionList.RemoveLast();
 					}
 					else {
-						Console.Write("Refusing");
+						Console.Write("Refused");
 					}
 					return;
 				}
@@ -90,9 +89,7 @@ namespace Metin2SpeechToData {
 				evnt.Set();
 				numbers.RecognizeAsyncStop();
 				BeginRecognition();
-				return;
 			}
-			throw new CustomException("This can never happen bacause the grammar is designed to only have numbers between 0-200 inclusive written as digits");
 		}
 
 		protected override void Dispose(bool disposing) {

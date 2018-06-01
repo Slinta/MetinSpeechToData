@@ -56,11 +56,11 @@ namespace Metin2SpeechToData {
 			data.UpdateDataEnemy(enemy, true, killTime);
 		}
 
-		public void Add(DefinitionParserData.Item item, string enemy, DateTime dropTime) {
+		public void Add(DefinitionParserData.Item item, string enemy, DateTime dropTime, int amount) {
 			if (itemInsertionList.Count == Configuration.undoHistoryLength) {
 				WriteOut();
 			}
-			itemInsertionList.AddFirst(new ItemMeta(item, enemy, dropTime));
+			itemInsertionList.AddFirst(new ItemMeta(item, enemy, dropTime, amount));
 		}
 
 
@@ -211,15 +211,17 @@ namespace Metin2SpeechToData {
 		}
 
 		public struct ItemMeta {
-			public ItemMeta(DefinitionParserData.Item itemBase, string comesFromEnemy, DateTime dropTime) {
+			public ItemMeta(DefinitionParserData.Item itemBase, string comesFromEnemy, DateTime dropTime, int amount) {
 				this.itemBase = itemBase;
 				this.comesFromEnemy = comesFromEnemy;
 				this.dropTime = dropTime;
+				this.amount = amount;
 			}
 
 			public DefinitionParserData.Item itemBase { get; }
 			public string comesFromEnemy { get; }
 			public DateTime dropTime { get; }
+			public int amount { get; }
 		}
 	}
 }

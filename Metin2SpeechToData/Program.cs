@@ -7,7 +7,6 @@ namespace Metin2SpeechToData {
 
 		public static bool debug { get; private set; } = false;
 
-		public static GameRecognizer gameRecognizer { get; private set; }
 		private static DefinitionParser parser { get; set; }
 
 		public static SpreadsheetInteraction interaction { get; private set; }
@@ -82,7 +81,7 @@ namespace Metin2SpeechToData {
 								break;
 							}
 							case "voice": {
-								gameRecognizer = new GameRecognizer();
+								GameRecognizer gameRecognizer = new GameRecognizer();
 								gameRecognizer.helper.AcquireControl();
 								Console.WriteLine("Returned to Main control!");
 								mapper.FreeGameHotkeys();
@@ -124,25 +123,6 @@ namespace Metin2SpeechToData {
 								}
 								config = new Configuration(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
 								interaction = new SpreadsheetInteraction(config.xlsxFile);
-								break;
-							}
-							default: {
-								Console.WriteLine("Not a valid command, type 'help' for more info");
-								break;
-							}
-						}
-						break;
-					}
-					case 2: {
-						switch (commandBlocks[0]) {
-							case "voice": {
-								if (commandBlocks[1] == "debug") {
-									debug = true;
-									Console.WriteLine("Entering debug mode");
-									gameRecognizer = new GameRecognizer();
-									gameRecognizer.helper.AcquireControl();
-									Console.WriteLine("Returned to Main control!");
-								}
 								break;
 							}
 							default: {

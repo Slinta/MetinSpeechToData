@@ -65,7 +65,7 @@ namespace Metin2SpeechToData {
 						string actualEnemyName = DefinitionParser.instance.currentMobGrammarFile.GetMainPronounciation(enemy);
 						state = EnemyState.FIGHTING;
 						currentEnemy = actualEnemyName;
-						
+
 						Console.WriteLine("Acquired target: " + currentEnemy);
 						Console.WriteLine();
 						Console.ForegroundColor = ConsoleColor.Green;
@@ -90,16 +90,16 @@ namespace Metin2SpeechToData {
 				Console.WriteLine("Killed " + currentEnemy + ", the death count increased");
 				Console.ForegroundColor = ConsoleColor.Gray;
 				Program.interaction.currentSession.EnemyKilled(currentEnemy, DateTime.Now);
-				EnemyTargetingModifierRecognized(this, new ModiferRecognizedEventArgs(CCommands.Speech.REMOVE_TARGET,""));
+				EnemyTargetingModifierRecognized(this, new ModiferRecognizedEventArgs(CCommands.Speech.REMOVE_TARGET, ""));
 			}
 			else if (args.modifier == CCommands.Speech.REMOVE_TARGET) {
 				currentEnemy = "";
 				state = EnemyState.NO_ENEMY;
-				
+
 				Console.WriteLine("Reset current target to 'None'");
 			}
 			else if (args.modifier == CCommands.Speech.UNDO) {
-				
+
 				if (Program.interaction.currentSession.itemInsertionList.Count == 0) {
 					Console.WriteLine("Nothing else to undo!");
 					return;
@@ -118,7 +118,7 @@ namespace Metin2SpeechToData {
 					Console.WriteLine("Undo refused!");
 				}
 
-				if(currentEnemy == "") {
+				if (currentEnemy == "") {
 					Console.ForegroundColor = ConsoleColor.Gray;
 				}
 				else {
@@ -136,7 +136,7 @@ namespace Metin2SpeechToData {
 		/// Increases number count to 'item' in current speadsheet
 		/// </summary>
 		public void ItemDropped(DefinitionParserData.Item item, int amount = 1) {
-			Program.interaction.currentSession.Add(item, currentEnemy, DateTime.Now);
+			Program.interaction.currentSession.Add(item, currentEnemy, DateTime.Now, amount);
 		}
 		public void ItemDropped(string item, int amount = 1) {
 			ItemDropped(DefinitionParser.instance.currentGrammarFile.GetItemEntry(item), amount);

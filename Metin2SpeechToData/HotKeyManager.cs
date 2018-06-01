@@ -404,9 +404,16 @@ namespace Metin2SpeechToData {
 			NativeMethods.PostMessage(Process.GetCurrentProcess().MainWindowHandle, 0x100, 0x0D, 0);
 		}
 
+		private GameRecognizer recognizer;
+		public void AttachHotkeyWrapper(GameRecognizer rec) {
+			recognizer = rec;
+		}
+		public void DetachHotkeyWrapper() {
+			recognizer = null;
+		}
 		public void EnemyHandlingItemDroppedWrapper(SpeechRecognizedArgs args) {
 			Console.WriteLine("Activated hotkey for item " + args.text + "!");
-			Program.gameRecognizer.enemyHandling.ItemDropped(args.text, 1);
+			recognizer.enemyHandling.ItemDropped(args.text, 1);
 		}
 
 		private void HotKeyManager_HotKeyPressed(object sender, HotKeyEventArgs e) {

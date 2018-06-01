@@ -16,11 +16,11 @@ namespace Metin2SpeechToData.Structures{
 	}
 
 	public struct ItemInsertion {
-		public ItemInsertion(ExcelCellAddress address, int count) {
-			this.address = address;
+		public ItemInsertion(string itemName, int count) {
+			this.itemName = itemName;
 			this.count = count;
 		}
-		public ExcelCellAddress address { get; }
+		public string itemName { get; }
 		public int count { get; }
 	}
 }
