@@ -96,7 +96,6 @@ namespace Metin2SpeechToData {
 			while (itemInsertionList.Count != 0) {
 				WriteOut();
 			}
-
 			PopulateHeadder(data);
 
 
@@ -198,6 +197,7 @@ namespace Metin2SpeechToData {
 
 			public float GetAverageTimeBetweenInSeconds(List<DateTime> list) {
 				double totalSeconds = 0;
+				
 				for (int i = 0; i < list.Count; i++) {
 					if (i == 0) {
 						totalSeconds += (list[0].Subtract(start)).TotalSeconds;
@@ -206,6 +206,11 @@ namespace Metin2SpeechToData {
 						totalSeconds += (list[i].Subtract(list[i - 1])).TotalSeconds;
 					}
 				}
+
+				if (list.Count == 0) {
+					return 0;
+				}
+
 				return (float)(totalSeconds / list.Count);
 			}
 		}

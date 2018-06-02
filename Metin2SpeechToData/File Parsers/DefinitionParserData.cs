@@ -1,4 +1,5 @@
-﻿using System.Speech.Recognition;
+﻿using System.Collections.Generic;
+using System.Speech.Recognition;
 
 namespace Metin2SpeechToData {
 	public class DefinitionParserData {
@@ -15,12 +16,12 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Groups defined at the top of the file
 		/// </summary>
-		public string[] groups { get; }
+		public string[] groups { get; private set; }
 
 		/// <summary>
 		/// All items that are described in the file
 		/// </summary>
-		public Item[] entries { get; }
+		public Item[] entries { get; private set; }
 
 		/// <summary>
 		/// Grammar created from all the item names and ambiguities
@@ -124,6 +125,25 @@ namespace Metin2SpeechToData {
 				}
 			}
 			throw new CustomException("Main pronounciation for " + itemName + " not found in entries");
+		}
+
+		public void AddItemDuringRuntime(Item item) {
+			List<Item> itemList = new List<Item>(entries);
+			foreach (Item entry in entries) {
+				if(entry.mainPronounciation == item.mainPronounciation) {
+					throw new CustomException("You can't add an item that already exists");
+				}
+			}
+			itemList.Add(item);
+			entries = itemList.ToArray();
+
+			List<string> groupsList = new List<string>(groups);
+			if (!groupsList.Contains(item.group)) {
+				groupsList.Add(item.group);
+				groups = groupsList.ToArray();
+			}
+
+			ConstructGrammar();
 		}
 	}
 }

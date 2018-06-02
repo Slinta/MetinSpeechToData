@@ -31,7 +31,18 @@ namespace Metin2SpeechToData {
 		/// <param name="grammarID"></param>
 		public void SwitchGrammar(string grammarID) {
 			Grammar selected = DefinitionParser.instance.GetMobGrammar(grammarID);
+			//Console.WriteLine("Current number of grammars in masterMobRecognizer:" + masterMobRecognizer.Grammars.Count);
+			if(masterMobRecognizer.Grammars.Count != 0) {
+				for (int i = masterMobRecognizer.Grammars.Count - 1; i >= 0; i--) {
+					if (masterMobRecognizer.Grammars[i].Name == "Mob_" + grammarID) {
+						masterMobRecognizer.UnloadGrammar(masterMobRecognizer.Grammars[i]);
+					}
+				}
+			}
+			
 			masterMobRecognizer.LoadGrammar(selected);
+			
+			
 		}
 
 		private string GetEnemy() {

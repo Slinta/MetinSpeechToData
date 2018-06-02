@@ -46,12 +46,11 @@ namespace Metin2SpeechToData {
 						Enemy parsed = new Enemy(same[0],
 												 same.Where(a => a != same[0]).ToArray(),
 												 ushort.Parse(split[1]),
-												 GetAsociatedDrops(same[0]),
 												 ParseClass(split[2]));
 						mobs.Add(parsed);
 					}
 					data.enemies = mobs.ToArray();
-					data.grammar = ConstructGrammar(data.enemies);
+					data.grammar = ConstructGrammar(data);
 					dataList.Add(data);
 				}
 			}
@@ -106,7 +105,7 @@ namespace Metin2SpeechToData {
 		}
 		#endregion
 
-		private MobClass ParseClass(string s) {
+		public MobClass ParseClass(string s) {
 			s = s.Trim(' ');
 			switch (s) {
 				case "COMMON": {
@@ -128,31 +127,42 @@ namespace Metin2SpeechToData {
 			throw new CustomException("Invalid Mob type " + s);
 		}
 
-		public Grammar ConstructGrammar(Enemy[] enemies) {
+		public Grammar ConstructGrammar(MobParserData data) {
 			Choices main = new Choices();
-			foreach (Enemy e in enemies) {
+			foreach (Enemy e in data.enemies) {
 				main.Add(e.mobMainPronounciation);
 				foreach (string s in e.ambiguous) {
 					main.Add(s);
 				}
 			}
-			return new Grammar(main) { Name = ID };
+			return new Grammar(main) { Name = data.ID };
 		}
 
 		public struct Enemy {
-			public Enemy(string mobMainPronounciation, string[] ambiguous, ushort mobLevel, string[] asociatedDrops, MobClass mobClass) {
+			public Enemy(string mobMainPronounciation, string[] ambiguous, ushort mobLevel, MobClass mobClass) {
 				this.mobMainPronounciation = mobMainPronounciation;
 				this.ambiguous = ambiguous;
 				this.mobLevel = mobLevel;
-				this.asociatedDrops = asociatedDrops;
 				this.mobClass = mobClass;
 			}
 
 			public string mobMainPronounciation { get; }
 			public string[] ambiguous { get; }
 			public ushort mobLevel { get; }
-			public string[] asociatedDrops { get; }
 			public MobClass mobClass { get; }
+		}
+
+		public void AddMobDuringRuntime(Enemy mob) {
+			List<Enemy> enemyList = new List<Enemy>(enemies);
+			foreach (Enemy entry in enemies) {
+				if (entry.mobMainPronounciation == mob.mobMainPronounciation) {
+					throw new CustomException("You can't add an item that already exists");
+				}
+			}
+			enemyList.Add(mob);
+			enemies = enemyList.ToArray();
+
+			grammar = ConstructGrammar(this);
 		}
 	}
 }

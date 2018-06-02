@@ -209,7 +209,7 @@ namespace Metin2SpeechToData {
 
 		/// <summary>
 		/// Get names of files that were used to create definitions
-		/// </summary>
+		///// </summary>
 		public string[] getDefinitionNames {
 			get {
 				string[] names = new string[getDefinitions.Length];
@@ -217,6 +217,85 @@ namespace Metin2SpeechToData {
 					names[i] = getDefinitions[i].ID;
 				}
 				return names;
+			}
+		}
+
+		public FileInfo getFileInfoFromId(string id) {
+			DirectoryInfo d = new DirectoryInfo(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Definitions");
+			foreach (DefinitionParserData existing in getDefinitions) {
+				if (Equals(id, existing.ID)) {
+					
+					return new FileInfo(d + Path.DirectorySeparatorChar.ToString() + id + ".definition");
+
+				}
+			}
+			foreach (MobParserData existing in getMobDefinitions) {
+				if (Equals(id, existing.ID)) {
+
+					return new FileInfo(d + Path.DirectorySeparatorChar.ToString() + id + ".definition");
+
+				}
+			}
+			throw new CustomException("No definition parser data with that id exists");
+
+		}
+
+		/// <summary>
+		/// Adds a string to the current item.definition file
+		/// </summary>
+		/// <param name="entry">String in correct format</param>
+		public void AddItemEntry(string entry, string newGroup) {
+			FileInfo file = getFileInfoFromId(currentGrammarFile.ID);
+			bool endsWithNewLine = false;
+			using (StreamReader s = file.OpenText()) {
+				string all = s.ReadToEnd();
+				if (all[all.Length - 1].Equals('\n')) {
+					endsWithNewLine = true;
+				}
+			}
+			using (StreamWriter s = file.AppendText()) {
+				if (!endsWithNewLine) {
+					s.WriteLine();
+				}
+				s.WriteLine(entry);
+				s.Close();
+			}
+			if (!currentGrammarFile.groups.Contains(newGroup)) {
+				List<string> all = new List<string>();
+				using (StreamReader s = file.OpenText()) {
+					while (!s.EndOfStream) {
+						string line = s.ReadLine();
+						
+						if (line.Contains('}')) {
+							all.Add('\t' + newGroup);
+						}
+						all.Add(line);
+					}
+
+				}
+				File.WriteAllLines(file.FullName, all.ToArray());
+			}
+		}
+
+		/// <summary>
+		/// Adds a string to the current mob.definition file
+		/// </summary>
+		/// <param name="entry">String in correct format</param>
+		public void AddMobEntry(string entry) {
+			FileInfo file = getFileInfoFromId(currentMobGrammarFile.ID);
+			bool endsWithNewLine = false;
+			using (StreamReader s = file.OpenText()) {
+				string all = s.ReadToEnd();
+				if (all[all.Length - 1].Equals('\n')) {
+					endsWithNewLine = true;
+				}
+			}
+			using (StreamWriter s = file.AppendText()) {
+				if (!endsWithNewLine) {
+					s.WriteLine();
+				}
+				s.WriteLine(entry);
+				s.Close();
 			}
 		}
 	}

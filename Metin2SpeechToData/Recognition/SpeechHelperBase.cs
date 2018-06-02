@@ -15,7 +15,7 @@ namespace Metin2SpeechToData {
 			{ CCommands.Speech.REMOVE_TARGET, CCommands.getRemoveTargetCommand },
 			{ CCommands.Speech.TARGET_KILLED, CCommands.getTargetKilledCommand },
 			{ CCommands.Speech.UNDO, CCommands.getUndoCommand },
-			{ CCommands.Speech.ASSIGN_HOTKEY_TO_ITEM, CCommands.getHotkeyAssignCommand }
+			{ CCommands.Speech.ASSIGN_HOTKEY_TO_ITEM, CCommands.getHotkeyAssignCommand },
 		};
 
 		/// <summary>
@@ -47,16 +47,22 @@ namespace Metin2SpeechToData {
 			string pauseC = CCommands.getPauseCommand;
 			string switchC = CCommands.getSwitchGrammarCommand;
 			string quitC = CCommands.getStopCommand;
+			string defineMob = CCommands.getDefineMobCommand;
+			string defineItem = CCommands.getDefineItemCommand;
 
 			controlingRecognizer.LoadGrammar(new Grammar(new Choices(startC)) { Name = startC, Enabled = false });
 			controlingRecognizer.LoadGrammar(new Grammar(new Choices(pauseC)) { Name = pauseC, Enabled = false });
 			controlingRecognizer.LoadGrammar(new Grammar(new Choices(switchC)) { Name = switchC, Enabled = true });
 			controlingRecognizer.LoadGrammar(new Grammar(new Choices(quitC)) { Name = quitC, Enabled = true });
+			controlingRecognizer.LoadGrammar(new Grammar(new Choices(defineMob)) { Name = defineMob, Enabled = false });
+			controlingRecognizer.LoadGrammar(new Grammar(new Choices(defineItem)) { Name = defineItem, Enabled = false });
 
 			_currentGrammars.Add(startC, (0, false));
 			_currentGrammars.Add(pauseC, (1, false));
 			_currentGrammars.Add(switchC, (2, true));
 			_currentGrammars.Add(quitC, (3, true));
+			_currentGrammars.Add(defineMob, (4, false));
+			_currentGrammars.Add(defineItem, (5, false));
 
 			controlingRecognizer.SetInputToDefaultAudioDevice();
 			controlingRecognizer.SpeechRecognized += Control_SpeechRecognized_Wrapper;

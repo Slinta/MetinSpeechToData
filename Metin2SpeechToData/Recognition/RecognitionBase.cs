@@ -56,6 +56,9 @@ namespace Metin2SpeechToData {
 		public virtual void SwitchGrammar(string grammarID) {
 			for (int i = 0; i < mainRecognizer.Grammars.Count; i++) {
 				if (mainRecognizer.Grammars[i].Name == grammarID) {
+					if (getCurrentGrammars.ContainsKey(grammarID)) {
+						getCurrentGrammars.Remove(grammarID);
+					}
 					getCurrentGrammars.Add(grammarID, i);
 				}
 			}

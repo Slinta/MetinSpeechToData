@@ -24,6 +24,9 @@ namespace Metin2SpeechToData {
 		public static string getRemoveTargetCommand { get; private set; }
 		public static string getStartSessionCommand { get; private set; }
 
+		public static string getDefineMobCommand { get; private set; }
+		public static string getDefineItemCommand { get; private set; }
+
 
 		public enum Speech {
 			NONE,
@@ -38,6 +41,8 @@ namespace Metin2SpeechToData {
 			UNDO,
 			TARGET_KILLED,
 			ASSIGN_HOTKEY_TO_ITEM,
+			DEFINE_ITEM,
+			DEFINE_MOB
 		};
 
 		public static Speech GetEnum(string text) {
@@ -74,6 +79,13 @@ namespace Metin2SpeechToData {
 			else if (text == getHotkeyAssignCommand) {
 				return Speech.ASSIGN_HOTKEY_TO_ITEM;
 			}
+			else if (text == getDefineMobCommand) {
+				return Speech.DEFINE_MOB;
+			}
+			else if (text == getDefineItemCommand) {
+				return Speech.DEFINE_ITEM;
+			}
+
 			else {
 				return Speech.NONE;
 			}
@@ -117,6 +129,12 @@ namespace Metin2SpeechToData {
 				case Speech.ASSIGN_HOTKEY_TO_ITEM: {
 					return getHotkeyAssignCommand;
 				}
+				case Speech.DEFINE_MOB: {
+					return getDefineMobCommand;
+				}
+				case Speech.DEFINE_ITEM: {
+					return getDefineItemCommand;
+				}
 			}
 			throw new NotSupportedException();
 		}
@@ -128,7 +146,7 @@ namespace Metin2SpeechToData {
 			using (StreamReader sr = File.OpenText(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + CONTROL_DEFINITION_NAME)) {
 				while (!sr.EndOfStream) {
 					string line = sr.ReadLine();
-					if ( string.IsNullOrWhiteSpace(line) || line.StartsWith("#")) {
+					if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#")) {
 						continue;
 					}
 					string[] split = line.Split(':');
@@ -176,6 +194,14 @@ namespace Metin2SpeechToData {
 						}
 						case "HOTKEY_ASSIGN": {
 							getHotkeyAssignCommand = modified;
+							break;
+						}
+						case "DEFINE_MOB": {
+							getDefineMobCommand = modified;
+							break;
+						}
+						case "DEFINE_ITEM": {
+							getDefineItemCommand = modified;
 							break;
 						}
 						default: {

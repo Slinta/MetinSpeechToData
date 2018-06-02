@@ -27,11 +27,19 @@ namespace Metin2SpeechToData {
 			getCurrentGrammars.Add(CCommands.getRemoveTargetCommand, 3);
 		}
 
-		public override void SwitchGrammar(string grammarID) {
+		public override void SwitchGrammar(string grammarID ) {
 			Grammar selected = DefinitionParser.instance.GetGrammar(grammarID);
-			if (DefinitionParser.instance.currentMobGrammarFile != null) {
+			if (DefinitionParser.instance.currentMobGrammarFile != null ) {
 				enemyHandling.SwitchGrammar(grammarID);
 			}
+			if(mainRecognizer.Grammars.Count != 0) {
+				for (int i = mainRecognizer.Grammars.Count - 1; i >= 0; i--) {
+					if (mainRecognizer.Grammars[i].Name == grammarID) {
+						mainRecognizer.UnloadGrammar(mainRecognizer.Grammars[i]);
+					}
+				}
+			}
+			
 			mainRecognizer.LoadGrammar(selected);
 			base.SwitchGrammar(grammarID);
 		}

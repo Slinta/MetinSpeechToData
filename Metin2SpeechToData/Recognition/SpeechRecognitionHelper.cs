@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using Metin2SpeechToData.Structures;
 using System.Linq;
 using System.Text;
+using System.Collections.Generic;
 
 namespace Metin2SpeechToData {
 	public class SpeechRecognitionHelper : SpeechHelperBase {
@@ -78,6 +79,8 @@ namespace Metin2SpeechToData {
 					SetGrammarState(CCommands.getStopCommand, false);
 					SetGrammarState(CCommands.getSwitchGrammarCommand, false);
 					SetGrammarState(CCommands.getPauseCommand, true);
+					SetGrammarState(CCommands.getDefineItemCommand, false);
+					SetGrammarState(CCommands.getDefineMobCommand, false);
 
 					Console.WriteLine("Pausing will reenable recognition control commands. (" + CCommands.getStopCommand + "," + CCommands.getSwitchGrammarCommand + ", etc.)");
 					Console.WriteLine("To pause: " + KeyModifiers.Control + " + " + KeyModifiers.Shift + " + " + Keys.F4 +
@@ -110,7 +113,11 @@ namespace Metin2SpeechToData {
 							SetGrammarState(CCommands.getStopCommand, false);
 							SetGrammarState(CCommands.getSwitchGrammarCommand, false);
 							SetGrammarState(CCommands.getPauseCommand, true);
+							SetGrammarState(CCommands.getDefineItemCommand, false);
+							SetGrammarState(CCommands.getDefineMobCommand, false);
+
 							DefinitionParser.instance.hotkeyParser.SetKeysActiveState(true);
+
 							break;
 						}
 						Console.WriteLine("Recognition is not currenty active, no actions taken.");
@@ -120,6 +127,8 @@ namespace Metin2SpeechToData {
 					SetGrammarState(CCommands.getPauseCommand, false);
 					SetGrammarState(CCommands.getStopCommand, true);
 					SetGrammarState(CCommands.getStartCommand, true);
+					SetGrammarState(CCommands.getDefineItemCommand, true);
+					SetGrammarState(CCommands.getDefineMobCommand, true);
 					DefinitionParser.instance.hotkeyParser.SetKeysActiveState(false);
 					break;
 				}
@@ -155,6 +164,81 @@ namespace Metin2SpeechToData {
 					controlingRecognizer.SpeechRecognized += Switch_WordRecognized_Wrapper;
 					controlingRecognizer.SpeechRecognized -= Control_SpeechRecognized_Wrapper;
 					baseRecognizer.OnRecognitionStateChanged(this, RecognitionBase.RecognitionState.SWITCHING);
+					break;
+				}
+				case CCommands.Speech.DEFINE_MOB: {
+					Console.WriteLine("Starting mob defining");
+					Console.Write("Write the main pronounciation: ");
+					string mainPronoun = Console.ReadLine();
+					Console.Write("Write abreviations, seperated by '/', or leave empty: ");
+					string ambiguities = Console.ReadLine();
+					ambiguities = ambiguities.Trim();
+					Console.Write("Define mob level: ");
+					if (!ushort.TryParse(Console.ReadLine(), out ushort level)) {
+						Console.WriteLine("Not a positive int, cancelling");
+						break;
+					}
+					Console.WriteLine("Choose mob group from: COMMON, HALF_BOSS, BOSS, METEOR, SPECIAL");
+					string group = Console.ReadLine();
+					string outputString;
+					if (ambiguities == "") {
+						outputString = (mainPronoun + "," + level.ToString() + "," + group);
+					}
+					else {
+						outputString = (mainPronoun + "/" + ambiguities + "," + level.ToString() + "," + group);
+					}
+					List<string> ambList = new List<string>(ambiguities.Split('/'));
+					int i = ambList.Count - 1;
+					while (i >= 0) {
+						if (ambList[i].Trim() == "") {
+							ambList.Remove(ambList[i]);
+						}
+						i--;
+					}
+					Console.WriteLine(outputString);
+					DefinitionParser.instance.AddMobEntry(outputString);
+					MobParserData.Enemy enemy = new MobParserData.Enemy(mainPronoun, ambList.ToArray(), level, DefinitionParser.instance.currentMobGrammarFile.ParseClass(group));
+					DefinitionParser.instance.currentMobGrammarFile.AddMobDuringRuntime(enemy);
+					_gameRecognizer.enemyHandling.SwitchGrammar(DefinitionParser.instance.currentMobGrammarFile.ID.Split('_')[1]);
+					break;
+				}
+				case CCommands.Speech.DEFINE_ITEM: {
+					
+
+					Console.WriteLine("Starting item defining");
+					Console.Write("Write the main pronounciation: ");
+					string mainPronoun = Console.ReadLine();
+					Console.Write("Write abreviations, seperated by '/', or leave empty: ");
+					string ambiguities = Console.ReadLine();
+					ambiguities = ambiguities.Trim();
+					Console.Write("Define item value: ");
+					if (!uint.TryParse(Console.ReadLine(), out uint value)) {
+						Console.WriteLine("Not a positive int, cancelling");
+						break;
+					}
+					Console.WriteLine("Choose item group: (any text)");
+					string group = Console.ReadLine();
+					string outputString;
+					if (ambiguities == "") {
+						outputString = (mainPronoun + "," + value.ToString() + "," + group);
+					}
+					else {
+						outputString = (mainPronoun + "/" + ambiguities + "," + value.ToString() + "," + group);
+					}
+					Console.WriteLine(outputString);
+					DefinitionParser.instance.AddItemEntry(outputString, group);
+					List<string> ambList = new List<string>( ambiguities.Split('/'));
+					int i = ambList.Count - 1;
+					while ( i >= 0) {
+						if (ambList[i].Trim() == "") {
+							ambList.Remove(ambList[i]);
+						}
+						i--;
+					}
+					DefinitionParserData.Item item = new DefinitionParserData.Item(mainPronoun, ambList.ToArray(), value, group);
+					DefinitionParser.instance.currentGrammarFile.AddItemDuringRuntime(item);
+					_gameRecognizer.SwitchGrammar(DefinitionParser.instance.currentGrammarFile.ID);
+
 					break;
 				}
 				default: {
