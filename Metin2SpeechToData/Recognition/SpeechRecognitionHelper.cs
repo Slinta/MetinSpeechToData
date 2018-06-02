@@ -73,7 +73,8 @@ namespace Metin2SpeechToData {
 					Console.WriteLine(list.Remove(list.Length - 2, 2).ToString());
 					baseRecognizer.OnRecognitionStateChanged(this, RecognitionBase.RecognitionState.ACTIVE);
 					Program.mapper.AttachHotkeyWrapper(_gameRecognizer);
-					Program.mapper.FreeNonCustomHotkeys();
+					Program.mapper.FreeControlHotkeys();
+					Program.mapper.FreeGameHotkeys();
 
 					SetGrammarState(CCommands.getStartCommand, false);
 					SetGrammarState(CCommands.getStopCommand, false);
@@ -87,7 +88,7 @@ namespace Metin2SpeechToData {
 									  " or '" + CCommands.getPauseCommand + "'");
 					Program.mapper.AssignToHotkey(Keys.F4, KeyModifiers.Control, KeyModifiers.Shift, Control_SpeechRecognized,
 												  new SpeechRecognizedArgs(CCommands.getPauseCommand, 100, true));
-					DefinitionParser.instance.hotkeyParser.SetKeysActiveState(true);
+					Program.mapper.ToggleItemHotkeys(true);
 					break;
 				}
 				case CCommands.Speech.STOP: {
@@ -115,9 +116,7 @@ namespace Metin2SpeechToData {
 							SetGrammarState(CCommands.getPauseCommand, true);
 							SetGrammarState(CCommands.getDefineItemCommand, false);
 							SetGrammarState(CCommands.getDefineMobCommand, false);
-
-							DefinitionParser.instance.hotkeyParser.SetKeysActiveState(true);
-
+							Program.mapper.ToggleItemHotkeys(true);
 							break;
 						}
 						Console.WriteLine("Recognition is not currenty active, no actions taken.");
@@ -129,7 +128,7 @@ namespace Metin2SpeechToData {
 					SetGrammarState(CCommands.getStartCommand, true);
 					SetGrammarState(CCommands.getDefineItemCommand, true);
 					SetGrammarState(CCommands.getDefineMobCommand, true);
-					DefinitionParser.instance.hotkeyParser.SetKeysActiveState(false);
+					Program.mapper.ToggleItemHotkeys(false);
 					break;
 				}
 				case CCommands.Speech.SWITCH_GRAMMAR: {
@@ -167,19 +166,21 @@ namespace Metin2SpeechToData {
 					break;
 				}
 				case CCommands.Speech.DEFINE_MOB: {
-					Console.WriteLine("Starting mob defining");
+					Program.mapper.ToggleItemHotkeys(false);
+					Console.WriteLine("Starting enemy definition creator");
 					Console.Write("Write the main pronounciation: ");
 					string mainPronoun = Console.ReadLine();
-					Console.Write("Write abreviations, seperated by '/', or leave empty: ");
+					Console.Write("Write ambiguities(alternate names) seperated by '/' or leave empty: ");
 					string ambiguities = Console.ReadLine();
 					ambiguities = ambiguities.Trim();
 					Console.Write("Define mob level: ");
 					if (!ushort.TryParse(Console.ReadLine(), out ushort level)) {
-						Console.WriteLine("Not a positive int, cancelling");
+						Console.WriteLine("Entered invalid input, definition cancelled.");
 						break;
 					}
 					Console.WriteLine("Choose mob group from: COMMON, HALF_BOSS, BOSS, METEOR, SPECIAL");
 					string group = Console.ReadLine();
+					group = group.ToUpper();
 					string outputString;
 					if (ambiguities == "") {
 						outputString = (mainPronoun + "," + level.ToString() + "," + group);
@@ -200,23 +201,23 @@ namespace Metin2SpeechToData {
 					MobParserData.Enemy enemy = new MobParserData.Enemy(mainPronoun, ambList.ToArray(), level, DefinitionParser.instance.currentMobGrammarFile.ParseClass(group));
 					DefinitionParser.instance.currentMobGrammarFile.AddMobDuringRuntime(enemy);
 					_gameRecognizer.enemyHandling.SwitchGrammar(DefinitionParser.instance.currentMobGrammarFile.ID.Split('_')[1]);
+					Program.mapper.ToggleItemHotkeys(true);
 					break;
 				}
 				case CCommands.Speech.DEFINE_ITEM: {
-					
-
-					Console.WriteLine("Starting item defining");
+					Program.mapper.ToggleItemHotkeys(false);
+					Console.WriteLine("Starting item definition creator");
 					Console.Write("Write the main pronounciation: ");
 					string mainPronoun = Console.ReadLine();
-					Console.Write("Write abreviations, seperated by '/', or leave empty: ");
+					Console.Write("Write ambiguities(alternate names) seperated by '/' or leave empty: ");
 					string ambiguities = Console.ReadLine();
 					ambiguities = ambiguities.Trim();
 					Console.Write("Define item value: ");
 					if (!uint.TryParse(Console.ReadLine(), out uint value)) {
-						Console.WriteLine("Not a positive int, cancelling");
+						Console.WriteLine("Entered invalid input, definition cancelled.");
 						break;
 					}
-					Console.WriteLine("Choose item group: (any text)");
+					Console.Write("Choose item group (group name): ");
 					string group = Console.ReadLine();
 					string outputString;
 					if (ambiguities == "") {
@@ -227,9 +228,9 @@ namespace Metin2SpeechToData {
 					}
 					Console.WriteLine(outputString);
 					DefinitionParser.instance.AddItemEntry(outputString, group);
-					List<string> ambList = new List<string>( ambiguities.Split('/'));
+					List<string> ambList = new List<string>(ambiguities.Split('/'));
 					int i = ambList.Count - 1;
-					while ( i >= 0) {
+					while (i >= 0) {
 						if (ambList[i].Trim() == "") {
 							ambList.Remove(ambList[i]);
 						}
@@ -238,7 +239,7 @@ namespace Metin2SpeechToData {
 					DefinitionParserData.Item item = new DefinitionParserData.Item(mainPronoun, ambList.ToArray(), value, group);
 					DefinitionParser.instance.currentGrammarFile.AddItemDuringRuntime(item);
 					_gameRecognizer.SwitchGrammar(DefinitionParser.instance.currentGrammarFile.ID);
-
+					Program.mapper.ToggleItemHotkeys(true);
 					break;
 				}
 				default: {
@@ -290,7 +291,6 @@ namespace Metin2SpeechToData {
 			}
 			controlingRecognizer.UnloadGrammar(controlingRecognizer.Grammars[_currentGrammars.Count]);
 
-			//Program.interaction.OpenWorksheet(e.text);
 			Program.interaction.StartSession(e.text);
 			Program.mapper.RemapHotkey(Keys.F1, Control_SpeechRecognized, new SpeechRecognizedArgs(CCommands.getStartCommand, 100));
 			Program.mapper.AssignToHotkey(Keys.F2, Control_SpeechRecognized, new SpeechRecognizedArgs(CCommands.getStartSessionCommand, 100));

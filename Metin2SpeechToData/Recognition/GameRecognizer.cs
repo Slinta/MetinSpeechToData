@@ -4,14 +4,14 @@ using Metin2SpeechToData.Structures;
 
 
 namespace Metin2SpeechToData {
-	public class GameRecognizer: RecognitionBase {
+	public class GameRecognizer : RecognitionBase {
 
 		public SpeechRecognitionHelper helper { get; }
 		public EnemyHandling enemyHandling { get; }
 
 		public event Modifier OnModifierRecognized;
 
-		public GameRecognizer(): base() {
+		public GameRecognizer() : base() {
 			enemyHandling = new EnemyHandling(this);
 			helper = new SpeechRecognitionHelper(this);
 			currentState = RecognitionState.INACTIVE;
@@ -20,26 +20,26 @@ namespace Metin2SpeechToData {
 			mainRecognizer.LoadGrammar(new Grammar(new Choices(CCommands.getTargetKilledCommand)));
 			mainRecognizer.LoadGrammar(new Grammar(new Choices(CCommands.getUndoCommand)));
 			mainRecognizer.LoadGrammar(new Grammar(new Choices(CCommands.getRemoveTargetCommand)));
-			
+
 			getCurrentGrammars.Add(CCommands.getNewTargetCommand, 0);
 			getCurrentGrammars.Add(CCommands.getTargetKilledCommand, 1);
 			getCurrentGrammars.Add(CCommands.getUndoCommand, 2);
 			getCurrentGrammars.Add(CCommands.getRemoveTargetCommand, 3);
 		}
 
-		public override void SwitchGrammar(string grammarID ) {
+		public override void SwitchGrammar(string grammarID) {
 			Grammar selected = DefinitionParser.instance.GetGrammar(grammarID);
-			if (DefinitionParser.instance.currentMobGrammarFile != null ) {
+			if (DefinitionParser.instance.currentMobGrammarFile != null) {
 				enemyHandling.SwitchGrammar(grammarID);
 			}
-			if(mainRecognizer.Grammars.Count != 0) {
+			if (mainRecognizer.Grammars.Count != 0) {
 				for (int i = mainRecognizer.Grammars.Count - 1; i >= 0; i--) {
 					if (mainRecognizer.Grammars[i].Name == grammarID) {
 						mainRecognizer.UnloadGrammar(mainRecognizer.Grammars[i]);
 					}
 				}
 			}
-			
+
 			mainRecognizer.LoadGrammar(selected);
 			base.SwitchGrammar(grammarID);
 		}
@@ -50,11 +50,11 @@ namespace Metin2SpeechToData {
 			switch (state) {
 				case RecognitionState.PAUSED: {
 					if (currentState == RecognitionState.ACTIVE) {
-						DefinitionParser.instance.hotkeyParser.SetKeysActiveState(false);
+						Program.mapper.ToggleItemHotkeys(false);
 						Console.WriteLine();
 						Console.WriteLine("Pausing item and mob recognition");
 						Console.WriteLine("Reenable with: " + CCommands.getStartCommand);
-						Console.WriteLine("Availible commands: " + CCommands.getStopCommand + "," + CCommands.getStartCommand + "," + CCommands.getSwitchGrammarCommand +".");
+						Console.WriteLine("Availible commands: " + CCommands.getStopCommand + "," + CCommands.getStartCommand + "," + CCommands.getSwitchGrammarCommand + ".");
 
 					}
 					else {
@@ -65,7 +65,7 @@ namespace Metin2SpeechToData {
 				}
 				case RecognitionState.STOPPED: {
 					if (currentState == RecognitionState.PAUSED) {
-						Program.mapper.FreeCustomHotkeys();
+						Program.mapper.FreeItemHotkeys();
 					}
 					break;
 				}
@@ -90,7 +90,7 @@ namespace Metin2SpeechToData {
 
 			PreModiferEvaluation(modifier);
 
-			OnModifierRecognized?.Invoke(this, new ModiferRecognizedEventArgs(modifier,args.text));
+			OnModifierRecognized?.Invoke(this, new ModiferRecognizedEventArgs(modifier, args.text));
 
 			PostModiferEvaluation(modifier);
 		}
