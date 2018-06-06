@@ -53,8 +53,8 @@ namespace Metin2SpeechToData {
 						Program.mapper.ToggleItemHotkeys(false);
 						Console.WriteLine();
 						Console.WriteLine("Pausing item and mob recognition");
-						Console.WriteLine("Reenable with: " + CCommands.getStartCommand);
-						Console.WriteLine("Availible commands: " + CCommands.getStopCommand + "," + CCommands.getStartCommand + "," + CCommands.getSwitchGrammarCommand + ".");
+						Console.WriteLine("Reenable with: '" + CCommands.getStartCommand + "'");
+						Console.WriteLine("Other commands: '" + CCommands.getStopCommand + "', '" + CCommands.getSwitchGrammarCommand + "'.");
 
 					}
 					else {

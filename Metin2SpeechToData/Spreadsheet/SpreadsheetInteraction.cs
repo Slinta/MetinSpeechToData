@@ -44,8 +44,10 @@ namespace Metin2SpeechToData {
 		}
 
 		public void StopSession() {
-			currentSession.Finish();
-			currentSession = null;
+			if (currentSession != null) {
+				currentSession.Finish();
+				currentSession = null;
+			}
 		}
 
 		public string UnmergedLinkSpot(string sessionName) {

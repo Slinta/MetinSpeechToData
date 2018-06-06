@@ -13,7 +13,9 @@ namespace Metin2SpeechToData {
 			CHEST,
 			CUSTOM,
 		}
+
 		private readonly UnderlyingRecognizer currentMode;
+
 		public GameRecognizer _gameRecognizer { get; }
 		public ChestRecognizer _chestRecognizer { get; }
 
@@ -83,7 +85,7 @@ namespace Metin2SpeechToData {
 					SetGrammarState(CCommands.getDefineItemCommand, false);
 					SetGrammarState(CCommands.getDefineMobCommand, false);
 
-					Console.WriteLine("Pausing will reenable recognition control commands. (" + CCommands.getStopCommand + "," + CCommands.getSwitchGrammarCommand + ", etc.)");
+					Console.WriteLine("Pausing will reenable recognition control commands eg. " + CCommands.getStopCommand + ", " + CCommands.getSwitchGrammarCommand + "...");
 					Console.WriteLine("To pause: " + KeyModifiers.Control + " + " + KeyModifiers.Shift + " + " + Keys.F4 +
 									  " or '" + CCommands.getPauseCommand + "'");
 					Program.mapper.AssignToHotkey(Keys.F4, KeyModifiers.Control, KeyModifiers.Shift, Control_SpeechRecognized,
@@ -155,11 +157,12 @@ namespace Metin2SpeechToData {
 					Program.mapper.SetInactive(Keys.F3, true);
 					Program.mapper.SetInactive(Keys.F4, true);
 
-					controlingRecognizer.LoadGrammar(new Grammar(definitions));
+					controlingRecognizer.LoadGrammar(new Grammar(definitions) { Name = "Available" });
 					for (int i = 0; i < _currentGrammars.Count; i++) {
 						controlingRecognizer.Grammars[i].Enabled = false;
 						_currentGrammars[controlingRecognizer.Grammars[i].Name] = (i, false);
 					}
+					_currentGrammars.Add("Available", (_currentGrammars.Count, true));
 					controlingRecognizer.SpeechRecognized += Switch_WordRecognized_Wrapper;
 					controlingRecognizer.SpeechRecognized -= Control_SpeechRecognized_Wrapper;
 					baseRecognizer.OnRecognitionStateChanged(this, RecognitionBase.RecognitionState.SWITCHING);
@@ -260,8 +263,8 @@ namespace Metin2SpeechToData {
 						   (x) => new System.Text.RegularExpressions.Regex(Configuration.CHESTS_REGEXP).IsMatch(x)).ToArray();
 				}
 				case UnderlyingRecognizer.CUSTOM: {
-					//TODO when custom undelying recognizer exists, select only custom definitions
-					throw new NotImplementedException();
+					return DefinitionParser.instance.getDefinitionNames.Where(
+						   (x) => new System.Text.RegularExpressions.Regex(@"C_\w+").IsMatch(x)).ToArray();
 				}
 				default: {
 					return new string[0];
@@ -289,7 +292,9 @@ namespace Metin2SpeechToData {
 				controlingRecognizer.Grammars[i].Enabled = true;
 				_currentGrammars[controlingRecognizer.Grammars[i].Name] = (i, true);
 			}
-			controlingRecognizer.UnloadGrammar(controlingRecognizer.Grammars[_currentGrammars.Count]);
+			controlingRecognizer.RecognizeAsyncCancel();
+			controlingRecognizer.UnloadGrammar(controlingRecognizer.Grammars[_currentGrammars["Available"].index]);
+			controlingRecognizer.RecognizeAsync();
 
 			Program.interaction.StartSession(e.text);
 			Program.mapper.RemapHotkey(Keys.F1, Control_SpeechRecognized, new SpeechRecognizedArgs(CCommands.getStartCommand, 100));
@@ -304,7 +309,5 @@ namespace Metin2SpeechToData {
 							  "(F4) or '" + CCommands.getStopCommand + "' to stop");
 			baseRecognizer.currentState = RecognitionBase.RecognitionState.GRAMMAR_SELECTED;
 		}
-
 	}
-
 }
