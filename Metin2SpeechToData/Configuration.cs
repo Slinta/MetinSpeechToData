@@ -34,7 +34,7 @@ namespace Metin2SpeechToData {
 
 		public Configuration(string filePath) {
 			if (!File.Exists(filePath)) {
-				Console.WriteLine("You are missing a configuration file, this happens when you start the application for the first time," +
+				Console.WriteLine("You are missing a configuration file, this happens when you start the application for the first time, " +
 								  "or you had deleted it.");
 				RecreateConfig();
 			}
@@ -180,7 +180,14 @@ namespace Metin2SpeechToData {
 					}
 					return;
 				}
-				throw new CustomException("Corrupted 'config.cfg' found in application directory. Delete it and restart!");
+				if(sr.ReadToEnd() == "") {
+					Console.WriteLine("Configuration file is empty, and had to be deleted, restart this application.\nPress 'Enter' to exit...");
+					Console.ReadLine();
+					sr.Close();
+					File.Delete(filePath);
+					sr.Dispose();
+					Environment.Exit(0);
+				}
 			}
 		}
 

@@ -512,8 +512,11 @@ namespace Metin2SpeechToData {
 
 		private static void AbortReadLine(string command) {
 			Program.currCommand = command;
-			Thread.Sleep(250);
-			NativeMethods.PostMessage(Process.GetCurrentProcess().MainWindowHandle, 0x100, 0x0D, 0);
+			//Thread.Sleep(250);
+			/*bool success = */NativeMethods.PostMessage(Process.GetCurrentProcess().MainWindowHandle, 0x100, 0x0D, 0);
+			//if (success) {
+			//	Console.WriteLine("Success");
+			//}
 		}
 
 		private GameRecognizer recognizer;
