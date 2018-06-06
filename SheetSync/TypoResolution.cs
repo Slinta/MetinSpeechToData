@@ -5,7 +5,7 @@ using System.Windows.Forms;
 using static SheetSync.Structures;
 
 namespace SheetSync {
-	class TypoResolution {
+	internal class TypoResolution : IDisposable {
 		private readonly ManualResetEventSlim evnt = new ManualResetEventSlim();
 		private readonly HotKeyMapper m = new HotKeyMapper();
 
@@ -41,5 +41,26 @@ namespace SheetSync {
 			evnt.Set();
 			currentIndex++;
 		}
+
+		#region IDisposable Support
+		private bool disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing) {
+			if (!disposedValue) {
+				evnt.Dispose();
+				disposedValue = true;
+			}
+		}
+
+		~TypoResolution() {
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(false);
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose() {
+			Dispose(true);
+		}
+		#endregion
 	}
 }

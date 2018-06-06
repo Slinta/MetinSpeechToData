@@ -177,7 +177,7 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		public DefinitionParserData GetDefinitionByName(string name) {
 			foreach (DefinitionParserData data in getDefinitions) {
-				if(data.ID == name) {
+				if (data.ID == name) {
 					return data;
 				}
 			}
@@ -224,7 +224,7 @@ namespace Metin2SpeechToData {
 			DirectoryInfo d = new DirectoryInfo(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Definitions");
 			foreach (DefinitionParserData existing in getDefinitions) {
 				if (Equals(id, existing.ID)) {
-					
+
 					return new FileInfo(d + Path.DirectorySeparatorChar.ToString() + id + ".definition");
 
 				}
@@ -258,14 +258,13 @@ namespace Metin2SpeechToData {
 					s.WriteLine();
 				}
 				s.WriteLine(entry);
-				s.Close();
 			}
 			if (!currentGrammarFile.groups.Contains(newGroup)) {
 				List<string> all = new List<string>();
 				using (StreamReader s = file.OpenText()) {
 					while (!s.EndOfStream) {
 						string line = s.ReadLine();
-						
+
 						if (line.Contains('}')) {
 							all.Add('\t' + newGroup);
 						}
@@ -295,7 +294,6 @@ namespace Metin2SpeechToData {
 					s.WriteLine();
 				}
 				s.WriteLine(entry);
-				s.Close();
 			}
 		}
 	}
