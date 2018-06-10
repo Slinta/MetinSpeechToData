@@ -16,4 +16,6 @@ TARGET_KILLED: Target killed
 REMOVE_TARGET: Remove target
 UNDO: Undo
 
+# Curerntly unused commands
+
 HOTKEY_ASSIGN: Assign hotkey

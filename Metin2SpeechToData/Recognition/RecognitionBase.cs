@@ -19,7 +19,8 @@ namespace Metin2SpeechToData {
 
 
 		protected delegate void Recognition(object sender, RecognitionState state);
-		public delegate void Modifier(object sender, ModiferRecognizedEventArgs args);
+		public delegate void Modifier(object sender, ModiferRecognizedEventArgs e);
+
 		protected Dictionary<string, int> _currentGrammars;
 
 
@@ -55,6 +56,9 @@ namespace Metin2SpeechToData {
 		public virtual void SwitchGrammar(string grammarID) {
 			for (int i = 0; i < mainRecognizer.Grammars.Count; i++) {
 				if (mainRecognizer.Grammars[i].Name == grammarID) {
+					if (getCurrentGrammars.ContainsKey(grammarID)) {
+						getCurrentGrammars.Remove(grammarID);
+					}
 					getCurrentGrammars.Add(grammarID, i);
 				}
 			}
@@ -95,12 +99,22 @@ namespace Metin2SpeechToData {
 					if (Program.debug) {
 						Console.WriteLine("Currently active");
 					}
-					BeginRecognition(true);
+					if (currentState != RecognitionState.PAUSED) {
+						BeginRecognition(true);
+					}
+					else {
+						foreach (int index in getCurrentGrammars.Values) {
+							mainRecognizer.Grammars[index].Enabled = true;
+						}
+					}
 					break;
 				}
 				case RecognitionState.PAUSED: {
 					if (Program.debug) {
 						Console.WriteLine("Currently paused");
+					}
+					foreach (int index  in getCurrentGrammars.Values) {
+						mainRecognizer.Grammars[index].Enabled = false;
 					}
 					break;
 				}
@@ -108,6 +122,10 @@ namespace Metin2SpeechToData {
 					if (Program.debug) {
 						Console.WriteLine("Currently stoped");
 					}
+					mainRecognizer.UnloadAllGrammars();
+					_currentGrammars.Clear();
+					mainRecognizer.RecognizeAsyncStop();
+					mainRecognizer.Dispose();
 					break;
 				}
 				case RecognitionState.SWITCHING: {
@@ -123,7 +141,7 @@ namespace Metin2SpeechToData {
 		/// If a modifier is recognized, you can modify current grammars and other things in this method implementation
 		/// </summary>
 		/// <param name="current">the modifier that will be switched to</param>
-		protected virtual void PreModiferEvaluation(SpeechRecognitionHelper.ModifierWords current) {
+		protected virtual void PreModiferEvaluation(CCommands.Speech current) {
 			if (Program.debug) {
 				Console.WriteLine("Switching modifier to " + current);
 			}
@@ -133,7 +151,7 @@ namespace Metin2SpeechToData {
 		/// If a modifier is recognized, you can modify current grammars and other things in this method implementation
 		/// </summary>
 		/// <param name="current">the modifier that will be switched to</param>
-		protected virtual void PostModiferEvaluation(SpeechRecognitionHelper.ModifierWords current) {
+		protected virtual void PostModiferEvaluation(CCommands.Speech current) {
 			if (Program.debug) {
 				Console.WriteLine("Modifier " + current + " handeled ");
 			}
@@ -166,19 +184,23 @@ namespace Metin2SpeechToData {
 		protected virtual void Dispose(bool disposing) {
 			if (!disposedValue) {
 				if (disposing) {
-					return;
+					mainRecognizer.SpeechRecognized -= Main_SpeechRecognized;
 				}
-				mainRecognizer.SpeechRecognized -= Main_SpeechRecognized;
 				mainRecognizer.Dispose();
 				disposedValue = true;
 			}
 		}
 
+		~RecognitionBase() {
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(false);
+		}
+
+		// This code added to correctly implement the disposable pattern.
 		public void Dispose() {
 			Dispose(true);
 			GC.SuppressFinalize(this);
 		}
 		#endregion
-
 	}
 }

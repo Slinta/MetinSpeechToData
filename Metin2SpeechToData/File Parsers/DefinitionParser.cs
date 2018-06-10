@@ -23,11 +23,11 @@ namespace Metin2SpeechToData {
 		public MobParserData[] getMobDefinitions { get; }
 
 		/// <summary>
-		/// Current major grammar file files
+		/// Current major grammar file
 		/// </summary>
 		public DefinitionParserData currentGrammarFile { get; private set; }
 		/// <summary>
-		/// Current major grammar file files
+		/// Current major mob grammar file
 		/// </summary>
 		public MobParserData currentMobGrammarFile { get; private set; }
 
@@ -36,49 +36,70 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		public HotkeyPresetParser hotkeyParser { get; private set; }
 
-		#region Constructor/Destructor
 		/// <summary>
-		/// Parser for .definition files, constructor parses all .definition files in Definitions folder
+		/// The regex string that was used to select definition files
 		/// </summary>
-		public DefinitionParser(Regex searchPattern) {
+		public string regexMatchString { get; private set; }
+
+		/// <summary>
+		/// Whethet user selected custom made definition
+		/// </summary>
+		public bool custonDefinitionsLoaded { get; internal set; }
+
+
+		#region Constructor
+		/// <summary>
+		/// Parser for .definition files, constructor parses selected .definition files in Definitions folder
+		/// </summary>
+		public DefinitionParser() {
+			regexMatchString = "";
 			instance = this;
 			DirectoryInfo d = new DirectoryInfo(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Definitions");
-			FileInfo[] filesPresent = d.GetFiles("*.definition", SearchOption.AllDirectories).Where(path => searchPattern.IsMatch(path.Name)).ToArray();
+			FileInfo[] filesPresent = d.GetFiles("*.definition", SearchOption.AllDirectories);
 			if (filesPresent.Length == 0) {
 				throw new CustomException("Your program is missing voice recognition strings! Either redownload, or create your own *.definition text file.");
 			}
+			getDefinitions = LoadDefinitionData(filesPresent, out List<int> enemyDefinitionIndexes);
+			getMobDefinitions = LoadMobDefinitionData(filesPresent, enemyDefinitionIndexes);
+		}
+		#endregion
 
-			List<int> Mob_indexes = new List<int>();
+		#region FileParsing base
+
+		private DefinitionParserData[] LoadDefinitionData(FileInfo[] filesPresent, out List<int> mobIndexes) {
+			List<int> enemyDefinitions = new List<int>();
 			List<DefinitionParserData> definitions = new List<DefinitionParserData>();
 			for (int i = 0; i < filesPresent.Length; i++) {
 				if (filesPresent[i].Name.StartsWith("Mob_")) {
-					Mob_indexes.Add(i);
+					enemyDefinitions.Add(i);
 					continue;
 				}
-				
+
 				using (StreamReader s = filesPresent[i].OpenText()) {
 					DefinitionParserData data = new DefinitionParserData(filesPresent[i].Name.Split('.')[0], ParseHeader(s), ParseEntries(s));
 					data.ConstructGrammar();
 					definitions.Add(data);
 				}
 			}
-			
-			getDefinitions = definitions.ToArray();
+			mobIndexes = enemyDefinitions;
+			return definitions.ToArray();
+		}
 
-			if(Mob_indexes.Count != 0) {
-				getMobDefinitions = new MobParserData().Parse(d);
-				for (int i = 0; i < getMobDefinitions.Length; i++) {
-					for (int j = 0; j < getDefinitions.Length; j++) {
-						if(getMobDefinitions[i].ID == "Mob_" + getDefinitions[j].ID) {
+		private MobParserData[] LoadMobDefinitionData(FileInfo[] filesPresent, List<int> indexes) {
+			if (indexes.Count != 0) {
+				MobParserData[] mobData = new MobParserData().Parse(filesPresent, indexes);
+				for (int i = 0; i < mobData.Length; i++) {
+					for (int j = 0; j < mobData.Length; j++) {
+						if (mobData[i].ID == "Mob_" + getDefinitions[j].ID) {
 							getDefinitions[j].hasEnemyCompanionGrammar = true;
 						}
 					}
 				}
+				return mobData;
 			}
+			return new MobParserData[0];
 		}
-		#endregion
 
-		#region FileParsing base
 		private string[] ParseHeader(StreamReader r) {
 			List<string> strings = new List<string>();
 			string line = r.ReadLine();
@@ -156,7 +177,7 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		public DefinitionParserData GetDefinitionByName(string name) {
 			foreach (DefinitionParserData data in getDefinitions) {
-				if(data.ID == name) {
+				if (data.ID == name) {
 					return data;
 				}
 			}
@@ -175,6 +196,10 @@ namespace Metin2SpeechToData {
 			throw new CustomException("Definiton not found");
 		}
 
+		/// <summary>
+		/// Updates currentGrammarFile with one named 'grammar' from available list
+		/// </summary>
+		/// <param name="grammar"></param>
 		public void UpdateCurrents(string grammar) {
 			currentGrammarFile = GetDefinitionByName(grammar);
 			if (currentGrammarFile.hasEnemyCompanionGrammar) {
@@ -184,7 +209,7 @@ namespace Metin2SpeechToData {
 
 		/// <summary>
 		/// Get names of files that were used to create definitions
-		/// </summary>
+		///// </summary>
 		public string[] getDefinitionNames {
 			get {
 				string[] names = new string[getDefinitions.Length];
@@ -192,6 +217,83 @@ namespace Metin2SpeechToData {
 					names[i] = getDefinitions[i].ID;
 				}
 				return names;
+			}
+		}
+
+		public FileInfo getFileInfoFromId(string id) {
+			DirectoryInfo d = new DirectoryInfo(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Definitions");
+			foreach (DefinitionParserData existing in getDefinitions) {
+				if (Equals(id, existing.ID)) {
+
+					return new FileInfo(d + Path.DirectorySeparatorChar.ToString() + id + ".definition");
+
+				}
+			}
+			foreach (MobParserData existing in getMobDefinitions) {
+				if (Equals(id, existing.ID)) {
+
+					return new FileInfo(d + Path.DirectorySeparatorChar.ToString() + id + ".definition");
+
+				}
+			}
+			throw new CustomException("No definition parser data with that id exists");
+
+		}
+
+		/// <summary>
+		/// Adds a string to the current item.definition file
+		/// </summary>
+		/// <param name="entry">String in correct format</param>
+		public void AddItemEntry(string entry, string newGroup) {
+			FileInfo file = getFileInfoFromId(currentGrammarFile.ID);
+			bool endsWithNewLine = false;
+			using (StreamReader s = file.OpenText()) {
+				string all = s.ReadToEnd();
+				if (all[all.Length - 1].Equals('\n')) {
+					endsWithNewLine = true;
+				}
+			}
+			using (StreamWriter s = file.AppendText()) {
+				if (!endsWithNewLine) {
+					s.WriteLine();
+				}
+				s.WriteLine(entry);
+			}
+			if (!currentGrammarFile.groups.Contains(newGroup)) {
+				List<string> all = new List<string>();
+				using (StreamReader s = file.OpenText()) {
+					while (!s.EndOfStream) {
+						string line = s.ReadLine();
+
+						if (line.Contains('}')) {
+							all.Add('\t' + newGroup);
+						}
+						all.Add(line);
+					}
+
+				}
+				File.WriteAllLines(file.FullName, all.ToArray());
+			}
+		}
+
+		/// <summary>
+		/// Adds a string to the current mob.definition file
+		/// </summary>
+		/// <param name="entry">String in correct format</param>
+		public void AddMobEntry(string entry) {
+			FileInfo file = getFileInfoFromId(currentMobGrammarFile.ID);
+			bool endsWithNewLine = false;
+			using (StreamReader s = file.OpenText()) {
+				string all = s.ReadToEnd();
+				if (all[all.Length - 1].Equals('\n')) {
+					endsWithNewLine = true;
+				}
+			}
+			using (StreamWriter s = file.AppendText()) {
+				if (!endsWithNewLine) {
+					s.WriteLine();
+				}
+				s.WriteLine(entry);
 			}
 		}
 	}

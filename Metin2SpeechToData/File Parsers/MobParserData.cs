@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Speech.Recognition;
+using System;
 
 namespace Metin2SpeechToData {
 
@@ -20,16 +21,15 @@ namespace Metin2SpeechToData {
 		}
 
 		/// <summary>
-		/// Parses all mob files that exists in current folder
+		/// Parses all mob files that exist in current folder
 		/// </summary>
-		public MobParserData[] Parse(DirectoryInfo dir) {
+		public MobParserData[] Parse(FileInfo[] files, List<int> indexes) {
 			List<MobParserData> dataList = new List<MobParserData>();
 			List<Enemy> mobs = new List<Enemy>();
-			FileInfo[] mobFiles = dir.GetFiles("Mob_*.definition");
-			for (int i = 0; i < mobFiles.Length; i++) {
-				using (StreamReader sr = mobFiles[i].OpenText()) {
+			for (int i = 0; i < indexes.Count; i++) {
+				using (StreamReader sr = files[indexes[i]].OpenText()) {
 					MobParserData data = new MobParserData() {
-						ID = mobFiles[i].Name.Split('.')[0],
+						ID = files[indexes[i]].Name.Split('.')[0],
 					};
 					while (!sr.EndOfStream) {
 						string line = sr.ReadLine();
@@ -47,16 +47,25 @@ namespace Metin2SpeechToData {
 						Enemy parsed = new Enemy(same[0],
 												 same.Where(a => a != same[0]).ToArray(),
 												 ushort.Parse(split[1]),
-												 GetAsociatedDrops(same[0]),
 												 ParseClass(split[2]));
 						mobs.Add(parsed);
 					}
 					data.enemies = mobs.ToArray();
-					data.grammar = ConstructGrammar(data.enemies);
+					data.grammar = ConstructGrammar(data);
 					dataList.Add(data);
 				}
 			}
 			return dataList.ToArray();
+		}
+		/// <summary>
+		/// Parses all mob files that exist in current folder using only Mob_ prefiex files
+		/// </summary>
+		public MobParserData[] Parse(FileInfo[] files) {
+			List<int> indexes = new List<int>();
+			for (int i = 0; i < files.Length; i++) {
+				indexes.Add(i);
+			}
+			return Parse(files, indexes);
 		}
 
 		/// <summary>
@@ -76,38 +85,7 @@ namespace Metin2SpeechToData {
 			throw new CustomException("No entry found, data was parsed incorrectly");
 		}
 
-		#region Mod drop file parser
-		private string[] GetAsociatedDrops(string mobMainPronounciation) {
-			string path = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Mob Asociated Drops.definition";
-			if (File.Exists(path)) {
-				using (StreamReader r = File.OpenText(path)) {
-					while (!r.EndOfStream) {
-						string line = r.ReadLine();
-						if (line.StartsWith("#")) {
-							continue;
-						}
-						if (line.Contains("{")) {
-							string[] split = line.Split('{');
-							if (split[0] == mobMainPronounciation) {
-								return ParseMobDropLine(r);
-							}
-						}
-					}
-				}
-			}
-			return new string[0];
-		}
-
-		private string[] ParseMobDropLine(StreamReader r) {
-			string[] drops = r.ReadLine().Split(',');
-			for (int i = 0; i < drops.Length; i++) {
-				drops[i] = drops[i].Trim('\n', ' ', '\t');
-			}
-			return drops;
-		}
-		#endregion
-
-		private MobClass ParseClass(string s) {
+		public MobClass ParseClass(string s) {
 			s = s.Trim(' ');
 			switch (s) {
 				case "COMMON": {
@@ -129,30 +107,41 @@ namespace Metin2SpeechToData {
 			throw new CustomException("Invalid Mob type " + s);
 		}
 
-		public Grammar ConstructGrammar(Enemy[] enemies) {
+		public Grammar ConstructGrammar(MobParserData data) {
 			Choices main = new Choices();
-			foreach (Enemy e in enemies) {
+			foreach (Enemy e in data.enemies) {
 				main.Add(e.mobMainPronounciation);
 				foreach (string s in e.ambiguous) {
 					main.Add(s);
 				}
 			}
-			return new Grammar(main) { Name = ID };
+			return new Grammar(main) { Name = data.ID };
+		}
+
+		public void AddMobDuringRuntime(Enemy mob) {
+			List<Enemy> enemyList = new List<Enemy>(enemies);
+			foreach (Enemy entry in enemies) {
+				if (entry.mobMainPronounciation == mob.mobMainPronounciation) {
+					throw new CustomException("You can't add an item that already exists");
+				}
+			}
+			enemyList.Add(mob);
+			enemies = enemyList.ToArray();
+
+			grammar = ConstructGrammar(this);
 		}
 
 		public struct Enemy {
-			public Enemy(string mobMainPronounciation, string[] ambiguous, ushort mobLevel, string[] asociatedDrops, MobClass mobClass) {
+			public Enemy(string mobMainPronounciation, string[] ambiguous, ushort mobLevel, MobClass mobClass) {
 				this.mobMainPronounciation = mobMainPronounciation;
 				this.ambiguous = ambiguous;
 				this.mobLevel = mobLevel;
-				this.asociatedDrops = asociatedDrops;
 				this.mobClass = mobClass;
 			}
 
 			public string mobMainPronounciation { get; }
 			public string[] ambiguous { get; }
 			public ushort mobLevel { get; }
-			public string[] asociatedDrops { get; }
 			public MobClass mobClass { get; }
 		}
 	}

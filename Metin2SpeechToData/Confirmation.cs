@@ -4,7 +4,7 @@ using System.Speech.Recognition;
 using System.Collections.Generic;
 
 namespace Metin2SpeechToData {
-	static class Confirmation {
+	public static class Confirmation {
 		private static SpeechRecognitionEngine _confimer = new SpeechRecognitionEngine();
 		private static ManualResetEventSlim evnt = new ManualResetEventSlim(false);
 
@@ -14,7 +14,7 @@ namespace Metin2SpeechToData {
 
 		private static List<int> grammarsThatWereEnabledBefore = new List<int>();
 		public static void Initialize() {
-			_boolConfirmation = new string[2] { Program.controlCommands.getConfirmationCommand, Program.controlCommands.getRefusalCommand };
+			_boolConfirmation = new string[2] { CCommands.getConfirmationCommand, CCommands.getRefusalCommand };
 			_confimer.SetInputToDefaultAudioDevice();
 		}
 
@@ -27,6 +27,15 @@ namespace Metin2SpeechToData {
 			Console.WriteLine(question);
 			evnt.Wait();
 			return _booleanResult;
+		}
+
+		public static bool WrittenConfirmation(string question) {
+			Console.WriteLine(question + "\ny/n");
+			string line = Console.ReadLine();
+			if(line == "y" || line == "yes" || line == "Y") {
+				return true;
+			}
+			return false;
 		}
 
 		private static void Confimer_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {

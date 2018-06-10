@@ -2,17 +2,64 @@ Groups{
 	Weapons
 	Books
 	Goodies
+	Yang
+	Experience
 }
 
-Gold rod 500K/ Half a million, 500000, Weapons
-Gold rod 1kk/ Million/ Gold rod 1 million, 1000000, Weapons
-Gold rod 2kk/ Two million, 2000000, Weapons
+Žebrovaný nůž +5, 58000, Weapons
+Plměsíční mec +2, 00000, Weapons
+Plměsíční mec +6, 98000, Weapons
+Zabiják lvů +6, 98000, Weapons
+Zabiják lvů +7, 132000, Weapons
+Luk Jednorožce +6, 00000, Weapons
+Černý kulatý štít +6, 18000, Weapons
+Černý kulatý štít +7, 00000, Weapons
+Zvon Ocelového brouka +6, 98000, Weapons
+Zvon Ocelového brouka +7, 132000, Weapons
+Chakram +6, 98000, Weapons
+Chakram +7, 132000, Weapons
+Luk s Gigant. Křídly +6, 98000, Weapons
+Luk s Gigant. Křídly +7, 132000, Weapons
+Černý Sluneční Vějíř +6, 98000, Weapons
+Černý Sluneční Vějíř +7, 132000, Weapons
 
-Enchanted Parchment/ Enchanted pergamen, 1000000, Goodies
-Empower item/ Zesílit předmět, 750000, Goodies
-Cursed thing/ Uhranutá, 1000000, Goodies
-Experience Ring/ Expák/ Exp Ring, 1000000, Goodies
-Theie's Gloves/ Zoldějky/ Zlodějské Rukavice, 1000000, Goodies
-Orb of Transformation/ Orb/ Kulička/ Kulička proměny, 4000000, Goodies
 
-Book of Mining, 200, Books
+Kniha jezdeckého umění, 200, Books
+Kniha pokročilého jezdeckého umění, 30000, Books
+Kniha proměn pro pokročilé, 200, Books
+Kniha proměn pro experty, 200, Books
+Kniha proměn, 200, Books
+Ovládání komba, 200, Books
+WeLiao Zi, 200, Books
+Expertní Jezdecké umění, 100000, Books
+Kinha mistrů komba, 200, Books
+Wu Zi, 200, Books
+Kniha misí Expert, 5000000, Books
+Kniha misí Lehká, 200, Books
+Kniha misí Standard, 200, Books
+Kniha misí Těžká, 1000000, Books
+Combo 1, 200, Books
+Příručka Volání Zvěře, 200, Books
+Sun Zi, 200, Books
+
+Yang - 300000, 300000, Yang
+Yang - 600000, 600000, Yang
+Yang - 900000, 900000, Yang
+Yang - 1200000, 1200000, Yang
+Yang - 2500000, 2500000, Yang
+
+
+BZK - 8000, 0, Experience
+BZK - 14000, 0, Experience
+BZK - 19000, 0, Experience
+BZK - 28000, 0, Experience
+BZK - 35000, 0, Experience
+
+
+Plášť statečnosti, 105000, Goodies
+Šek, 10000000, Goodies
+Bílá Perla, 7000000, Goodies
+Mordá Perla, 8000000, Goodies
+Rudá Perla, 14000000, Goodies
+Mušle, 4000000, Goodies
+Požehnaný Pergamen, 1000000, Goodies

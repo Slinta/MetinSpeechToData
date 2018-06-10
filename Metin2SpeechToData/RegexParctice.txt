@@ -35,3 +35,23 @@ Meteor Medium, 200000, Goodies
 Seed/ Semínko/ Semeno, 1000000, Herbs
 Blue Herb/ Blue Flower, 10000, Herbs
 Mushroom Tue, 10000, Herbs
+
+Žebrovaný nůž +5
+Plměsíční mec +2
+Plměsíční mec +6
+Zabiják lvů +6
+Zabiják lvů +7
+Luk Jednorožce +6
+Černý kulatý štít +6
+Černý kulatý štít +7
+Zvon Ocelového brouka +6
+Zvon Ocelového brouka +7
+Chakram +6
+Chakram +7
+Luk s Gigant. Křídly +6
+Luk s Gigant. Křídly + 7
+Černý Sluneční Vějíř + 6
+Černý Sluneční Vějíř +7
+
+
+Session: Bokjung egit | pondělí 28. května 2018 9:36

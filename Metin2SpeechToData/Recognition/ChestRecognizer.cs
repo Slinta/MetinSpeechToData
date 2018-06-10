@@ -1,24 +1,22 @@
 ﻿using System;
 using System.Speech.Recognition;
 using OfficeOpenXml;
+using System.Collections.Generic;
 using System.Threading;
 using Metin2SpeechToData.Structures;
 
 
 namespace Metin2SpeechToData {
 	public class ChestRecognizer : RecognitionBase {
-
 		private readonly SpeechRecognitionEngine numbers;
 
-		private readonly DropOutStack<ItemInsertion> stack;
 		private readonly ManualResetEventSlim evnt;
 
 		public SpeechRecognitionHelper helper { get; }
 
 
-		public ChestRecognizer(): base() {
+		public ChestRecognizer() : base() {
 			helper = new SpeechRecognitionHelper(this);
-			stack = new DropOutStack<ItemInsertion>(5);
 			evnt = new ManualResetEventSlim(false);
 			numbers = new SpeechRecognitionEngine();
 			numbers.SetInputToDefaultAudioDevice();
@@ -28,8 +26,8 @@ namespace Metin2SpeechToData {
 				strs[i] = i.ToString();
 			}
 			numbers.LoadGrammar(new Grammar(new Choices(strs)));
-			mainRecognizer.LoadGrammar(new Grammar(new Choices(Program.controlCommands.getUndoCommand)));
-			getCurrentGrammars.Add(Program.controlCommands.getUndoCommand, 2);
+			mainRecognizer.LoadGrammar(new Grammar(new Choices(CCommands.getUndoCommand)));
+			getCurrentGrammars.Add(CCommands.getUndoCommand, 2);
 		}
 
 
@@ -40,40 +38,41 @@ namespace Metin2SpeechToData {
 		}
 
 		protected override void SpeechRecognized(object sender, SpeechRecognizedArgs args) {
-			if (SpeechRecognitionHelper.reverseModifierDict.ContainsKey(args.text)) {
+			if (SpeechHelperBase.reverseModifierDict.ContainsKey(args.text)) {
 				ModifierRecognized(this, args);
 				return;
 			}
 			Console.WriteLine(args.text + " -- " + args.confidence);
-			string mainPronounciation =  DefinitionParser.instance.currentGrammarFile.GetMainPronounciation(args.text);
-			ExcelCellAddress address = Program.interaction.GetAddress(mainPronounciation);
 			StopRecognition();
 			numbers.RecognizeAsync(RecognizeMode.Multiple);
 			evnt.Wait();
 			//Now we have an address and how many items they received
 			Console.WriteLine("Parsed: " + _count);
-			stack.Push(new ItemInsertion(address,_count));
-			Program.interaction.AddNumberTo(address, _count);
+			Program.interaction.currentSession.Add(
+				DefinitionParser.instance.currentGrammarFile.GetItemEntry(DefinitionParser.instance.currentGrammarFile.GetMainPronounciation(args.text)),
+				"RNG",
+				DateTime.Now,
+				_count
+			);
 			evnt.Reset();
 		}
 
 		protected override void ModifierRecognized(object sender, SpeechRecognizedArgs args) {
-			SpeechRecognitionHelper.ModifierWords current = SpeechRecognitionHelper.reverseModifierDict[args.text];
+			CCommands.Speech current = SpeechHelperBase.reverseModifierDict[args.text];
 			switch (current) {
-				case SpeechRecognitionHelper.ModifierWords.UNDO: {
-					ItemInsertion peeked = stack.Peek();
-					if (peeked.address == null) {
+				case CCommands.Speech.UNDO: {
+					SessionSheet.ItemMeta peeked = Program.interaction.currentSession.itemInsertionList.Last.Value;
+					if (peeked.dropTime == default(DateTime)) {
 						Console.WriteLine("Nothing else to undo...");
 						return;
 					}
-					Console.WriteLine("Undoing... " + Program.interaction.currentSheet.Cells[peeked.address.Row, peeked.address.Column - 2].GetValue<string>() + " with " + peeked.count + " items");
+					Console.WriteLine("Undoing... " + peeked.itemBase.mainPronounciation + " with " + peeked.amount + " items");
 					if (Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'")) {
-						Console.Write("Confirming");
-						ItemInsertion poped = stack.Pop();
-						Program.interaction.AddNumberTo(poped.address, -poped.count);
+						Console.Write("Confirmed");
+						Program.interaction.currentSession.itemInsertionList.RemoveLast();
 					}
 					else {
-						Console.Write("Refusing");
+						Console.Write("Refused");
 					}
 					return;
 				}
@@ -90,9 +89,16 @@ namespace Metin2SpeechToData {
 				evnt.Set();
 				numbers.RecognizeAsyncStop();
 				BeginRecognition();
-				return;
 			}
-			throw new CustomException("This can never happen bacause the grammar is designed to only have numbers between 0-200 inclusive written as digits");
+		}
+
+		protected override void Dispose(bool disposing) {
+			numbers.SpeechRecognized -= Numbers_SpeechRecognized;
+			numbers.RecognizeAsyncStop();
+			numbers.Dispose();
+			evnt.Dispose();
+			helper.Dispose();
+			base.Dispose(disposing);
 		}
 	}
 }

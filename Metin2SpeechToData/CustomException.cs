@@ -1,5 +1,7 @@
 ﻿using System;
 
+#pragma warning disable S3925 // "ISerializable" should be implemented correctly
+
 namespace Metin2SpeechToData {
 	[Serializable]
 	public class CustomException : Exception {
