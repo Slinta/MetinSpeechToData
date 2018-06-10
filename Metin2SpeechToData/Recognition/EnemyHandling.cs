@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Speech.Recognition;
 using System.Threading;
+using System.Collections.Generic;
 
 namespace Metin2SpeechToData {
 	public class EnemyHandling : IDisposable {
@@ -8,11 +9,25 @@ namespace Metin2SpeechToData {
 			NO_ENEMY,
 			FIGHTING
 		}
-
-		public EnemyState state { get; set; }
+		private EnemyState state;
+		public EnemyState State {
+			get {
+				return state;
+			}
+			set {
+				if(value == EnemyState.NO_ENEMY) {
+					Console.ForegroundColor = ConsoleColor.Gray;
+				}
+				else {
+					Console.ForegroundColor = ConsoleColor.Green;
+				}
+				state = value;
+			}
+		}
 		private readonly SpeechRecognitionEngine masterMobRecognizer;
 		private readonly ManualResetEventSlim evnt;
-		private string currentEnemy = "";
+		private Target currentEnemy;
+
 		private readonly GameRecognizer asociated;
 
 		public EnemyHandling(GameRecognizer recognizer) {
@@ -49,12 +64,12 @@ namespace Metin2SpeechToData {
 			Console.WriteLine("Listening for enemy...");
 			masterMobRecognizer.RecognizeAsync(RecognizeMode.Multiple);
 			evnt.Wait();
-			return currentEnemy;
+			return currentEnemy.name;
 		}
 
 		private void MasterMobRecognizer_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {
 			masterMobRecognizer.RecognizeAsyncStop();
-			currentEnemy = e.Result.Text;
+			currentEnemy = new Target((e.Result.Text));
 			evnt.Set();
 		}
 
@@ -65,7 +80,7 @@ namespace Metin2SpeechToData {
 		/// <param name="args">Always supply at least string.Empty as args!</param>
 		private void EnemyTargetingModifierRecognized(object sender, ModiferRecognizedEventArgs args) {
 			if (args.modifier == CCommands.Speech.NEW_TARGET) {
-				switch (state) {
+				switch (State) {
 					case EnemyState.NO_ENEMY: {
 						string enemy = GetEnemy();
 						evnt.Reset();
@@ -73,24 +88,22 @@ namespace Metin2SpeechToData {
 							Console.WriteLine("Targetting cancelled!");
 							return;
 						}
-						string actualEnemyName = DefinitionParser.instance.currentMobGrammarFile.GetMainPronounciation(enemy);
-						state = EnemyState.FIGHTING;
-						currentEnemy = actualEnemyName;
 
-						Console.WriteLine("Acquired target: " + currentEnemy);
+						State = EnemyState.FIGHTING;
+						currentEnemy = new Target(enemy);
+
+						Console.WriteLine("Acquired target: " + currentEnemy.name);
 						Console.WriteLine();
-						Console.ForegroundColor = ConsoleColor.Green;
 						return;
 					}
 					case EnemyState.FIGHTING: {
-						state = EnemyState.NO_ENEMY;
+						State = EnemyState.NO_ENEMY;
 
 						Console.WriteLine();
 						Console.WriteLine("Killed " + currentEnemy + ", the death count increased");
-						Console.ForegroundColor = ConsoleColor.White;
-						Program.interaction.currentSession.EnemyKilled(currentEnemy, DateTime.Now);
+						Program.interaction.currentSession.EnemyKilled(currentEnemy.name, DateTime.Now);
 
-						currentEnemy = "";
+						currentEnemy = new Target();
 						EnemyTargetingModifierRecognized(this, args);
 						return;
 					}
@@ -99,44 +112,43 @@ namespace Metin2SpeechToData {
 			else if (args.modifier == CCommands.Speech.TARGET_KILLED) {
 				Console.WriteLine();
 				Console.WriteLine("Killed " + currentEnemy + ", the death count increased");
-				Console.ForegroundColor = ConsoleColor.Gray;
-				Program.interaction.currentSession.EnemyKilled(currentEnemy, DateTime.Now);
+				Program.interaction.currentSession.EnemyKilled(currentEnemy.name, DateTime.Now);
 				EnemyTargetingModifierRecognized(this, new ModiferRecognizedEventArgs(CCommands.Speech.REMOVE_TARGET, ""));
 			}
 			else if (args.modifier == CCommands.Speech.REMOVE_TARGET) {
-				currentEnemy = "";
-				state = EnemyState.NO_ENEMY;
+				currentEnemy = new Target();
+				State = EnemyState.NO_ENEMY;
 
 				Console.WriteLine("Reset current target to 'None'");
 			}
-			else if (args.modifier == CCommands.Speech.UNDO) {
+			//else if (args.modifier == CCommands.Speech.UNDO) {
 
-				if (Program.interaction.currentSession.itemInsertionList.Count == 0) {
-					Console.WriteLine("Nothing else to undo!");
-					return;
-				}
-				Console.ForegroundColor = ConsoleColor.Red;
-				SessionSheet.ItemMeta action = Program.interaction.currentSession.itemInsertionList.First.Value;
-				Console.WriteLine("Would remove " + action.itemBase.mainPronounciation);
+			//	if (Program.interaction.currentSession.itemInsertionList.Count == 0) {
+			//		Console.WriteLine("Nothing else to undo!");
+			//		return;
+			//	}
+			//	Console.ForegroundColor = ConsoleColor.Red;
+			//	SessionSheet.ItemMeta action = Program.interaction.currentSession.itemInsertionList.First.Value;
+			//	Console.WriteLine("Would remove " + action.itemBase.mainPronounciation);
 
-				bool resultUndo = Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'?");
-				if (resultUndo) {
-					Program.interaction.currentSession.itemInsertionList.RemoveFirst();
-					Console.WriteLine("Removed " + action.itemBase.mainPronounciation + " from the stack");
+			//	bool resultUndo = Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'?");
+			//	if (resultUndo) {
+			//		Program.interaction.currentSession.itemInsertionList.RemoveFirst();
+			//		Console.WriteLine("Removed " + action.itemBase.mainPronounciation + " from the stack");
 
-				}
-				else {
-					Console.WriteLine("Undo refused!");
-				}
+			//	}
+			//	else {
+			//		Console.WriteLine("Undo refused!");
+			//	}
 
-				if (currentEnemy == "") {
-					Console.ForegroundColor = ConsoleColor.Gray;
-				}
-				else {
-					Console.ForegroundColor = ConsoleColor.Green;
-				}
-				Console.WriteLine();
-			}
+			//	if (currentEnemy.name == "") {
+			//		Console.ForegroundColor = ConsoleColor.Gray;
+			//	}
+			//	else {
+			//		Console.ForegroundColor = ConsoleColor.Green;
+			//	}
+			//	Console.WriteLine();
+			//}
 		}
 
 		public void ForceKill() {
@@ -147,10 +159,20 @@ namespace Metin2SpeechToData {
 		/// Increases number count to 'item' in current speadsheet
 		/// </summary>
 		public void ItemDropped(DefinitionParserData.Item item, int amount = 1) {
-			Program.interaction.currentSession.Add(item, currentEnemy, DateTime.Now, amount);
+			Undo.instance.AddItem(item, currentEnemy.name, DateTime.Now, amount);
 		}
 		public void ItemDropped(string item, int amount = 1) {
 			ItemDropped(DefinitionParser.instance.currentGrammarFile.GetItemEntry(item), amount);
+		}
+
+		private struct Target {
+			public List<DefinitionParserData.Item> droppedItems;
+			public string name;
+
+			public Target(string constructedName) {
+				name = constructedName;
+				droppedItems = new List<DefinitionParserData.Item>();
+			}
 		}
 
 		#region IDisposable Support
@@ -159,7 +181,7 @@ namespace Metin2SpeechToData {
 		protected virtual void Dispose(bool disposing) {
 			if (!disposedValue) {
 				if (disposing) {
-					state = EnemyState.NO_ENEMY;
+					State = EnemyState.NO_ENEMY;
 					asociated.OnModifierRecognized -= EnemyTargetingModifierRecognized;
 					masterMobRecognizer.SpeechRecognized -= MasterMobRecognizer_SpeechRecognized;
 				}

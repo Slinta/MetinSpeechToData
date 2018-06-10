@@ -92,7 +92,7 @@ namespace Metin2SpeechToData {
 				}
 				case CCommands.Speech.STOP: {
 					if (currentMode == UnderlyingRecognizer.AREA) {
-						if (_gameRecognizer.enemyHandling.state == EnemyHandling.EnemyState.FIGHTING) {
+						if (_gameRecognizer.enemyHandling.State == EnemyHandling.EnemyState.FIGHTING) {
 							_gameRecognizer.enemyHandling.ForceKill();
 						}
 						Program.interaction.StopSession();
@@ -170,16 +170,34 @@ namespace Metin2SpeechToData {
 					Console.WriteLine("Starting mob defining");
 					Console.Write("Write the main pronounciation: ");
 					string mainPronoun = Console.ReadLine();
+					if (!Undo.instance.ContinueExecution) {
+						break;
+					}
 					Console.Write("Write abreviations, seperated by '/', or leave empty: ");
 					string ambiguities = Console.ReadLine();
+					if (!Undo.instance.ContinueExecution) {
+						break;
+					}
 					ambiguities = ambiguities.Trim();
 					Console.Write("Define mob level: ");
-					if (!ushort.TryParse(Console.ReadLine(), out ushort level)) {
+					string valString = Console.ReadLine();
+					if (!Undo.instance.ContinueExecution) {
+						break;
+					}
+					if (!ushort.TryParse(valString, out ushort level)) {
 						Console.WriteLine("Not a positive int, cancelling");
 						break;
 					}
 					Console.WriteLine("Choose mob group from: COMMON, HALF_BOSS, BOSS, METEOR, SPECIAL");
 					string group = Console.ReadLine();
+					if (!Undo.instance.ContinueExecution) {
+						break;
+					}
+					if (group != "COMMON" && group != "HALF_BOSS" && group != "BOSS" && group != "METEOR" && group != "SPECIAL") {
+						Console.WriteLine("Unknown group, cancelling");
+						break;
+					}
+
 					string outputString;
 					if (ambiguities == "") {
 						outputString = (mainPronoun + "," + level.ToString() + "," + group);
@@ -200,6 +218,7 @@ namespace Metin2SpeechToData {
 					MobParserData.Enemy enemy = new MobParserData.Enemy(mainPronoun, ambList.ToArray(), level, DefinitionParser.instance.currentMobGrammarFile.ParseClass(group));
 					DefinitionParser.instance.currentMobGrammarFile.AddMobDuringRuntime(enemy);
 					_gameRecognizer.enemyHandling.SwitchGrammar(DefinitionParser.instance.currentMobGrammarFile.ID.Split('_')[1]);
+
 					break;
 				}
 				case CCommands.Speech.DEFINE_ITEM: {
@@ -208,16 +227,30 @@ namespace Metin2SpeechToData {
 					Console.WriteLine("Starting item defining");
 					Console.Write("Write the main pronounciation: ");
 					string mainPronoun = Console.ReadLine();
+					if (!Undo.instance.ContinueExecution) {
+						break;
+					}
 					Console.Write("Write abreviations, seperated by '/', or leave empty: ");
 					string ambiguities = Console.ReadLine();
+					if (!Undo.instance.ContinueExecution) {
+						break;
+					}
 					ambiguities = ambiguities.Trim();
-					Console.Write("Define item value: ");
-					if (!uint.TryParse(Console.ReadLine(), out uint value)) {
+					Console.Write("Define item value(as a positive value): ");
+					
+					string valString = Console.ReadLine();
+					if (!Undo.instance.ContinueExecution) {
+						break;
+					}
+					if (!uint.TryParse(valString, out uint value)) {
 						Console.WriteLine("Not a positive int, cancelling");
 						break;
 					}
 					Console.WriteLine("Choose item group: (any text)");
 					string group = Console.ReadLine();
+					if (!Undo.instance.ContinueExecution) {
+						break;
+					}
 					string outputString;
 					if (ambiguities == "") {
 						outputString = (mainPronoun + "," + value.ToString() + "," + group);
@@ -227,9 +260,9 @@ namespace Metin2SpeechToData {
 					}
 					Console.WriteLine(outputString);
 					DefinitionParser.instance.AddItemEntry(outputString, group);
-					List<string> ambList = new List<string>( ambiguities.Split('/'));
+					List<string> ambList = new List<string>(ambiguities.Split('/'));
 					int i = ambList.Count - 1;
-					while ( i >= 0) {
+					while (i >= 0) {
 						if (ambList[i].Trim() == "") {
 							ambList.Remove(ambList[i]);
 						}

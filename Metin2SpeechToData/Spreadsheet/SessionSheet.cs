@@ -30,7 +30,7 @@ namespace Metin2SpeechToData {
 		private readonly Data data;
 		public ExcelPackage package { get; }
 
-		public LinkedList<ItemMeta> itemInsertionList { get; }
+		
 
 		public SessionSheet(SpreadsheetInteraction interaction, string name, FileInfo mainSheet) {
 			string sessionsDir = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Sessions" + Path.DirectorySeparatorChar;
@@ -41,7 +41,6 @@ namespace Metin2SpeechToData {
 			current = template.InitSessionSheet(package.Workbook);
 			currFreeAddress = new ExcelCellAddress(ITEM_ROW, ITEM_COL);
 			data = new Data();
-			itemInsertionList = new LinkedList<ItemMeta>();
 			this.interaction = interaction;
 			current.SetValue(SESSION_AREA_NAME, name);
 			current.SetValue(MERGED_STATUS, "Not merged!");
@@ -56,14 +55,6 @@ namespace Metin2SpeechToData {
 			data.UpdateDataEnemy(enemy, true, killTime);
 		}
 
-		public void Add(DefinitionParserData.Item item, string enemy, DateTime dropTime, int amount) {
-			if (itemInsertionList.Count == Configuration.undoHistoryLength) {
-				WriteOut();
-			}
-			itemInsertionList.AddFirst(new ItemMeta(item, enemy, dropTime, amount));
-		}
-
-
 		private void PrepareRows(int rowCount) {
 			current.Select(currFreeAddress.Address + ":" + SpreadsheetHelper.OffsetAddress(currFreeAddress, 0, 15).Address);
 			ExcelRange yellow = current.SelectedRange;
@@ -73,11 +64,11 @@ namespace Metin2SpeechToData {
 			}
 		}
 
-		private void WriteOut() {
+		public void WriteOut() {
 			PrepareRows(1);
 
-			ItemMeta item = itemInsertionList.Last.Value;
-			itemInsertionList.RemoveLast();
+			ItemMeta item = Undo.instance.itemInsertionList.Last.Value;
+			Undo.instance.itemInsertionList.RemoveLast();
 
 			current.SetValue(currFreeAddress.Address, item.itemBase.mainPronounciation);
 
@@ -93,7 +84,7 @@ namespace Metin2SpeechToData {
 		}
 
 		public void Finish() {
-			while (itemInsertionList.Count != 0) {
+			while (Undo.instance.itemInsertionList.Count != 0) {
 				WriteOut();
 			}
 			PopulateHeadder(data);
