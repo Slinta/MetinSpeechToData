@@ -33,9 +33,8 @@ namespace Metin2SpeechToData {
 		public LinkedList<ItemMeta> itemInsertionList { get; }
 
 		public SessionSheet(SpreadsheetInteraction interaction, string name, FileInfo mainSheet) {
-			string sessionsDir = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Sessions" + Path.DirectorySeparatorChar;
 			string fileName = "Session " + DateTime.Now.ToString(System.Globalization.CultureInfo.InvariantCulture).Replace('/', '.').Replace(':', '_') + ".xlsx";
-			package = new ExcelPackage(new FileInfo(sessionsDir + fileName));
+			package = new ExcelPackage(new FileInfo(Configuration.sessionDirectory + fileName));
 			mainFile = mainSheet;
 			SpreadsheetTemplates template = new SpreadsheetTemplates();
 			current = template.InitSessionSheet(package.Workbook);

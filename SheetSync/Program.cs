@@ -23,19 +23,15 @@ namespace SheetSync {
 			FileInfo[] sessionFiles = currentDirectory.GetDirectories("Sessions")[0].GetFiles("*.xlsx");
 
 			DefinitionParser parser = new DefinitionParser();
+
+			ValidateMain validate = new ValidateMain(sheetsFile);
 			DiffChecker checker = new DiffChecker(sheetsFile, currFiles);
 			TypoResolution typoRes = new TypoResolution(checker.getTypos);
 			MergeHelper merge = new MergeHelper(sheetsFile, sessionFiles);
-
-
-			if (checker.getDiffs.Length == 0 && typoRes.getTypos.Length == 0 && sessionFiles.Length == 0) {
-				Console.WriteLine("Evertying looks the way it should ;]\nPress enter to quit");
-				Console.ReadLine();
-				Environment.Exit(0);
-			}
-
 			sheetsFile.Save();
-			Console.WriteLine("All done");
+
+			Console.WriteLine("Evertying looks the way it should ;]\nPress 'Enter' to exit...");
+			Console.ReadLine();
 		}
 	}
 }

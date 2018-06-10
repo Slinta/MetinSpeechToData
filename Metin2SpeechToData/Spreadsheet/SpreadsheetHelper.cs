@@ -1,4 +1,6 @@
 ﻿using OfficeOpenXml;
+using System;
+using System.IO;
 using static Metin2SpeechToData.Spreadsheet.SsConstants;
 
 namespace Metin2SpeechToData {
@@ -39,14 +41,80 @@ namespace Metin2SpeechToData {
 		}
 
 		/// <summary>
+		/// Copies a range 'fromA' - 'toA' to 'fromB' - 'toB' in 'sheet'
+		/// </summary>
+		public static void Copy(ExcelWorksheet sheet, string fromStart, string fromEnd, string toStart, string toEnd) {
+			sheet.Select(fromStart + ":" + fromEnd);
+			ExcelRange from = sheet.SelectedRange;
+			sheet.Select(toStart + ":" + toEnd);
+			ExcelRange to = sheet.SelectedRange;
+
+			try {
+				from.Copy(to);
+			}
+			catch {
+
+				string c = from.Style.Fill.BackgroundColor.Rgb;
+				int[] argb = new int[4];
+				int index = 0;
+				for (int i = 0; i < c.Length; i += 2) {
+					argb[index] = Convert.ToInt32(c.Substring(i, 2), 16);
+					index++;
+				}
+
+				to.Value = from.Value;
+				to.Formula = from.Formula;
+				to.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+				to.Style.Fill.BackgroundColor.SetColor(argb[0], argb[1], argb[2], argb[3]);
+				to.Calculate();
+			}
+			if (from.Merge) {
+				try {
+					to.Merge = true;
+				}
+				catch {
+					Console.WriteLine("Unable to merge address {0}.", to.ToString());
+					System.Collections.Generic.IEnumerator<ExcelRangeBase> enm = to.GetEnumerator();
+					while (enm.MoveNext()) {
+						Console.WriteLine("Cell {0} is Merged={1}", enm.Current, enm.Current.Merge);
+					}
+				}
+			}
+		}
+
+
+		public static void Cut(ExcelWorksheet sheet, string fromStart, string fromEnd, string toStart, string toEnd) {
+			Copy(sheet, fromStart, fromEnd, toStart, toEnd);
+
+			sheet.Select(toStart + ":" + toEnd);
+			sheet.SelectedRange.Value = null;
+		}
+
+
+		/// <summary>
 		/// Creates a hyperlink in 'currentSheet' at 'currentCellAddress' pointing to 'other' file containing 'otherSheet' to defined 'locationAddress', hide link syntax with 'displeyText'
 		/// </summary>
-		public static void HyperlinkAcrossFiles(System.IO.FileInfo other, string otherSheet, string otherAddress, ExcelWorksheet current, string currAddress, string displayText) {
+		public static void HyperlinkAcrossFiles(FileInfo other, string otherSheet, string otherAddress, ExcelWorksheet current, string currAddress, string displayText) {
 			if (Configuration.sheetViewer == Configuration.SheetViewer.EXCEL) {
 				current.Cells[currAddress].Formula = string.Format("HYPERLINK(\"[{0}]'{1}'!{2}\",\"{3}\")", other.FullName, otherSheet, otherAddress, displayText);
 			}
 			else {
 				current.Cells[currAddress].Formula = string.Format("HYPERLINK(\"file:///{0}#{1}.{2}\",\"{3}\")", other.FullName, otherSheet, otherAddress, displayText);
+			}
+			current.Cells[currAddress].Calculate();
+		}
+
+		/// <summary>
+		/// Gets session name of selected file (as specified in cell B2)
+		/// </summary>
+		/// <param name="session"></param>
+		/// <returns></returns>
+		public static string GetSessionName(FileInfo session) {
+			ExcelCellAddress nameAddr = new ExcelCellAddress(SsControl.C_SHEET_NAME);
+			using (ExcelPackage p = new ExcelPackage(session)) {
+				string name = p.Workbook.Worksheets[1].GetValue<string>(nameAddr.Row, nameAddr.Column);
+				name = name.Split(':', '|')[1];
+				return name.Trim();
 			}
 		}
 

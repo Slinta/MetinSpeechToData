@@ -25,7 +25,7 @@ namespace Metin2SpeechToData {
 		private const int DEFAULT_AVERAGE_COMPUTATION_TIMESTEP = 15;
 		private static int parsedTimeStampAverage = DEFAULT_AVERAGE_COMPUTATION_TIMESTEP;
 
-
+		public static string sessionDirectory { get; private set; }
 		public static uint undoHistoryLength { get; private set; } = DEFAULT_STACK_DEPHT;
 		public static uint sheetChangesBeforeSaving { get; private set; } = DEFAULT_INTERNAL_MODIFICATION_COUNT;
 		public static float acceptanceThreshold { get; private set; } = DEFAULT_SPEECH_ACCEPTANCE_THRESHOLD;
@@ -59,6 +59,7 @@ namespace Metin2SpeechToData {
 			if (!Directory.Exists(commonDir + "Templates")) {
 				Directory.CreateDirectory(commonDir + "Templates");
 			}
+			sessionDirectory = commonDir + "Sessions" + Path.DirectorySeparatorChar;
 		}
 
 		private void RecreateConfig() {

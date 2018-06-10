@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Speech.Recognition;
+using System;
 
 namespace Metin2SpeechToData {
 
@@ -55,6 +56,16 @@ namespace Metin2SpeechToData {
 				}
 			}
 			return dataList.ToArray();
+		}
+		/// <summary>
+		/// Parses all mob files that exist in current folder using only Mob_ prefiex files
+		/// </summary>
+		public MobParserData[] Parse(FileInfo[] files) {
+			List<int> indexes = new List<int>();
+			for (int i = 0; i < files.Length; i++) {
+				indexes.Add(i);
+			}
+			return Parse(files, indexes);
 		}
 
 		/// <summary>

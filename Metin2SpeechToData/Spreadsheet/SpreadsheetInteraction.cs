@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using OfficeOpenXml;
+using System.Linq;
 
 using static Metin2SpeechToData.Configuration;
 using static Metin2SpeechToData.Spreadsheet.SsConstants;
@@ -30,7 +30,8 @@ namespace Metin2SpeechToData {
 			content = xlsxFile.Workbook;
 			mainSheet = content.Worksheets["Metin2 Drop Analyzer"];
 		}
-		
+
+
 		#endregion
 
 		public void StartSession(string grammar) {
@@ -49,19 +50,20 @@ namespace Metin2SpeechToData {
 				currentSession = null;
 			}
 		}
-
+		/// <summary>
+		/// Helper function for making a link to mainSheet to correct cell
+		/// </summary>
 		public string UnmergedLinkSpot(string sessionName) {
 			string currentAddr = MAIN_UNMERGED_LINKS;
 
 			while (mainSheet.Cells[currentAddr].Value != null) {
 				currentAddr = SpreadsheetHelper.OffsetAddress(currentAddr, 1, 0).Address;
 			}
-			mainSheet.Select(currentAddr + ":" + SpreadsheetHelper.OffsetAddressString(currentAddr,0,3));
-			ExcelRange yellow = mainSheet.SelectedRange;
-			mainSheet.Select(SpreadsheetHelper.OffsetAddress(currentAddr, 1, 0).Address + ":" + SpreadsheetHelper.OffsetAddress(currentAddr, 1, 3).Address);
-			yellow.Copy(mainSheet.SelectedRange);
+			SpreadsheetHelper.Copy(mainSheet, currentAddr, SpreadsheetHelper.OffsetAddress(currentAddr, 0, 3).Address,
+											  SpreadsheetHelper.OffsetAddress(currentAddr, 1, 0).Address, SpreadsheetHelper.OffsetAddress(currentAddr, 1, 3).Address);
 
 			SpreadsheetHelper.HyperlinkAcrossFiles(currentSession.package.File, "Session", SessionSheet.LINK_TO_MAIN, mainSheet, currentAddr, sessionName);
+			mainSheet.Cells[currentAddr].Calculate();
 			Save();
 			return currentAddr;
 		}

@@ -20,6 +20,7 @@ namespace SheetSync {
 
 		private SessionSheet.ItemMeta[] itemArray;
 
+
 		public MergeHelper(ExcelPackage main, FileInfo[] sessions) {
 			List<int> list = new List<int>();
 
@@ -35,6 +36,9 @@ namespace SheetSync {
 					if (Confirmation.WrittenConfirmation("Merge '" + sessions[i].Name + "' with main file?")) {
 						MergeSession(main, sessions[i]);
 						sessions[i].Attributes = FileAttributes.Normal;
+						nameToDropCoutAddress.Clear();
+						modifiedLists.Clear();
+						totalDropedItemsPerSheet.Clear();
 					}
 				}
 			}
@@ -166,11 +170,21 @@ namespace SheetSync {
 				throw new CustomException("Session doesn't have primary recognizer attached to it!");
 			}
 
+			bool sheetExists = false;
+
 			ExcelCellAddress freeSheetLink = new ExcelCellAddress(MAIN_SHEET_LINKS);
 			while (mainInMain.Cells[freeSheetLink.Address].Value != null) {
+				if (mainInMain.Cells[freeSheetLink.Address].Value.ToString() == area.Name) {
+					sheetExists = true;
+				}
 				freeSheetLink = SpreadsheetHelper.OffsetAddress(freeSheetLink, 1, 0);
 			}
-			SpreadsheetHelper.HyperlinkCell(mainInMain, freeSheetLink.Address, area, "A1", area.Name);
+			if (!sheetExists) {
+				SpreadsheetHelper.Copy(mainInMain, freeSheetLink.Address, SpreadsheetHelper.OffsetAddress(freeSheetLink, 0, 3).Address,
+												   SpreadsheetHelper.OffsetAddress(freeSheetLink, 1, 0).Address, SpreadsheetHelper.OffsetAddress(freeSheetLink, 1, 3).Address);
+
+				SpreadsheetHelper.HyperlinkCell(mainInMain, freeSheetLink.Address, area, "A1", area.Name);
+			}
 			SpreadsheetHelper.HyperlinkCell(area, SsControl.C_RETURN_LINK, mainInMain, "A1", ">>Main Sheet<<");
 
 			ExcelCellAddress start = new ExcelCellAddress(SsControl.A_ENEMIES_FIRST_LINK);
@@ -187,7 +201,31 @@ namespace SheetSync {
 					}
 				}
 			}
+
+			string sessionName = SpreadsheetHelper.GetSessionName(session.File);
+			ExcelCellAddress unmergedStart = new ExcelCellAddress(MAIN_UNMERGED_LINKS);
+
+			while (mainInMain.GetValue<string>(unmergedStart.Row, unmergedStart.Column) != sessionName) {
+				unmergedStart = SpreadsheetHelper.OffsetAddress(unmergedStart, 1, 0);
+			}
+			ExcelCellAddress mergedAddr = FindFreeLinkSpot(mainInMain, new ExcelCellAddress(MAIN_MERGED_LINKS));
+
+			SpreadsheetHelper.Copy(mainInMain, mergedAddr.Address, SpreadsheetHelper.OffsetAddress(mergedAddr, 0, 3).Address,
+											   SpreadsheetHelper.OffsetAddress(mergedAddr, 1, 0).Address, SpreadsheetHelper.OffsetAddress(mergedAddr, 1, 3).Address);
+			SpreadsheetHelper.HyperlinkAcrossFiles(session.File, "Session", "A1", mainInMain, mergedAddr.Address, sessionName);
+			mainInMain.Cells[unmergedStart.Address].Formula = null;
+			mainInMain.Cells[unmergedStart.Address].Value = null;
+			mainInMain.Select("A1");
 		}
+
+
+		private ExcelCellAddress FindFreeLinkSpot(ExcelWorksheet sheet, ExcelCellAddress start) {
+			while (sheet.GetValue(start.Row, start.Column) != null) {
+				start = SpreadsheetHelper.OffsetAddress(start, 1, 0);
+			}
+			return start;
+		}
+
 
 		private bool VerifyExistence(ExcelPackage main, string sheetName) {
 			for (int i = 1; i <= main.Workbook.Worksheets.Count; i++) {
