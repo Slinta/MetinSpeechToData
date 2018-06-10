@@ -124,6 +124,7 @@ namespace Metin2SpeechToData {
 				if (disposing) {
 					_currentGrammars.Clear();
 				}
+				controlingRecognizer.RecognizeAsyncStop();
 				controlingRecognizer.Dispose();
 				disposedValue = true;
 			}

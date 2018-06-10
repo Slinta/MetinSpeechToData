@@ -23,18 +23,18 @@ namespace Metin2SpeechToData {
 		private const float DEFAULT_SPEECH_ACCEPTANCE_THRESHOLD = 0.8f;
 		private const SheetViewer DEFAULT_SHEET_VIEWER = SheetViewer.EXCEL;
 		private const int DEFAULT_AVERAGE_COMPUTATION_TIMESTEP = 15;
-		private static int prsedTimeStampAverage = DEFAULT_AVERAGE_COMPUTATION_TIMESTEP;
+		private static int parsedTimeStampAverage = DEFAULT_AVERAGE_COMPUTATION_TIMESTEP;
 
-
+		public static string sessionDirectory { get; private set; }
 		public static uint undoHistoryLength { get; private set; } = DEFAULT_STACK_DEPHT;
 		public static uint sheetChangesBeforeSaving { get; private set; } = DEFAULT_INTERNAL_MODIFICATION_COUNT;
 		public static float acceptanceThreshold { get; private set; } = DEFAULT_SPEECH_ACCEPTANCE_THRESHOLD;
 		public static SheetViewer sheetViewer { get; private set; } = DEFAULT_SHEET_VIEWER;
-		public static TimeSpan minutesAverageDropValueInterval { get => new TimeSpan(0, prsedTimeStampAverage, 0);}
+		public static TimeSpan minutesAverageDropValueInterval { get => new TimeSpan(0, parsedTimeStampAverage, 0);}
 
 		public Configuration(string filePath) {
 			if (!File.Exists(filePath)) {
-				Console.WriteLine("You are missing a configuration file, this happens when you start the application for the first time," +
+				Console.WriteLine("You are missing a configuration file, this happens when you start the application for the first time, " +
 								  "or you had deleted it.");
 				RecreateConfig();
 			}
@@ -59,6 +59,7 @@ namespace Metin2SpeechToData {
 			if (!Directory.Exists(commonDir + "Templates")) {
 				Directory.CreateDirectory(commonDir + "Templates");
 			}
+			sessionDirectory = commonDir + "Sessions" + Path.DirectorySeparatorChar;
 		}
 
 		private void RecreateConfig() {
@@ -167,8 +168,8 @@ namespace Metin2SpeechToData {
 							}
 						}
 						else if (split[0] == "DEFAULT_AVERAGE_COMPUTATION_TIMESTEP") {
-							prsedTimeStampAverage = int.Parse(split[1].Trim('\n', ' ', '\t'));
-							if (prsedTimeStampAverage > 60 && prsedTimeStampAverage < 5) {
+							parsedTimeStampAverage = int.Parse(split[1].Trim('\n', ' ', '\t'));
+							if (parsedTimeStampAverage > 60 && parsedTimeStampAverage < 5) {
 								throw new CustomException("The value for DEFAULT_AVERAGE_COMPUTATION_TIMESTEP in 'config.cfg' is out of bounds!");
 							}
 						}
@@ -180,7 +181,14 @@ namespace Metin2SpeechToData {
 					}
 					return;
 				}
-				throw new CustomException("Corrupted 'config.cfg' found in application directory. Delete it and restart!");
+				if(sr.ReadToEnd() == "") {
+					Console.WriteLine("Configuration file is empty, and had to be deleted, restart this application.\nPress 'Enter' to exit...");
+					Console.ReadLine();
+					sr.Close();
+					File.Delete(filePath);
+					sr.Dispose();
+					Environment.Exit(0);
+				}
 			}
 		}
 

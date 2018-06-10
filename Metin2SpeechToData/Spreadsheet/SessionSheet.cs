@@ -33,9 +33,8 @@ namespace Metin2SpeechToData {
 		
 
 		public SessionSheet(SpreadsheetInteraction interaction, string name, FileInfo mainSheet) {
-			string sessionsDir = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Sessions" + Path.DirectorySeparatorChar;
 			string fileName = "Session " + DateTime.Now.ToString(System.Globalization.CultureInfo.InvariantCulture).Replace('/', '.').Replace(':', '_') + ".xlsx";
-			package = new ExcelPackage(new FileInfo(sessionsDir + fileName));
+			package = new ExcelPackage(new FileInfo(Configuration.sessionDirectory + fileName));
 			mainFile = mainSheet;
 			SpreadsheetTemplates template = new SpreadsheetTemplates();
 			current = template.InitSessionSheet(package.Workbook);
@@ -86,7 +85,7 @@ namespace Metin2SpeechToData {
 		public void Finish() {
 			while (Undo.instance.itemInsertionList.Count != 0) {
 				WriteOut();
-			}
+			} 
 			PopulateHeadder(data);
 
 
@@ -105,7 +104,12 @@ namespace Metin2SpeechToData {
 
 		private void PopulateHeadder(Data data) {
 			current.SetValue(ENEMY_KILLS, data.enemiesKilled);
-			current.SetValue(AVERAGE_KILL_REWARD, (data.enemiesKilled != 0 ? (data.totalValueFromEnemies / data.enemiesKilled) : float.NaN));
+			if(data.enemiesKilled == 0) {
+				current.SetValue(AVERAGE_KILL_REWARD, "Unavailable");
+			}
+			else {
+				current.SetValue(AVERAGE_KILL_REWARD, data.totalValueFromEnemies / data.enemiesKilled);
+			}
 			current.SetValue(MOST_COMMON_ENEMY, data.GetMostCommonEntity(data.commonEnemy));
 			current.SetValue(AVERAGE_TIME_BETWEEN_KILLS, TimeSpan.FromSeconds(data.GetAverageTimeBetweenInSeconds(data.enemyKillTimes)).ToString());
 			current.SetValue(SESSION_DURATION, DateTime.Now.Subtract(data.start).ToString());
@@ -183,7 +187,7 @@ namespace Metin2SpeechToData {
 						name += (", " + key);
 					}
 				}
-				return name;
+				return name == "" ? "You were peaceful ;)" : name;
 			}
 
 			public float GetAverageTimeBetweenInSeconds(List<DateTime> list) {

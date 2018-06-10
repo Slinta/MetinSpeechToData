@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Speech.Recognition;
+using System;
 
 namespace Metin2SpeechToData {
 
@@ -56,6 +57,16 @@ namespace Metin2SpeechToData {
 			}
 			return dataList.ToArray();
 		}
+		/// <summary>
+		/// Parses all mob files that exist in current folder using only Mob_ prefiex files
+		/// </summary>
+		public MobParserData[] Parse(FileInfo[] files) {
+			List<int> indexes = new List<int>();
+			for (int i = 0; i < files.Length; i++) {
+				indexes.Add(i);
+			}
+			return Parse(files, indexes);
+		}
 
 		/// <summary>
 		/// Gets main mob pronounciation by comparing ambiguities
@@ -73,37 +84,6 @@ namespace Metin2SpeechToData {
 			}
 			throw new CustomException("No entry found, data was parsed incorrectly");
 		}
-
-		#region Mob drop file parser
-		private string[] GetAsociatedDrops(string mobMainPronounciation) {
-			string path = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Mob Asociated Drops.definition";
-			if (File.Exists(path)) {
-				using (StreamReader r = File.OpenText(path)) {
-					while (!r.EndOfStream) {
-						string line = r.ReadLine();
-						if (line.StartsWith("#")) {
-							continue;
-						}
-						if (line.Contains("{")) {
-							string[] split = line.Split('{');
-							if (split[0] == mobMainPronounciation) {
-								return ParseMobDropLine(r);
-							}
-						}
-					}
-				}
-			}
-			return new string[0];
-		}
-
-		private string[] ParseMobDropLine(StreamReader r) {
-			string[] drops = r.ReadLine().Split(',');
-			for (int i = 0; i < drops.Length; i++) {
-				drops[i] = drops[i].Trim('\n', ' ', '\t');
-			}
-			return drops;
-		}
-		#endregion
 
 		public MobClass ParseClass(string s) {
 			s = s.Trim(' ');
@@ -138,6 +118,19 @@ namespace Metin2SpeechToData {
 			return new Grammar(main) { Name = data.ID };
 		}
 
+		public void AddMobDuringRuntime(Enemy mob) {
+			List<Enemy> enemyList = new List<Enemy>(enemies);
+			foreach (Enemy entry in enemies) {
+				if (entry.mobMainPronounciation == mob.mobMainPronounciation) {
+					throw new CustomException("You can't add an item that already exists");
+				}
+			}
+			enemyList.Add(mob);
+			enemies = enemyList.ToArray();
+
+			grammar = ConstructGrammar(this);
+		}
+
 		public struct Enemy {
 			public Enemy(string mobMainPronounciation, string[] ambiguous, ushort mobLevel, MobClass mobClass) {
 				this.mobMainPronounciation = mobMainPronounciation;
@@ -150,19 +143,6 @@ namespace Metin2SpeechToData {
 			public string[] ambiguous { get; }
 			public ushort mobLevel { get; }
 			public MobClass mobClass { get; }
-		}
-
-		public void AddMobDuringRuntime(Enemy mob) {
-			List<Enemy> enemyList = new List<Enemy>(enemies);
-			foreach (Enemy entry in enemies) {
-				if (entry.mobMainPronounciation == mob.mobMainPronounciation) {
-					throw new CustomException("You can't add an item that already exists");
-				}
-			}
-			enemyList.Add(mob);
-			enemies = enemyList.ToArray();
-
-			grammar = ConstructGrammar(this);
 		}
 	}
 }

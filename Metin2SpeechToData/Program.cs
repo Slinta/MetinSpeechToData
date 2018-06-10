@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Windows.Forms;
+using System.Threading;
 
 namespace Metin2SpeechToData {
 	public static class Program {
@@ -16,17 +17,8 @@ namespace Metin2SpeechToData {
 
 		public static string currCommand { get; set; } = "";
 
-		/* NIY List:
-		 * TODO: Sessions
-		 * TODO: Error check and speech recognition overlaps
-		 * 
-		 * 
-		 * 
-		 */
-
 		[STAThread]
 		static void Main(string[] args) {
-
 			new Undo();
 			config = new Configuration(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
 			interaction = new SpreadsheetInteraction(config.xlsxFile);
@@ -34,18 +26,13 @@ namespace Metin2SpeechToData {
 			mapper = new HotKeyMapper();
 			parser = new DefinitionParser();
 
-			mapper.AssignToHotkey(Keys.F1, "voice");
-			mapper.AssignToHotkey(Keys.F2, "chest");
-			mapper.AssignToHotkey(Keys.F3, "help");
-			mapper.AssignToHotkey(Keys.F4, "quit");
-			mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
+			AssignInitialHotkeys();
 			bool continueRunning = true;
 			//
-
 			Console.WriteLine("Welcome to Metin2 siNDiCATE Drop logger");
 			Console.WriteLine("Type 'help' for more info on how to use this program");
-
 			while (continueRunning) {
+
 				Console.WriteLine("Commands:" +
 					"\n(F1)-Drop with voice recognition" +
 					"\n(F2)-Chests" +
@@ -54,6 +41,7 @@ namespace Metin2SpeechToData {
 					"\n(Shift + F8)-Wipe files(see 'help')");
 
 				string command = Console.ReadLine();
+
 				if (currCommand != "") {
 					command = currCommand;
 				}
@@ -66,9 +54,8 @@ namespace Metin2SpeechToData {
 						switch (commandBlocks[0]) {
 							case "quit":
 							case "exit": {
-								Console.WriteLine("Do you want to quit? y/n");
-								if (Console.ReadKey(true).Key == ConsoleKey.Y) {
-									continueRunning = false;
+								if (Confirmation.WrittenConfirmation("Do you want to quit ?")) {
+									Environment.Exit(0);
 								}
 								break;
 							}
@@ -76,9 +63,9 @@ namespace Metin2SpeechToData {
 								Console.WriteLine("Existing commands:");
 								Console.WriteLine("quit / exit --> Close the application\n");
 								Console.WriteLine("clear --> Clears the console\n");
-								Console.WriteLine("voice / voice debug --> Enables voice control without/with debug prints\n");
+								Console.WriteLine("voice --> Enables voice control without/with debug prints\n");
 								Console.WriteLine("chest --> Opens speech recognition for chest drops (Gold/Silver[+-])\n");
-								Console.WriteLine("wipe --> removes the sheet and all custom data !CAUTION ADVISED!");
+								Console.WriteLine("wipe --> removes main sheet and all nonessential custom data !CAUTION ADVISED!");
 								break;
 							}
 							case "voice": {
@@ -86,11 +73,7 @@ namespace Metin2SpeechToData {
 								gameRecognizer.helper.AcquireControl();
 								Console.WriteLine("Returned to Main control!");
 								mapper.FreeGameHotkeys();
-								mapper.AssignToHotkey(Keys.F1, "voice");
-								mapper.AssignToHotkey(Keys.F2, "chest");
-								mapper.AssignToHotkey(Keys.F3, "help");
-								mapper.AssignToHotkey(Keys.F4, "quit");
-								mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
+								AssignInitialHotkeys();
 								break;
 							}
 							case "chest": {
@@ -98,11 +81,7 @@ namespace Metin2SpeechToData {
 								chestRecognizer.helper.AcquireControl();
 								Console.WriteLine("Returned to Main control!");
 								mapper.FreeGameHotkeys();
-								mapper.AssignToHotkey(Keys.F1, "voice");
-								mapper.AssignToHotkey(Keys.F2, "chest");
-								mapper.AssignToHotkey(Keys.F3, "help");
-								mapper.AssignToHotkey(Keys.F4, "quit");
-								mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
+								AssignInitialHotkeys();
 								break;
 							}
 							case "clear": {
@@ -113,15 +92,25 @@ namespace Metin2SpeechToData {
 							}
 							case "wipe": {
 								Console.WriteLine("Wiping data...");
+								Console.Write("config.cfg");
+
 								if (File.Exists(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg")) {
 									File.Delete(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
-									Console.WriteLine("config.cfg");
+									Console.WriteLine("...SUCCESS");
 								}
-						
+								else {
+									Console.WriteLine("...file already deleted");
+								}
+
+								Console.Write(Configuration.DEFAULT_FILE_NAME);
 								if (File.Exists(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + Configuration.DEFAULT_FILE_NAME)) {
 									File.Delete(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + Configuration.DEFAULT_FILE_NAME);
-									Console.WriteLine(Configuration.DEFAULT_FILE_NAME);
+									Console.WriteLine("...SUCCESS");
 								}
+								else {
+									Console.WriteLine("...file already deleted");
+								}
+								Console.WriteLine();
 								config = new Configuration(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
 								interaction = new SpreadsheetInteraction(config.xlsxFile);
 								break;
@@ -138,6 +127,41 @@ namespace Metin2SpeechToData {
 				mapper.FreeGameHotkeys();
 			}
 		}
+
+		private static void AssignInitialHotkeys() {
+			mapper.AssignToHotkey(Keys.F1, "voice");
+			mapper.AssignToHotkey(Keys.F2, "chest");
+			mapper.AssignToHotkey(Keys.F3, "help");
+			mapper.AssignToHotkey(Keys.F4, "quit");
+			mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
+		}
+
+		//private static string GetCommand(ConsoleKeyInfo info) {
+		//	switch (info.Key) {
+		//		case ConsoleKey.F1: {
+		//			return "voice";
+		//		}
+		//		case ConsoleKey.F2: {
+		//			return "chests";
+		//		}
+		//		case ConsoleKey.F3: {
+		//			return "help";
+		//		}
+		//		case ConsoleKey.F4: {
+		//			return "quit";
+		//		}
+		//		case ConsoleKey.F8: {
+		//			return "wipe";
+		//		}
+		//	}
+		//	throw new InvalidDataException();
+		//}
+
+		//private static void ClearLastLine(string text) {
+		//	Console.SetCursorPosition(text.Length, Console.CursorTop);
+		//	Console.Write(new string(' ', Console.BufferWidth));
+		//	Console.SetCursorPosition(Console.CursorLeft, Console.CursorTop - 1);
+		//}
 	}
 }
 

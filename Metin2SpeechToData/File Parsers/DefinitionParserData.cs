@@ -142,7 +142,6 @@ namespace Metin2SpeechToData {
 				groupsList.Add(item.group);
 				groups = groupsList.ToArray();
 			}
-
 			ConstructGrammar();
 		}
 	}
