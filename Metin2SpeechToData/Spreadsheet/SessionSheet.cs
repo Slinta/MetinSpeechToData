@@ -86,6 +86,11 @@ namespace Metin2SpeechToData {
 			while (Undo.instance.itemInsertionList.Count != 0) {
 				WriteOut();
 			} 
+			while(Undo.instance.enemyList.Count != 0) {
+				Undo.Target enemy = Undo.instance.enemyList.Last.Value;
+				Undo.instance.enemyList.RemoveLast();
+				data.UpdateDataEnemy(enemy.name, true, enemy.killTime);
+			}
 			PopulateHeadder(data);
 
 

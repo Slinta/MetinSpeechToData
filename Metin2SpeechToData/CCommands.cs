@@ -27,6 +27,8 @@ namespace Metin2SpeechToData {
 		public static string getDefineMobCommand { get; private set; }
 		public static string getDefineItemCommand { get; private set; }
 
+		public static string getCancelCommand { get; private set; }
+
 
 		public enum Speech {
 			NONE,
@@ -42,7 +44,8 @@ namespace Metin2SpeechToData {
 			TARGET_KILLED,
 			ASSIGN_HOTKEY_TO_ITEM,
 			DEFINE_ITEM,
-			DEFINE_MOB
+			DEFINE_MOB,
+			CANCEL
 		};
 
 		public static Speech GetEnum(string text) {
@@ -84,6 +87,9 @@ namespace Metin2SpeechToData {
 			}
 			else if (text == getDefineItemCommand) {
 				return Speech.DEFINE_ITEM;
+			}
+			else if (text == getCancelCommand) {
+				return Speech.CANCEL;
 			}
 
 			else {
@@ -134,6 +140,9 @@ namespace Metin2SpeechToData {
 				}
 				case Speech.DEFINE_ITEM: {
 					return getDefineItemCommand;
+				}
+				case Speech.CANCEL: {
+					return getCancelCommand;
 				}
 			}
 			throw new NotSupportedException();
@@ -202,6 +211,10 @@ namespace Metin2SpeechToData {
 						}
 						case "DEFINE_ITEM": {
 							getDefineItemCommand = modified;
+							break;
+						}
+						case "CANCEL": {
+							getCancelCommand = modified;
 							break;
 						}
 						default: {

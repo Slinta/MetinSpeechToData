@@ -169,6 +169,7 @@ namespace Metin2SpeechToData {
 					break;
 				}
 				case CCommands.Speech.DEFINE_MOB: {
+					Undo.instance.currentOperationType = Undo.OperationTypes.Defining;
 					Program.mapper.ToggleItemHotkeys(false);
 					Console.WriteLine("Starting enemy definition creator");
 					Console.Write("Write the main pronounciation: ");
@@ -228,6 +229,7 @@ namespace Metin2SpeechToData {
 					break;
 				}
 				case CCommands.Speech.DEFINE_ITEM: {
+					Undo.instance.currentOperationType= Undo.OperationTypes.Defining;
 					Program.mapper.ToggleItemHotkeys(false);
 					Console.WriteLine("Starting item definition creator");
 					Console.Write("Write the main pronounciation: ");

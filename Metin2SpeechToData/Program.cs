@@ -19,7 +19,7 @@ namespace Metin2SpeechToData {
 
 		[STAThread]
 		static void Main(string[] args) {
-			new Undo();
+			//new Undo();
 			config = new Configuration(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
 			interaction = new SpreadsheetInteraction(config.xlsxFile);
 			Confirmation.Initialize();
@@ -69,8 +69,8 @@ namespace Metin2SpeechToData {
 								break;
 							}
 							case "voice": {
-								GameRecognizer gameRecognizer = new GameRecognizer();
-								gameRecognizer.helper.AcquireControl();
+								GameRecognizer recognizer = new GameRecognizer();
+								recognizer.helper.AcquireControl();
 								Console.WriteLine("Returned to Main control!");
 								mapper.FreeGameHotkeys();
 								AssignInitialHotkeys();
