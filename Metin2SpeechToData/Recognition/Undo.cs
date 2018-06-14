@@ -26,9 +26,9 @@ namespace Metin2SpeechToData {
 		public LinkedList<SessionSheet.ItemMeta> itemInsertionList { get; set; }
 		public LinkedList<Target> enemyList { get; set; }
 		public LinkedList<string> definedItemList { get; set; }
-		
+
 		public LinkedList<OperationTypes> operations { get; set; }
-		
+
 
 		public OperationTypes currentOperationType = OperationTypes.None;
 
@@ -43,7 +43,6 @@ namespace Metin2SpeechToData {
 		}
 
 		public Undo() {
-
 			undoRecogniser = new SpeechRecognitionEngine();
 			undoRecogniser.SetInputToDefaultAudioDevice();
 			undoRecogniser.SpeechRecognized += UndoRecognised;
@@ -54,17 +53,21 @@ namespace Metin2SpeechToData {
 			operations = new LinkedList<OperationTypes>();
 			definedItemList = new LinkedList<string>();
 			enemyList = new LinkedList<Target>();
-
 		}
 
-		
 
 		public void UndoRecognised(object sender, SpeechRecognizedEventArgs e) {
-			if(e.Result.Confidence > 0.93f) {
+			if (e.Result.Confidence > 0.93f) {
 				switch (CCommands.GetEnum(e.Result.Text)) {
 					case CCommands.Speech.UNDO: {
 
 						Console.WriteLine("Undo Happened, Confidence: " + e.Result.Confidence);
+
+						if (operations.Count == 0) {
+							Console.WriteLine("nothing to undo");
+							break;
+						}
+
 						OperationTypes op = operations.Last.Value;
 						operations.RemoveLast();
 						if (op == OperationTypes.ItemDropped) {
@@ -76,7 +79,6 @@ namespace Metin2SpeechToData {
 						else if (op == OperationTypes.TargetFound) {
 							UndoTargetFound();
 						}
-
 						break;
 					}
 					case CCommands.Speech.CANCEL: {
@@ -91,15 +93,15 @@ namespace Metin2SpeechToData {
 		}
 
 		#region Canceling
-			private void CancelDefining() {
-				continueExecution = false;
-				HotKeyMapper.AbortReadLine();
-			}
+		private void CancelDefining() {
+			continueExecution = false;
+			HotKeyMapper.AbortReadLine();
+		}
 		#endregion
 
 		#region Entry admission
 		public void EnemyFound(string enemy) {
-			Target t = new Target(enemy, DateTime.MinValue);
+			Target t = new Target(enemy, DateTime.Now, true);
 			enemyList.AddLast(t);
 			operations.AddLast(OperationTypes.TargetFound);
 		}
@@ -108,16 +110,12 @@ namespace Metin2SpeechToData {
 
 			if (enemy == enemyList.Last.Value.name) {
 				//Everything is fine
-	
-				Target t = enemyList.Last.Value;
-				t.killTime = DateTime.Now;
-				enemyList.AddLast(t);
+				enemyList.AddLast(new Target(enemy, DateTime.Now, false));
 				operations.AddLast(OperationTypes.TargetKilled);
 			}
 			else {
 				throw new CustomException("Enemy killed wasn|t found earlier");
 			}
-			
 		}
 
 		public void AddItem(DefinitionParserData.Item item, string enemy, DateTime dropTime, int amount) {
@@ -125,7 +123,6 @@ namespace Metin2SpeechToData {
 			operations.AddLast(OperationTypes.ItemDropped);
 		}
 		#endregion
-
 
 
 		private void UndoOneItem() {
@@ -145,64 +142,41 @@ namespace Metin2SpeechToData {
 			else {
 				Console.WriteLine("Undo refused!");
 			}
-
 			Console.WriteLine();
-
-
-			/*
-			List<Metadata> data = new List<Metadata>();
-			data.Add(new Metadata<Target>());
-			data[0].
-			*/
 		}
 
 		private void UndoTargetKilled() {
 			enemyHandling.currentEnemy = enemyList.Last.Value.name;
 			enemyHandling.State = EnemyHandling.EnemyState.FIGHTING;
 			enemyList.RemoveLast();
-
-			Console.WriteLine("Now again fighting " + enemyList.Last.Value.name );
+			Console.WriteLine("Now again fighting " + enemyList.Last.Value.name);
 		}
 
 		private void UndoTargetFound() {
 			enemyHandling.currentEnemy = "";
 			Console.WriteLine("Reset current target to 'None'");
-
 			enemyHandling.State = EnemyHandling.EnemyState.NO_ENEMY;
 			enemyList.RemoveLast();
-
-			
 		}
 
-
 		public struct Target {
+			public TargetStates state;
 			public List<DefinitionParserData.Item> droppedItems;
 			public string name;
 			public DateTime killTime;
 
-			public Target(string constructedName, DateTime KillTime) {
+			public Target(string constructedName, DateTime KillTime, bool found) {
 				name = constructedName;
 				droppedItems = new List<DefinitionParserData.Item>();
 				killTime = KillTime;
+				state = (found) ? TargetStates.Found : TargetStates.Killed;
 			}
 		}
 
-		/*
-		public abstract class Metadata {
+		public enum TargetStates {
+			None,
+			Killed,
+			Found,
 		}
-
-		// extend abstract Metadata class
-		public class Metadata<DataType> : Metadata where DataType : struct {
-			private UndoData<DataType> mDataType;
-		}
-
-		private struct UndoData<T> {
-			public OperationTypes type;
-			public Action<T> action;
-			public T data;
-
-			
-		}
-		*/
 	}
 }

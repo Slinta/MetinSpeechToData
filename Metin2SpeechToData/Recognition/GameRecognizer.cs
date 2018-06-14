@@ -18,13 +18,9 @@ namespace Metin2SpeechToData {
 
 			mainRecognizer.LoadGrammar(new Grammar(new Choices(CCommands.getNewTargetCommand)));
 			mainRecognizer.LoadGrammar(new Grammar(new Choices(CCommands.getTargetKilledCommand)));
-			mainRecognizer.LoadGrammar(new Grammar(new Choices(CCommands.getUndoCommand)));
-			mainRecognizer.LoadGrammar(new Grammar(new Choices(CCommands.getRemoveTargetCommand)));
 
 			getCurrentGrammars.Add(CCommands.getNewTargetCommand, 0);
 			getCurrentGrammars.Add(CCommands.getTargetKilledCommand, 1);
-			getCurrentGrammars.Add(CCommands.getUndoCommand, 2);
-			getCurrentGrammars.Add(CCommands.getRemoveTargetCommand, 3);
 		}
 
 		public override void SwitchGrammar(string grammarID) {

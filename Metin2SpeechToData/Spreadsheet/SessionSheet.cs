@@ -89,7 +89,9 @@ namespace Metin2SpeechToData {
 			while(Undo.instance.enemyList.Count != 0) {
 				Undo.Target enemy = Undo.instance.enemyList.Last.Value;
 				Undo.instance.enemyList.RemoveLast();
-				data.UpdateDataEnemy(enemy.name, true, enemy.killTime);
+				if (enemy.state == Undo.TargetStates.Killed) {
+					data.UpdateDataEnemy(enemy.name, true, enemy.killTime);
+				}
 			}
 			PopulateHeadder(data);
 
@@ -192,7 +194,7 @@ namespace Metin2SpeechToData {
 						name += (", " + key);
 					}
 				}
-				return name == "" ? "You were peaceful ;)" : name;
+				return (name == "") ? "No encounters or drops ;)" : name;
 			}
 
 			public float GetAverageTimeBetweenInSeconds(List<DateTime> list) {

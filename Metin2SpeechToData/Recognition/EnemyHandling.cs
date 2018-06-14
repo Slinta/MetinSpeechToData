@@ -38,7 +38,7 @@ namespace Metin2SpeechToData {
 			masterMobRecognizer.SetInputToDefaultAudioDevice();
 			masterMobRecognizer.SpeechRecognized += MasterMobRecognizer_SpeechRecognized;
 			masterMobRecognizer.LoadGrammar(new Grammar(new Choices(CCommands.getCancelCommand)));
-			//Undo.instance.enemyHandling = this;
+			Undo.instance.enemyHandling = this;
 		}
 
 		/// <summary>
@@ -82,7 +82,7 @@ namespace Metin2SpeechToData {
 						string enemy = GetEnemy();
 
 						evnt.Reset();
-						if (enemy == CCommands.getRemoveTargetCommand) {
+						if (enemy == CCommands.getCancelCommand) {
 							Console.WriteLine("Targetting cancelled!");
 							return;
 						}
@@ -96,11 +96,9 @@ namespace Metin2SpeechToData {
 						return;
 					}
 					case EnemyState.FIGHTING: {
-						State = EnemyState.NO_ENEMY;
 
 						EnemyKilled();
 
-						currentEnemy = "";
 						EnemyTargetingModifierRecognized(this, args);
 						return;
 					}
@@ -108,8 +106,6 @@ namespace Metin2SpeechToData {
 			}
 			else if (args.modifier == CCommands.Speech.TARGET_KILLED) {
 				EnemyKilled();
-
-				EnemyTargetingModifierRecognized(this, new ModiferRecognizedEventArgs(CCommands.Speech.REMOVE_TARGET, ""));
 			}
 		}
 
@@ -118,11 +114,14 @@ namespace Metin2SpeechToData {
 		}
 
 		void EnemyKilled() {
+
+			
 			Console.WriteLine();
 			Console.WriteLine("Killed " + currentEnemy + ", the death count increased");
-			
+			state = EnemyState.NO_ENEMY;
 
 			Undo.instance.EnemyKilled(currentEnemy);
+			currentEnemy = "";
 		}
 
 		/// <summary>

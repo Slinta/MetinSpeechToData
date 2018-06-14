@@ -19,7 +19,7 @@ namespace Metin2SpeechToData {
 
 		[STAThread]
 		static void Main(string[] args) {
-			//new Undo();
+			new Undo();
 			config = new Configuration(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
 			interaction = new SpreadsheetInteraction(config.xlsxFile);
 			Confirmation.Initialize();
