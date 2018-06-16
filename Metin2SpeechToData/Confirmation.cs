@@ -25,6 +25,7 @@ namespace Metin2SpeechToData {
 			_confimer.RecognizeAsync(RecognizeMode.Multiple);
 			_confimer.SpeechRecognized += Confimer_SpeechRecognized;
 			Console.WriteLine(question);
+			Console.WriteLine("'{0}', {1}", _boolConfirmation[0], _boolConfirmation[1]);
 			evnt.Wait();
 			return _booleanResult;
 		}

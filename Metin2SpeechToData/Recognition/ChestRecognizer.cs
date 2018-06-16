@@ -66,8 +66,7 @@ namespace Metin2SpeechToData {
 						Console.WriteLine("Nothing else to undo...");
 						return;
 					}
-					Console.WriteLine("Undoing... " + peeked.itemBase.mainPronounciation + " with " + peeked.amount + " items");
-					if (Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'")) {
+					if (Confirmation.AskForBooleanConfirmation("Undoing... " + peeked.itemBase.mainPronounciation + " with " + peeked.amount + " items")) {
 						Console.Write("Confirmed");
 						Undo.instance.itemInsertionList.RemoveLast();
 					}

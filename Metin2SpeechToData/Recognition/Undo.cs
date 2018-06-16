@@ -101,6 +101,7 @@ namespace Metin2SpeechToData {
 			}
 		}
 
+
 		#region Canceling
 		private void CancelDefining() {
 			continueExecution = false;
@@ -124,7 +125,7 @@ namespace Metin2SpeechToData {
 				operations.AddLast(OperationTypes.TargetKilled);
 			}
 			else {
-				throw new CustomException("Enemy killed wasn't found earlier");
+				Console.WriteLine("Attempted to kill an unexpected enemy '{0}'", enemy);
 			}
 		}
 
@@ -141,9 +142,9 @@ namespace Metin2SpeechToData {
 				return;
 			}
 			SessionSheet.ItemMeta action = itemInsertionList.First.Value;
-			Console.WriteLine("Would remove " + action.itemBase.mainPronounciation);
 
-			bool resultUndo = Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'?");
+			bool resultUndo = Confirmation.AskForBooleanConfirmation("Would remove " + action.itemBase.mainPronounciation);
+
 			if (resultUndo) {
 				itemInsertionList.RemoveFirst();
 				Console.WriteLine("Removed " + action.itemBase.mainPronounciation + " from the stack");
