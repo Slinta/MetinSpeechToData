@@ -11,7 +11,7 @@ namespace SheetSync {
 	class ValidateMain {
 
 		private ExcelWorksheet mainSheet;
-		private ExcelWorkbook content;
+		private readonly ExcelWorkbook content;
 
 		public ValidateMain(ExcelPackage main) {
 			content = main.Workbook;

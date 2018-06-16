@@ -518,7 +518,6 @@ namespace Metin2SpeechToData {
 
 		public static void AbortReadLineAndCallCommand(string command) {
 			Program.currCommand = command;
-			//Thread.Sleep(250);
 			AbortReadLine();
 		}
 

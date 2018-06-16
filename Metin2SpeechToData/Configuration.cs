@@ -191,9 +191,10 @@ namespace Metin2SpeechToData {
 					Console.WriteLine("Configuration file is empty, and had to be deleted, restart this application.\nPress 'Enter' to exit...");
 					Console.ReadLine();
 					sr.Close();
-					File.Delete(filePath);
 					sr.Dispose();
+					File.Delete(filePath);
 					Environment.Exit(0);
+					return;
 				}
 			}
 		}

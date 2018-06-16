@@ -329,10 +329,7 @@ namespace Metin2SpeechToData {
 				_currentGrammars[controlingRecognizer.Grammars[i].Name] = (i, true);
 			}
 
-			//TODO: Reimplement these cursed calls
-			//controlingRecognizer.RecognizeAsyncCancel();
 			controlingRecognizer.UnloadGrammar(controlingRecognizer.Grammars[_currentGrammars["Available"].index]);
-			//controlingRecognizer.RecognizeAsync();
 
 			Program.interaction.StartSession(e.text);
 			Program.mapper.RemapHotkey(Keys.F1, Control_SpeechRecognized, new SpeechRecognizedArgs(CCommands.getStartCommand, 100));

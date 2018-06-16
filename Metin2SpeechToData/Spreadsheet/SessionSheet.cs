@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using static Metin2SpeechToData.Spreadsheet.SsConstants;
 
 namespace Metin2SpeechToData {
-	public class SessionSheet {
+	public class SessionSheet : IDisposable {
 
 		public const string LINK_TO_MAIN = "B5";
 		public const string SESSION_AREA_NAME = "B7";
@@ -232,5 +232,26 @@ namespace Metin2SpeechToData {
 			public DateTime dropTime { get; }
 			public int amount { get; }
 		}
+
+		#region IDisposable Support
+		private bool disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing) {
+			if (!disposedValue) {
+				package.Dispose();
+				disposedValue = true;
+			}
+		}
+
+		 ~SessionSheet() {
+			Dispose(false);
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+		#endregion
 	}
 }

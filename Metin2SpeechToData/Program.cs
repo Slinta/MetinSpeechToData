@@ -133,33 +133,6 @@ namespace Metin2SpeechToData {
 			mapper.AssignToHotkey(Keys.F4, "quit");
 			mapper.AssignToHotkey(Keys.F8, KeyModifiers.Shift, "wipe");
 		}
-
-		//private static string GetCommand(ConsoleKeyInfo info) {
-		//	switch (info.Key) {
-		//		case ConsoleKey.F1: {
-		//			return "voice";
-		//		}
-		//		case ConsoleKey.F2: {
-		//			return "chests";
-		//		}
-		//		case ConsoleKey.F3: {
-		//			return "help";
-		//		}
-		//		case ConsoleKey.F4: {
-		//			return "quit";
-		//		}
-		//		case ConsoleKey.F8: {
-		//			return "wipe";
-		//		}
-		//	}
-		//	throw new InvalidDataException();
-		//}
-
-		//private static void ClearLastLine(string text) {
-		//	Console.SetCursorPosition(text.Length, Console.CursorTop);
-		//	Console.Write(new string(' ', Console.BufferWidth));
-		//	Console.SetCursorPosition(Console.CursorLeft, Console.CursorTop - 1);
-		//}
 	}
 }
 

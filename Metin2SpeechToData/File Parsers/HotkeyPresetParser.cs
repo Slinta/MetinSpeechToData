@@ -8,7 +8,7 @@ using Metin2SpeechToData.Structures;
 using System.Threading;
 
 namespace Metin2SpeechToData {
-	public class HotkeyPresetParser {
+	public class HotkeyPresetParser : IDisposable {
 
 		private readonly FileInfo[] hotkeyFiles;
 
@@ -112,5 +112,26 @@ namespace Metin2SpeechToData {
 				Console.WriteLine("No hotkey mappings were found, continuing.");
 			}
 		}
+
+		#region IDisposable Support
+		private bool disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing) {
+			if (!disposedValue) {
+				evnt.Dispose();
+				disposedValue = true;
+			}
+		}
+
+		~HotkeyPresetParser() {
+			Dispose(false);
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+		#endregion
 	}
 }

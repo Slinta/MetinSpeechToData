@@ -124,6 +124,7 @@ namespace Metin2SpeechToData {
 				}
 				controlingRecognizer.RecognizeAsyncStop();
 				controlingRecognizer.Dispose();
+				evnt.Dispose();
 				disposedValue = true;
 			}
 		}

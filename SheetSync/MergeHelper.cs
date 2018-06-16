@@ -23,7 +23,7 @@ namespace SheetSync {
 
 		public MergeHelper(ExcelPackage main, FileInfo[] sessions) {
 			List<int> list = new List<int>();
-			DefinitionParser parser = new DefinitionParser();
+			new DefinitionParser();
 
 			for (int i = 0; i < sessions.Length; i++) {
 				if (sessions[i].Attributes == FileAttributes.Archive) {
