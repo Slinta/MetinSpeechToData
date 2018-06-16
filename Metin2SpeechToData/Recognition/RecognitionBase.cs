@@ -15,6 +15,9 @@ namespace Metin2SpeechToData {
 			GRAMMAR_SELECTED,
 			PAUSED,
 			ACTIVE,
+			DEFINING_ITEMS,
+			DEFINING_ENEMIES,
+
 		}
 
 

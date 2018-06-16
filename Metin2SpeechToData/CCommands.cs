@@ -21,11 +21,12 @@ namespace Metin2SpeechToData {
 		public static string getUndoCommand { get; private set; }
 
 		public static string getHotkeyAssignCommand { get; private set; }
-		public static string getRemoveTargetCommand { get; private set; }
 		public static string getStartSessionCommand { get; private set; }
 
 		public static string getDefineMobCommand { get; private set; }
 		public static string getDefineItemCommand { get; private set; }
+
+		public static string getCancelCommand { get; private set; }
 
 
 		public enum Speech {
@@ -37,12 +38,12 @@ namespace Metin2SpeechToData {
 			CONFIRM,
 			REFUSE,
 			NEW_TARGET,
-			REMOVE_TARGET,
 			UNDO,
 			TARGET_KILLED,
 			ASSIGN_HOTKEY_TO_ITEM,
 			DEFINE_ITEM,
-			DEFINE_MOB
+			DEFINE_MOB,
+			CANCEL
 		};
 
 		public static Speech GetEnum(string text) {
@@ -64,9 +65,6 @@ namespace Metin2SpeechToData {
 			else if (text == getNewTargetCommand) {
 				return Speech.NEW_TARGET;
 			}
-			else if (text == getRemoveTargetCommand) {
-				return Speech.REMOVE_TARGET;
-			}
 			else if (text == getTargetKilledCommand) {
 				return Speech.TARGET_KILLED;
 			}
@@ -84,6 +82,9 @@ namespace Metin2SpeechToData {
 			}
 			else if (text == getDefineItemCommand) {
 				return Speech.DEFINE_ITEM;
+			}
+			else if (text == getCancelCommand) {
+				return Speech.CANCEL;
 			}
 
 			else {
@@ -117,9 +118,6 @@ namespace Metin2SpeechToData {
 				case Speech.NEW_TARGET: {
 					return getNewTargetCommand;
 				}
-				case Speech.REMOVE_TARGET: {
-					return getRemoveTargetCommand;
-				}
 				case Speech.UNDO: {
 					return getUndoCommand;
 				}
@@ -134,6 +132,9 @@ namespace Metin2SpeechToData {
 				}
 				case Speech.DEFINE_ITEM: {
 					return getDefineItemCommand;
+				}
+				case Speech.CANCEL: {
+					return getCancelCommand;
 				}
 			}
 			throw new NotSupportedException();
@@ -151,6 +152,7 @@ namespace Metin2SpeechToData {
 					}
 					string[] split = line.Split(':');
 					string modified = split[1].Remove(0, 1);
+					modified = modified.Trim();
 					switch (split[0]) {
 						case "START": {
 							getStartCommand = modified;
@@ -184,10 +186,6 @@ namespace Metin2SpeechToData {
 							getTargetKilledCommand = modified;
 							break;
 						}
-						case "REMOVE_TARGET": {
-							getRemoveTargetCommand = modified;
-							break;
-						}
 						case "UNDO": {
 							getUndoCommand = modified;
 							break;
@@ -202,6 +200,10 @@ namespace Metin2SpeechToData {
 						}
 						case "DEFINE_ITEM": {
 							getDefineItemCommand = modified;
+							break;
+						}
+						case "CANCEL": {
+							getCancelCommand = modified;
 							break;
 						}
 						default: {

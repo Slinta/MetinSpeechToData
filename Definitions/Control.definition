@@ -8,13 +8,16 @@ STOP: Computer stop and quit
 SWITCH: Computer switch grammar
 CONFIRM: Confirm
 REFUSE: Refuse
+CANCEL: Cancel current operation
+DEFINE_MOB: Computer define mob
+DEFINE_ITEM: Computer define item
+UNDO:  Undo last operation
 
 # Below this line, commands are used as modifiers, and can be said while playing
 
 NEW_TARGET: New target
 TARGET_KILLED: Target killed
-REMOVE_TARGET: Remove target
-UNDO: Undo
+
 
 # Curerntly unused commands
 

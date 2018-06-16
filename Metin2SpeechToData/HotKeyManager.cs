@@ -332,7 +332,7 @@ namespace Metin2SpeechToData {
 				voiceHotkeys.Remove(selectedKey);
 			}
 			controlHotkeys.Add(selectedKey, new ActionStashString() {
-				_action = AbortReadLine,
+				_action = AbortReadLineAndCallCommand,
 				_data = command,
 				_keyModifier = KeyModifiers.None,
 				_unregID = manager.RegisterHotKey(selectedKey, KeyModifiers.None)
@@ -352,7 +352,7 @@ namespace Metin2SpeechToData {
 				controlHotkeys.Remove(selectedKey);
 			}
 			controlHotkeys.Add(selectedKey, new ActionStashString() {
-				_action = AbortReadLine,
+				_action = AbortReadLineAndCallCommand,
 				_data = command,
 				_keyModifier = modifier,
 				_unregID = manager.RegisterHotKey(selectedKey, modifier)
@@ -372,7 +372,7 @@ namespace Metin2SpeechToData {
 				controlHotkeys.Remove(selectedKey);
 			}
 			controlHotkeys.Add(selectedKey, new ActionStashString() {
-				_action = AbortReadLine,
+				_action = AbortReadLineAndCallCommand,
 				_data = command,
 				_keyModifier = modifier1 | modifier2,
 				_unregID = manager.RegisterHotKey(selectedKey, modifier1 | modifier2)
@@ -510,12 +510,18 @@ namespace Metin2SpeechToData {
 			}
 		}
 
-		private static void AbortReadLine(string command) {
-			Program.currCommand = command;
+		public static void AbortReadLine() {
 			NativeMethods.PostMessage(Process.GetCurrentProcess().MainWindowHandle, 0x100, 0x0D, 0);
 		}
 
 		#region Item Hotkey Handling
+
+		public static void AbortReadLineAndCallCommand(string command) {
+			Program.currCommand = command;
+			//Thread.Sleep(250);
+			AbortReadLine();
+		}
+
 		private GameRecognizer recognizer;
 		public void AttachHotkeyWrapper(GameRecognizer rec) {
 			recognizer = rec;

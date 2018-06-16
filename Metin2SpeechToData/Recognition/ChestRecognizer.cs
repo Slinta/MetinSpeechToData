@@ -48,7 +48,7 @@ namespace Metin2SpeechToData {
 			evnt.Wait();
 			//Now we have an address and how many items they received
 			Console.WriteLine("Parsed: " + _count);
-			Program.interaction.currentSession.Add(
+			Undo.instance.AddItem(
 				DefinitionParser.instance.currentGrammarFile.GetItemEntry(DefinitionParser.instance.currentGrammarFile.GetMainPronounciation(args.text)),
 				"RNG",
 				DateTime.Now,
@@ -61,7 +61,7 @@ namespace Metin2SpeechToData {
 			CCommands.Speech current = SpeechHelperBase.reverseModifierDict[args.text];
 			switch (current) {
 				case CCommands.Speech.UNDO: {
-					SessionSheet.ItemMeta peeked = Program.interaction.currentSession.itemInsertionList.Last.Value;
+					SessionSheet.ItemMeta peeked = Undo.instance.itemInsertionList.Last.Value;
 					if (peeked.dropTime == default(DateTime)) {
 						Console.WriteLine("Nothing else to undo...");
 						return;
@@ -69,7 +69,7 @@ namespace Metin2SpeechToData {
 					Console.WriteLine("Undoing... " + peeked.itemBase.mainPronounciation + " with " + peeked.amount + " items");
 					if (Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'")) {
 						Console.Write("Confirmed");
-						Program.interaction.currentSession.itemInsertionList.RemoveLast();
+						Undo.instance.itemInsertionList.RemoveLast();
 					}
 					else {
 						Console.Write("Refused");

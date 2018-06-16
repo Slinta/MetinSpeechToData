@@ -12,7 +12,6 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		public static readonly IReadOnlyDictionary<CCommands.Speech, string> modifierDict = new Dictionary<CCommands.Speech, string>() {
 			{ CCommands.Speech.NEW_TARGET , CCommands.getNewTargetCommand },
-			{ CCommands.Speech.REMOVE_TARGET, CCommands.getRemoveTargetCommand },
 			{ CCommands.Speech.TARGET_KILLED, CCommands.getTargetKilledCommand },
 			{ CCommands.Speech.UNDO, CCommands.getUndoCommand },
 			{ CCommands.Speech.ASSIGN_HOTKEY_TO_ITEM, CCommands.getHotkeyAssignCommand },
@@ -23,7 +22,6 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		public static readonly IReadOnlyDictionary<string, CCommands.Speech> reverseModifierDict = new Dictionary<string, CCommands.Speech>() {
 			{ CCommands.getNewTargetCommand , CCommands.Speech.NEW_TARGET },
-			{ CCommands.getRemoveTargetCommand, CCommands.Speech.REMOVE_TARGET  },
 			{ CCommands.getTargetKilledCommand, CCommands.Speech.TARGET_KILLED },
 			{ CCommands.getUndoCommand, CCommands.Speech.UNDO },
 			{ CCommands.getHotkeyAssignCommand, CCommands.Speech.ASSIGN_HOTKEY_TO_ITEM },

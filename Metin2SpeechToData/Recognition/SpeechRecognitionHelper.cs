@@ -95,7 +95,7 @@ namespace Metin2SpeechToData {
 				}
 				case CCommands.Speech.STOP: {
 					if (currentMode == UnderlyingRecognizer.AREA) {
-						if (_gameRecognizer.enemyHandling.state == EnemyHandling.EnemyState.FIGHTING) {
+						if (_gameRecognizer.enemyHandling.State == EnemyHandling.EnemyState.FIGHTING) {
 							_gameRecognizer.enemyHandling.ForceKill();
 						}
 						Program.interaction.StopSession();
@@ -169,21 +169,41 @@ namespace Metin2SpeechToData {
 					break;
 				}
 				case CCommands.Speech.DEFINE_MOB: {
+					Undo.instance.SetCurrentOperation(Undo.OperationTypes.Defining);
 					Program.mapper.ToggleItemHotkeys(false);
 					Console.WriteLine("Starting enemy definition creator");
 					Console.Write("Write the main pronounciation: ");
 					string mainPronoun = Console.ReadLine();
+					if (!Undo.instance.isInterrupted) {
+						break;
+					}
 					Console.Write("Write ambiguities(alternate names) seperated by '/' or leave empty: ");
 					string ambiguities = Console.ReadLine();
+					if (!Undo.instance.isInterrupted) {
+						break;
+					}
 					ambiguities = ambiguities.Trim();
 					Console.Write("Define mob level: ");
-					if (!ushort.TryParse(Console.ReadLine(), out ushort level)) {
+					string valString = Console.ReadLine();
+					if (!Undo.instance.isInterrupted) {
+						break;
+					}
+					if (!ushort.TryParse(valString, out ushort level)) {
 						Console.WriteLine("Entered invalid input, definition cancelled.");
 						break;
 					}
 					Console.WriteLine("Choose mob group from: COMMON, HALF_BOSS, BOSS, METEOR, SPECIAL");
 					string group = Console.ReadLine();
+					if (!Undo.instance.isInterrupted) {
+						break;
+					}
 					group = group.ToUpper();
+					if (group != "COMMON" && group != "HALF_BOSS" && group != "BOSS" && group != "METEOR" && group != "SPECIAL") {
+						Console.WriteLine("Unknown group, cancelling");
+						break;
+					}
+
+					
 					string outputString;
 					if (ambiguities == "") {
 						outputString = (mainPronoun + "," + level.ToString() + "," + group);
@@ -204,24 +224,40 @@ namespace Metin2SpeechToData {
 					MobParserData.Enemy enemy = new MobParserData.Enemy(mainPronoun, ambList.ToArray(), level, DefinitionParser.instance.currentMobGrammarFile.ParseClass(group));
 					DefinitionParser.instance.currentMobGrammarFile.AddMobDuringRuntime(enemy);
 					_gameRecognizer.enemyHandling.SwitchGrammar(DefinitionParser.instance.currentMobGrammarFile.ID.Split('_')[1]);
+
 					Program.mapper.ToggleItemHotkeys(true);
 					break;
 				}
 				case CCommands.Speech.DEFINE_ITEM: {
+					Undo.instance.SetCurrentOperation(Undo.OperationTypes.Defining);
 					Program.mapper.ToggleItemHotkeys(false);
 					Console.WriteLine("Starting item definition creator");
 					Console.Write("Write the main pronounciation: ");
 					string mainPronoun = Console.ReadLine();
+					if (!Undo.instance.isInterrupted) {
+						break;
+					}
 					Console.Write("Write ambiguities(alternate names) seperated by '/' or leave empty: ");
 					string ambiguities = Console.ReadLine();
+					if (!Undo.instance.isInterrupted) {
+						break;
+					}
 					ambiguities = ambiguities.Trim();
-					Console.Write("Define item value: ");
-					if (!uint.TryParse(Console.ReadLine(), out uint value)) {
+					Console.Write("Define item value(as a positive value): ");
+					
+					string valString = Console.ReadLine();
+					if (!Undo.instance.isInterrupted) {
+						break;
+					}
+					if (!uint.TryParse(valString, out uint value)) {
 						Console.WriteLine("Entered invalid input, definition cancelled.");
 						break;
 					}
 					Console.Write("Choose item group (group name): ");
 					string group = Console.ReadLine();
+					if (!Undo.instance.isInterrupted) {
+						break;
+					}
 					string outputString;
 					if (ambiguities == "") {
 						outputString = (mainPronoun + "," + value.ToString() + "," + group);
@@ -292,9 +328,11 @@ namespace Metin2SpeechToData {
 				controlingRecognizer.Grammars[i].Enabled = true;
 				_currentGrammars[controlingRecognizer.Grammars[i].Name] = (i, true);
 			}
-			controlingRecognizer.RecognizeAsyncCancel();
+
+			//TODO: Reimplement these cursed calls
+			//controlingRecognizer.RecognizeAsyncCancel();
 			controlingRecognizer.UnloadGrammar(controlingRecognizer.Grammars[_currentGrammars["Available"].index]);
-			controlingRecognizer.RecognizeAsync();
+			//controlingRecognizer.RecognizeAsync();
 
 			Program.interaction.StartSession(e.text);
 			Program.mapper.RemapHotkey(Keys.F1, Control_SpeechRecognized, new SpeechRecognizedArgs(CCommands.getStartCommand, 100));
