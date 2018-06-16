@@ -515,6 +515,7 @@ namespace Metin2SpeechToData {
 			NativeMethods.PostMessage(Process.GetCurrentProcess().MainWindowHandle, 0x100, 0x0D, 0);
 		}
 
+		#region Item Hotkey Handling
 		private GameRecognizer recognizer;
 		public void AttachHotkeyWrapper(GameRecognizer rec) {
 			recognizer = rec;
@@ -526,6 +527,7 @@ namespace Metin2SpeechToData {
 			Console.WriteLine("Activated hotkey for item " + args.text + "!");
 			recognizer.enemyHandling.ItemDropped(args.text, 1);
 		}
+		#endregion
 
 		private void HotKeyManager_HotKeyPressed(object sender, HotKeyEventArgs e) {
 			if (controlHotkeys.ContainsKey(e.Key)) {

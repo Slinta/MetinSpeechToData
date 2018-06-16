@@ -31,6 +31,8 @@ namespace Metin2SpeechToData {
 		public static float acceptanceThreshold { get; private set; } = DEFAULT_SPEECH_ACCEPTANCE_THRESHOLD;
 		public static SheetViewer sheetViewer { get; private set; } = DEFAULT_SHEET_VIEWER;
 		public static TimeSpan minutesAverageDropValueInterval { get => new TimeSpan(0, parsedTimeStampAverage, 0);}
+		public static bool debug { get; private set; } = false;
+
 
 		public Configuration(string filePath) {
 			if (!File.Exists(filePath)) {
@@ -115,6 +117,10 @@ namespace Metin2SpeechToData {
 		private void ParseConfig(string filePath) {
 			bool parseSuccess = false;
 			using (StreamReader sr = File.OpenText(filePath)) {
+				if (sr.ReadLine() == "debug") {
+					debug = true;
+				}
+
 				while (!sr.EndOfStream) {
 					string line = sr.ReadLine();
 					if (string.IsNullOrWhiteSpace(line) || line.Contains("#")) {
@@ -176,7 +182,7 @@ namespace Metin2SpeechToData {
 					}
 				}
 				if (parseSuccess) {
-					if (Program.debug) {
+					if (debug) {
 						Console.WriteLine("Parsed successfuly!");
 					}
 					return;

@@ -23,6 +23,7 @@ namespace SheetSync {
 
 		public MergeHelper(ExcelPackage main, FileInfo[] sessions) {
 			List<int> list = new List<int>();
+			DefinitionParser parser = new DefinitionParser();
 
 			for (int i = 0; i < sessions.Length; i++) {
 				if (sessions[i].Attributes == FileAttributes.Archive) {
@@ -31,9 +32,9 @@ namespace SheetSync {
 			}
 
 			if (list.Count > 0) {
-				Console.WriteLine("Found unmerged session files in 'Sessions' folder...");
+				Console.WriteLine("Found {0} unmerged session files in 'Sessions' folder...", list.Count);
 				foreach (int i in list) {
-					if (Confirmation.WrittenConfirmation("Merge '" + sessions[i].Name + "' with main file?")) {
+					if (Confirmation.WrittenConfirmation("Merge '" + SpreadsheetHelper.GetSessionName(sessions[i]) + " (" + sessions[i].Name.Remove(sessions[i].Name.Length - 5, 5) + ")' with main file?")) {
 						MergeSession(main, sessions[i]);
 						sessions[i].Attributes = FileAttributes.Normal;
 						nameToDropCoutAddress.Clear();
@@ -117,6 +118,7 @@ namespace SheetSync {
 			UpdateSheetHeadders(main);
 			main.Save();
 			sessionPackage.Save();
+			Console.WriteLine("Session merged successfully\n");
 		}
 
 
@@ -133,15 +135,18 @@ namespace SheetSync {
 
 				if (modifiedLists[i].sheetType == SpreadsheetTemplates.SpreadsheetPresetType.ENEMY) {
 					current.SetValue(SsControl.E_TOTAL_KILLED, current.Cells[SsControl.E_TOTAL_KILLED].GetValue<int>() + 1);
-					current.SetValue(SsControl.E_AVERAGE_DROP, GetAverage(current.Cells[SsControl.E_AVERAGE_DROP].GetValue<float>(), itemCount, itemArray.Where((x) => x.comesFromEnemy == modifiedLists[i].sheetName).ToArray()));
+					current.SetValue(SsControl.E_AVERAGE_DROP, GetAverage(current.Cells[SsControl.E_AVERAGE_DROP].GetValue<int>(), itemCount, itemArray.Where((x) => x.comesFromEnemy == modifiedLists[i].sheetName).ToArray()));
 				}
 			}
 		}
 
-		private int GetAverage(float currAverage, int currItemCount, SessionSheet.ItemMeta[] newItems) {
-			Console.WriteLine("Not Implemented");
+		private int GetAverage(int currAverage, int currItemCount, SessionSheet.ItemMeta[] newItems) {
 			return -1;
-			throw new NotImplementedException(); //TODO implement average drop calculation
+			//TODO average
+			for (int i = 0; i < newItems.Length; i++) {
+				currAverage += (int)(newItems[i].itemBase.yangValue - currAverage) / ++currItemCount;
+			}
+			return currAverage;
 		}
 
 		private int CountItems(ExcelWorksheet current) {
@@ -213,6 +218,7 @@ namespace SheetSync {
 			SpreadsheetHelper.Copy(mainInMain, mergedAddr.Address, SpreadsheetHelper.OffsetAddress(mergedAddr, 0, 3).Address,
 											   SpreadsheetHelper.OffsetAddress(mergedAddr, 1, 0).Address, SpreadsheetHelper.OffsetAddress(mergedAddr, 1, 3).Address);
 			SpreadsheetHelper.HyperlinkAcrossFiles(session.File, "Session", "A1", mainInMain, mergedAddr.Address, sessionName);
+
 			mainInMain.Cells[unmergedStart.Address].Formula = null;
 			mainInMain.Cells[unmergedStart.Address].Value = null;
 			mainInMain.Select("A1");

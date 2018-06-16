@@ -10,30 +10,32 @@ using static Metin2SpeechToData.Spreadsheet.SsConstants;
 namespace SheetSync {
 	class ValidateMain {
 
-		private ExcelWorksheet mainSheet { get; }
-		private ExcelWorkbook content { get; }
+		private ExcelWorksheet mainSheet;
+		private ExcelWorkbook content;
 
 		public ValidateMain(ExcelPackage main) {
+			content = main.Workbook;
+			mainSheet = content.Worksheets[1];
+			System.Console.WriteLine("Validating main...");
+
+			RecreateMain(main);
+			Validate();
+
+			System.Console.WriteLine("File Validated successfully");
+
+		}
+
+		public void RecreateMain(ExcelPackage main) {
 			SpreadsheetTemplates t = new SpreadsheetTemplates();
 			ExcelWorksheets sheets = t.LoadTemplates();
-			content = main.Workbook;
 			content.Worksheets.Delete(1);
 			content.Worksheets.Add(H_DEFAULT_SHEET_NAME, sheets["Main"]);
 			content.Worksheets.MoveToStart(H_DEFAULT_SHEET_NAME);
 			mainSheet = main.Workbook.Worksheets[1];
-			System.Console.WriteLine("Validating main...");
-			try {
-				Validate();
-				System.Console.WriteLine("File Validated successfully");
-			}
-			catch (System.Exception e) {
-				System.Console.WriteLine("Validation failed!\n" + e.Message);
-			}
 		}
 
 		public void Validate() {
 			FileInfo[] sessions = new DirectoryInfo(sessionDirectory).GetFiles("*.xlsx");
-			SpreadsheetTemplates t = new SpreadsheetTemplates();
 			sessions.Sort(0, sessions.Length - 1, FileComparer);
 
 			FileInfo[] files = new DirectoryInfo(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Definitions").GetFiles("Mob_*.definition");

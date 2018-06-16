@@ -6,8 +6,6 @@ using System.Threading;
 namespace Metin2SpeechToData {
 	public static class Program {
 
-		public static bool debug { get; private set; } = false;
-
 		private static DefinitionParser parser { get; set; }
 
 		public static SpreadsheetInteraction interaction { get; private set; }

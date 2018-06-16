@@ -89,14 +89,14 @@ namespace Metin2SpeechToData {
 		public virtual void OnRecognitionStateChanged(object sender, RecognitionState state) {
 			switch (state) {
 				case RecognitionState.INACTIVE: {
-					if (Program.debug) {
+					if (Configuration.debug) {
 						Console.WriteLine("Currently inactive");
 					}
 					StopRecognition(true);
 					break;
 				}
 				case RecognitionState.ACTIVE: {
-					if (Program.debug) {
+					if (Configuration.debug) {
 						Console.WriteLine("Currently active");
 					}
 					if (currentState != RecognitionState.PAUSED) {
@@ -110,7 +110,7 @@ namespace Metin2SpeechToData {
 					break;
 				}
 				case RecognitionState.PAUSED: {
-					if (Program.debug) {
+					if (Configuration.debug) {
 						Console.WriteLine("Currently paused");
 					}
 					foreach (int index  in getCurrentGrammars.Values) {
@@ -119,7 +119,7 @@ namespace Metin2SpeechToData {
 					break;
 				}
 				case RecognitionState.STOPPED: {
-					if (Program.debug) {
+					if (Configuration.debug) {
 						Console.WriteLine("Currently stoped");
 					}
 					mainRecognizer.UnloadAllGrammars();
@@ -129,7 +129,7 @@ namespace Metin2SpeechToData {
 					break;
 				}
 				case RecognitionState.SWITCHING: {
-					if (Program.debug) {
+					if (Configuration.debug) {
 						Console.WriteLine("Currenly switching");
 					}
 					break;
@@ -142,7 +142,7 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		/// <param name="current">the modifier that will be switched to</param>
 		protected virtual void PreModiferEvaluation(CCommands.Speech current) {
-			if (Program.debug) {
+			if (Configuration.debug) {
 				Console.WriteLine("Switching modifier to " + current);
 			}
 		}
@@ -152,7 +152,7 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		/// <param name="current">the modifier that will be switched to</param>
 		protected virtual void PostModiferEvaluation(CCommands.Speech current) {
-			if (Program.debug) {
+			if (Configuration.debug) {
 				Console.WriteLine("Modifier " + current + " handeled ");
 			}
 		}

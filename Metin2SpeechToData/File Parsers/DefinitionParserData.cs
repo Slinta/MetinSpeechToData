@@ -77,7 +77,7 @@ namespace Metin2SpeechToData {
 					}
 				}
 			}
-			if (!Program.debug) {
+			if (!Configuration.debug) {
 				throw new CustomException("This error should never be called becuse this function is called only when valid word from grammar is said!");
 			}
 			return null;
