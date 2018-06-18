@@ -1,6 +1,6 @@
 ﻿using OfficeOpenXml;
 
-namespace Metin2SpeechToData.Structures{
+namespace Metin2SpeechToData.Structures {
 	public struct SpeechRecognizedArgs {
 		public SpeechRecognizedArgs(string text, float confidence, bool asHotkey = false) {
 			this.text = text;

@@ -1,7 +1,7 @@
 ﻿using OfficeOpenXml;
 
 namespace SheetSync {
-	class Structures {
+	internal class Structures {
 		internal struct Typos {
 			public Typos(string word, string[] possible_replacements, ExcelCellAddress sheetLocation, ExcelWorksheet sheet) {
 				originalTypo = word;

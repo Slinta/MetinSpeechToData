@@ -95,7 +95,7 @@ namespace Metin2SpeechToData {
 				}
 				case CCommands.Speech.STOP: {
 					if (currentMode == UnderlyingRecognizer.AREA) {
-						if (_gameRecognizer.enemyHandling.State == EnemyHandling.EnemyState.FIGHTING) {
+						if (_gameRecognizer.enemyHandling.state == EnemyHandling.EnemyState.FIGHTING) {
 							_gameRecognizer.enemyHandling.ForceKill();
 						}
 						Program.interaction.StopSession();

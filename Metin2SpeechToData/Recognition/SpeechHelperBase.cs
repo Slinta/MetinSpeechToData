@@ -80,14 +80,19 @@ namespace Metin2SpeechToData {
 			}
 		}
 
+		/// <summary>
+		/// Abstract function for handling control
+		/// </summary>
 		protected abstract void Control_SpeechRecognized(SpeechRecognizedArgs e);
+
+		/// <summary>
+		/// Abstract function for handling area switching
+		/// </summary>
 		protected abstract void Switch_WordRecognized(SpeechRecognizedArgs e);
 
 		/// <summary>
-		/// Enables/Disables grammar 'name' in controling recognizer according to value in 'avtive'
+		/// Enables/Disables grammar 'name' in controling recognizer according to value in 'active'
 		/// </summary>
-		/// <param name="name"></param>
-		/// <param name="active"></param>
 		public void SetGrammarState(string name, bool active) {
 			if (_currentGrammars.ContainsKey(name)) {
 				controlingRecognizer.Grammars[_currentGrammars[name].index].Enabled = active;
@@ -107,7 +112,7 @@ namespace Metin2SpeechToData {
 		}
 
 		/// <summary>
-		/// Unlocs the ManualResetEvent which causes the control to return to the main class (Program)
+		/// Unlocks the ManualResetEvent which causes control to return to the main class (Program)
 		/// </summary>
 		protected void ReturnControl() {
 			evnt.Set();

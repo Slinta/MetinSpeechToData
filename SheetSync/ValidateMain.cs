@@ -22,9 +22,11 @@ namespace SheetSync {
 			Validate();
 
 			System.Console.WriteLine("File Validated successfully");
-
 		}
 
+		/// <summary>
+		/// Deletes first sheet in 'main' and replaces it with clean one
+		/// </summary>
 		public void RecreateMain(ExcelPackage main) {
 			SpreadsheetTemplates t = new SpreadsheetTemplates();
 			ExcelWorksheets sheets = t.LoadTemplates();
@@ -34,6 +36,9 @@ namespace SheetSync {
 			mainSheet = main.Workbook.Worksheets[1];
 		}
 
+		/// <summary>
+		/// Goes through all sessions in Sessions folder and sorts them into cathegories in the first sheet
+		/// </summary>
 		public void Validate() {
 			FileInfo[] sessions = new DirectoryInfo(sessionDirectory).GetFiles("*.xlsx");
 			sessions.Sort(0, sessions.Length - 1, FileComparer);
@@ -46,7 +51,6 @@ namespace SheetSync {
 			ExcelCellAddress unmergedSessions = new ExcelCellAddress(MAIN_UNMERGED_LINKS);
 
 			ExcelWorksheet current = mainSheet;
-
 			int sheetCount = content.Worksheets.Count;
 
 			for (int i = 2; i <= sheetCount; i++) {
@@ -80,44 +84,31 @@ namespace SheetSync {
 				}
 			}
 
-
 			foreach (FileInfo file in sessions) {
 				string sessionName = SpreadsheetHelper.GetSessionName(file);
-
 				if (file.Attributes != FileAttributes.Archive) {
-					bool found = false;
-					while (mainSheet.GetValue(mergedSessions.Row, mergedSessions.Column) != null) {
-						if (mainSheet.Cells[mergedSessions.Address].Value.ToString() == sessionName) {
-							found = true;
-							break;
-						}
-						mergedSessions = SpreadsheetHelper.OffsetAddress(mergedSessions, 1, 0);
-					}
-					if (!found) {
-						SpreadsheetHelper.Cut(mainSheet, mergedSessions.Address, SpreadsheetHelper.OffsetAddress(mergedSessions, 0, 3).Address,
-								  SpreadsheetHelper.OffsetAddress(mergedSessions, 1, 0).Address, SpreadsheetHelper.OffsetAddress(mergedSessions, 1, 3).Address);
-
-						SpreadsheetHelper.HyperlinkAcrossFiles(file, "Session", "A1", mainSheet, mergedSessions.Address, sessionName);
-						mergedSessions = SpreadsheetHelper.OffsetAddress(mergedSessions, 1, 0);
-					}
+					SortIntoCathegory(file, mergedSessions, sessionName);
 				}
 				else {
-					bool found = false;
-					while (mainSheet.GetValue(unmergedSessions.Row, unmergedSessions.Column) != null) {
-						if (mainSheet.Cells[unmergedSessions.Address].Value.ToString() == sessionName) {
-							found = true;
-							break;
-						}
-						unmergedSessions = SpreadsheetHelper.OffsetAddress(unmergedSessions, 1, 0);
-					}
-					if (!found) {
-						SpreadsheetHelper.Cut(mainSheet, unmergedSessions.Address, SpreadsheetHelper.OffsetAddress(unmergedSessions, 0, 3).Address,
-								  SpreadsheetHelper.OffsetAddress(unmergedSessions, 1, 0).Address, SpreadsheetHelper.OffsetAddress(unmergedSessions, 1, 3).Address);
-
-						SpreadsheetHelper.HyperlinkAcrossFiles(file, "Session", "A1", mainSheet, unmergedSessions.Address, sessionName);
-						unmergedSessions = SpreadsheetHelper.OffsetAddress(unmergedSessions, 1, 0);
-					}
+					SortIntoCathegory(file, unmergedSessions, sessionName);
 				}
+			}
+		}
+
+		private void SortIntoCathegory(FileInfo currentFile, ExcelCellAddress sessionAddr, string sessionName) {
+			bool found = false;
+			while (mainSheet.GetValue(sessionAddr.Row, sessionAddr.Column) != null) {
+				if (mainSheet.Cells[sessionAddr.Address].Value.ToString() == sessionName) {
+					found = true;
+					break;
+				}
+				sessionAddr = SpreadsheetHelper.OffsetAddress(sessionAddr, 1, 0);
+			}
+			if (!found) {
+				SpreadsheetHelper.Cut(mainSheet, sessionAddr.Address, SpreadsheetHelper.OffsetAddress(sessionAddr, 0, 3).Address,
+						  SpreadsheetHelper.OffsetAddress(sessionAddr, 1, 0).Address, SpreadsheetHelper.OffsetAddress(sessionAddr, 1, 3).Address);
+				SpreadsheetHelper.HyperlinkAcrossFiles(currentFile, "Session", "A1", mainSheet, sessionAddr.Address, sessionName);
+				sessionAddr = SpreadsheetHelper.OffsetAddress(sessionAddr, 1, 0);
 			}
 		}
 

@@ -55,7 +55,6 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Updates 'getCurrentGrammars' with newly loaded grammar
 		/// </summary>
-		/// <param name="grammarID"></param>
 		public virtual void SwitchGrammar(string grammarID) {
 			for (int i = 0; i < mainRecognizer.Grammars.Count; i++) {
 				if (mainRecognizer.Grammars[i].Name == grammarID) {
@@ -82,7 +81,7 @@ namespace Metin2SpeechToData {
 		protected abstract void SpeechRecognized(object sender, SpeechRecognizedArgs args);
 
 		/// <summary>
-		/// Define modifier recognized behaviour
+		/// Define modifier recognized behaviour, this function is called whenever a 'Modifier' is said, this call is handeled in SpeechRecognized
 		/// </summary>
 		protected abstract void ModifierRecognized(object sender, SpeechRecognizedArgs args);
 

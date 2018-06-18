@@ -17,19 +17,19 @@ namespace Metin2SpeechToData {
 
 		[STAThread]
 		static void Main(string[] args) {
-			new Undo();
 			config = new Configuration(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg");
 			interaction = new SpreadsheetInteraction(config.xlsxFile);
 			Confirmation.Initialize();
 			mapper = new HotKeyMapper();
 			parser = new DefinitionParser();
+			new Undo().Initialize();
 
 			AssignInitialHotkeys();
-			bool continueRunning = true;
+			bool loop = true;
 			//
 			Console.WriteLine("Welcome to Metin2 siNDiCATE Drop logger");
 			Console.WriteLine("Type 'help' for more info on how to use this program");
-			while (continueRunning) {
+			while (loop) {
 
 				Console.WriteLine("Commands:" +
 					"\n(F1)-Drop with voice recognition" +
@@ -45,8 +45,6 @@ namespace Metin2SpeechToData {
 				}
 
 				string[] commandBlocks = command.Split(' ');
-
-				//Switch over length
 				switch (commandBlocks.Length) {
 					case 1: {
 						switch (commandBlocks[0]) {
@@ -59,10 +57,10 @@ namespace Metin2SpeechToData {
 							}
 							case "help": {
 								Console.WriteLine("Existing commands:");
-								Console.WriteLine("quit / exit --> Close the application\n");
-								Console.WriteLine("clear --> Clears the console\n");
 								Console.WriteLine("voice --> Enables voice control without/with debug prints\n");
 								Console.WriteLine("chest --> Opens speech recognition for chest drops (Gold/Silver[+-])\n");
+								Console.WriteLine("quit / exit --> Close the application\n");
+								Console.WriteLine("clear --> Clears the console\n");
 								Console.WriteLine("wipe --> removes main sheet and all nonessential custom data !CAUTION ADVISED!");
 								break;
 							}

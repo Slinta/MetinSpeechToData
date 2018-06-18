@@ -40,20 +40,12 @@ namespace Metin2SpeechToData {
 			mainFile = mainSheet;
 			SpreadsheetTemplates template = new SpreadsheetTemplates();
 			current = template.InitSessionSheet(package.Workbook);
-			currFreeAddress = new ExcelCellAddress(ITEM_ROW, ITEM_COL);
+			currFreeAddress = new ExcelCellAddress(DATA_FIRST_ENTRY);
 			data = new Data();
 			this.interaction = interaction;
 			current.SetValue(SESSION_AREA_NAME, name);
 			current.SetValue(MERGED_STATUS, "Not merged!");
 			package.Save();
-		}
-
-		public void NewEnemy(string enemy, DateTime meetTime) {
-			data.UpdateDataEnemy(enemy, false, meetTime);
-		}
-
-		public void EnemyKilled(string enemy, DateTime killTime) {
-			data.UpdateDataEnemy(enemy, true, killTime);
 		}
 
 		private void PrepareRows(int rowCount) {
@@ -65,6 +57,9 @@ namespace Metin2SpeechToData {
 			}
 		}
 
+		/// <summary>
+		/// Copies formatting form cells above and writes an entry to them, updates statistics data holders
+		/// </summary>
 		public void WriteOut() {
 			PrepareRows(1);
 
@@ -84,6 +79,9 @@ namespace Metin2SpeechToData {
 			package.Save();
 		}
 
+		/// <summary>
+		/// Finalizes session, writes remaining items in undo collections, fills headder
+		/// </summary>
 		public void Finish() {
 			while (Undo.instance.itemInsertionList.Count != 0) {
 				WriteOut();
@@ -152,6 +150,9 @@ namespace Metin2SpeechToData {
 				currentGroups = new List<string>();
 			}
 
+			/// <summary>
+			/// Parses item into internal statistics
+			/// </summary>
 			public void UpdateDataItem(ItemMeta item) {
 				if (!items.ContainsKey(item.itemBase.mainPronounciation)) {
 					items.Add(item.itemBase.mainPronounciation, 1);
@@ -168,8 +169,11 @@ namespace Metin2SpeechToData {
 				if (item.comesFromEnemy != "") {
 					totalValueFromEnemies += DefinitionParser.instance.getDefinitions[0].GetYangValue(item.itemBase.mainPronounciation);
 				}
-
 			}
+
+			/// <summary>
+			/// Parses 'enemyName' into internal statistics at given 'enemyActionTime' with killed/alive
+			/// </summary>
 			public void UpdateDataEnemy(string enemyName, bool killed, DateTime enemyActionTime) {
 				if (killed) {
 					enemiesKilled += 1;
@@ -183,6 +187,9 @@ namespace Metin2SpeechToData {
 				}
 			}
 
+			/// <summary>
+			/// Returns key with highest value count, if multiple keys have the same value, they are appended
+			/// </summary>
 			public string GetMostCommonEntity(Dictionary<string, int> dict) {
 				int mostCommon = -1;
 				string name = "";
@@ -199,9 +206,12 @@ namespace Metin2SpeechToData {
 				return (name == "") ? "No encounters or drops ;)" : name;
 			}
 
+
 			public float GetAverageTimeBetweenInSeconds(List<DateTime> list) {
+				if (list.Count == 0) {
+					return 0;
+				}
 				double totalSeconds = 0;
-				
 				for (int i = 0; i < list.Count; i++) {
 					if (i == 0) {
 						totalSeconds += (list[0].Subtract(start)).TotalSeconds;
@@ -210,11 +220,6 @@ namespace Metin2SpeechToData {
 						totalSeconds += (list[i].Subtract(list[i - 1])).TotalSeconds;
 					}
 				}
-
-				if (list.Count == 0) {
-					return 0;
-				}
-
 				return (float)(totalSeconds / list.Count);
 			}
 		}

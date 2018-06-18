@@ -51,27 +51,33 @@
 			public const string E_AVERAGE_DROP = "H6";
 		}
 
+		//Starting addresses of links to corresponding sheets
 		public const string MAIN_SHEET_LINKS = "D7";
 		public const string MAIN_MERGED_LINKS = "J7";
 		public const string MAIN_UNMERGED_LINKS = "P7";
 		
 
+		// Cell address of first group
 		public const int GROUP_COL = 3;
 		public const int GROUP_ROW = 12;
 
-		public const int ITEM_COL = 3;
+		//Row of the first item address
 		public const int ITEM_ROW = 13;
 
+		// Supplied if no enemy is present for item
 		public const string UNSPEICIFIED_ENEMY = "Not Specified";
 
+		//Cell address for the first data entry
 		public const string DATA_FIRST_ENTRY = "C13";
 
-		public const string MAIN_HLINK_OFFSET = "A1";
-		public const string MAIN_FIRST_HLINK = "B2";
-
-		public const byte H_FIRST_ROW = 13;
+		/// <summary>
+		/// How far to the left from a group to the next
+		/// </summary>
 		public const byte H_COLUMN_INCREMENT = 4;
 
+		/// <summary>
+		/// Default main sheet name
+		/// </summary>
 		public const string H_DEFAULT_SHEET_NAME = "Metin2 Drop Analyzer";
 	}
 }

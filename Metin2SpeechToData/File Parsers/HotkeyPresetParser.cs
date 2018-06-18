@@ -35,6 +35,9 @@ namespace Metin2SpeechToData {
 			t.Start();
 		}
 
+		/// <summary>
+		/// Event handler
+		/// </summary>
 		public void Selected_Hotkey(SpeechRecognizedArgs args) {
 			Console.WriteLine("Selected " + args.text);
 			string[] fileContent = File.ReadAllLines(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Hotkeys" + Path.DirectorySeparatorChar + args.text);
@@ -98,6 +101,9 @@ namespace Metin2SpeechToData {
 			evnt.Set();
 		}
 
+		/// <summary>
+		/// Loads hotkey definitions from file
+		/// </summary>
 		public void Load(string area) {
 			FileInfo[] validForArea = hotkeyFiles.Where(file => new Regex(Regex.Escape(area) + @"\ \d+\.definition").IsMatch(file.Name)).ToArray();
 			if (validForArea.Length > 0) {

@@ -4,7 +4,17 @@ using System.Speech.Recognition;
 
 namespace Metin2SpeechToData {
 	public class Undo : IDisposable {
-		private readonly SpeechRecognitionEngine undoRecogniser;
+
+		public enum OperationTypes {
+			None,
+			TargetFound,
+			ItemDropped,
+			TargetKilled,
+			Defining,
+			UnUndoable,
+		}
+
+		private SpeechRecognitionEngine undoRecogniser;
 		public static Undo instance { get; private set; }
 
 		private bool continueExecution = true;
@@ -26,31 +36,30 @@ namespace Metin2SpeechToData {
 			}
 		}
 
+		/// <summary>
+		/// History of all item additions
+		/// </summary>
 		public LinkedList<SessionSheet.ItemMeta> itemInsertionList { get; set; }
+
+		/// <summary>
+		/// History of all enemy encounters
+		/// </summary>
 		public LinkedList<Target> enemyList { get; set; }
+
+		/// <summary>
+		/// History of new item definitions
+		/// </summary>
 		public LinkedList<string> definedItemList { get; set; }
 
+		/// <summary>
+		/// List that holds sequence of event in the lists above in the order they were said
+		/// </summary>
 		public LinkedList<OperationTypes> operations { get; set; }
 
 
 		private OperationTypes currentActiveOperation;
 
-
-		public enum OperationTypes {
-			None,
-			TargetFound,
-			ItemDropped,
-			TargetKilled,
-			Defining,
-			UnUndoable,
-		}
-
 		public Undo() {
-			undoRecogniser = new SpeechRecognitionEngine();
-			undoRecogniser.SetInputToDefaultAudioDevice();
-			undoRecogniser.SpeechRecognized += UndoRecognized;
-			undoRecogniser.LoadGrammar(new Grammar(new Choices(CCommands.getUndoCommand, CCommands.getCancelCommand)));
-			undoRecogniser.RecognizeAsync(RecognizeMode.Multiple);
 			instance = this;
 			itemInsertionList = new LinkedList<SessionSheet.ItemMeta>();
 			operations = new LinkedList<OperationTypes>();
@@ -58,13 +67,31 @@ namespace Metin2SpeechToData {
 			enemyList = new LinkedList<Target>();
 		}
 
+		/// <summary>
+		/// Sets up main Undo recognizer
+		/// </summary>
+		public void Initialize() {
+			undoRecogniser = new SpeechRecognitionEngine();
+			undoRecogniser.SetInputToDefaultAudioDevice();
+			undoRecogniser.SpeechRecognized += UndoRecognized;
+			undoRecogniser.LoadGrammar(new Grammar(new Choices(CCommands.getUndoCommand, CCommands.getCancelCommand)));
+			undoRecogniser.RecognizeAsync(RecognizeMode.Multiple);
+		}
+
+		/// <summary>
+		/// Call to attach EnemyHandlig to Undo
+		/// </summary>
 		public void SubscribeEnemyHandler(EnemyHandling reference) {
 			enemyHandling = reference;
 		}
 
+		/// <summary>
+		/// Sets current operation to 'type'
+		/// </summary>
 		public void SetCurrentOperation(OperationTypes type) {
 			currentActiveOperation = type;
 		}
+
 
 		public void UndoRecognized(object sender, SpeechRecognizedEventArgs e) {
 			if (e.Result.Confidence > Configuration.acceptanceThreshold) {
@@ -81,13 +108,13 @@ namespace Metin2SpeechToData {
 						OperationTypes op = operations.Last.Value;
 						operations.RemoveLast();
 						if (op == OperationTypes.ItemDropped) {
-							UndoOneItem();
+							UndoAddItem();
 						}
 						else if (op == OperationTypes.TargetKilled) {
 							UndoTargetKilled();
 						}
 						else if (op == OperationTypes.TargetFound) {
-							UndoTargetFound();
+							UndoAddNewTarget();
 						}
 						break;
 					}
@@ -111,14 +138,17 @@ namespace Metin2SpeechToData {
 		#endregion
 
 		#region Entry reception
-		public void EnemyFound(string enemy) {
+		/// <summary>
+		/// Adds new Target from 'enemy' to internal lists and records it into Undo history
+		/// </summary>
+		public void AddNewTarget(string enemy) {
 			Target t = new Target(enemy, DateTime.Now, true);
 			enemyList.AddLast(t);
 			operations.AddLast(OperationTypes.TargetFound);
 		}
 
+		//TODO: add comment to this function, I changed the else branfo to not throw, is the if/else needed ?
 		public void EnemyKilled(string enemy) {
-
 			if (enemy == enemyList.Last.Value.name) {
 				//Everything is fine
 				enemyList.AddLast(new Target(enemy, DateTime.Now, false));
@@ -129,6 +159,7 @@ namespace Metin2SpeechToData {
 			}
 		}
 
+		//TODO: add comment to this function, why is it AddFirst here and nowhere else ?
 		public void AddItem(DefinitionParserData.Item item, string enemy, DateTime dropTime, int amount) {
 			itemInsertionList.AddFirst(new SessionSheet.ItemMeta(item, enemy, dropTime, amount));
 			operations.AddLast(OperationTypes.ItemDropped);
@@ -136,7 +167,12 @@ namespace Metin2SpeechToData {
 		#endregion
 
 
-		private void UndoOneItem() {
+		#region Undo behaviour
+
+		/// <summary>
+		/// Undo Items
+		/// </summary>
+		private void UndoAddItem() {
 			if (itemInsertionList.Count == 0) {
 				Console.WriteLine("Nothing else to undo!");
 				return;
@@ -156,19 +192,26 @@ namespace Metin2SpeechToData {
 			Console.WriteLine();
 		}
 
+		/// <summary>
+		/// Undo killing enemy
+		/// </summary>
 		private void UndoTargetKilled() {
 			enemyHandling.currentEnemy = enemyList.Last.Value.name;
-			enemyHandling.State = EnemyHandling.EnemyState.FIGHTING;
+			enemyHandling.state = EnemyHandling.EnemyState.FIGHTING;
 			enemyList.RemoveLast();
 			Console.WriteLine("Now again fighting " + enemyList.Last.Value.name);
 		}
 
-		private void UndoTargetFound() {
+		/// <summary>
+		/// Undo acquiring new target
+		/// </summary>
+		private void UndoAddNewTarget() {
 			enemyHandling.currentEnemy = "";
 			Console.WriteLine("Reset current target to 'None'");
-			enemyHandling.State = EnemyHandling.EnemyState.NO_ENEMY;
+			enemyHandling.state = EnemyHandling.EnemyState.NO_ENEMY;
 			enemyList.RemoveLast();
 		}
+		#endregion
 
 		public struct Target {
 			public TargetStates state { get; }

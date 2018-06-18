@@ -85,6 +85,9 @@ namespace Metin2SpeechToData {
 			throw new CustomException("No entry found, data was parsed incorrectly");
 		}
 
+		/// <summary>
+		/// Converts string to enum class
+		/// </summary>
 		public MobClass ParseClass(string s) {
 			s = s.Trim(' ');
 			switch (s) {
@@ -107,6 +110,9 @@ namespace Metin2SpeechToData {
 			throw new CustomException("Invalid Mob type " + s);
 		}
 
+		/// <summary>
+		/// Constructs grammar from given strings
+		/// </summary>
 		public Grammar ConstructGrammar(MobParserData data) {
 			Choices main = new Choices();
 			foreach (Enemy e in data.enemies) {
@@ -118,6 +124,9 @@ namespace Metin2SpeechToData {
 			return new Grammar(main) { Name = data.ID };
 		}
 
+		/// <summary>
+		/// Appends enemy to current grammar, runtime
+		/// </summary>
 		public void AddMobDuringRuntime(Enemy mob) {
 			List<Enemy> enemyList = new List<Enemy>(enemies);
 			foreach (Enemy entry in enemies) {

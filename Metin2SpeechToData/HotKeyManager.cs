@@ -18,6 +18,7 @@ namespace Metin2SpeechToData {
 		NoRepeat = 0x4000
 	}
 
+
 	public class HotKeyManager {
 		private delegate void RegisterHotKeyDelegate(IntPtr hwnd, int id, uint modifiers, uint key);
 		private delegate void UnRegisterHotKeyDelegate(IntPtr hwnd, int id);
@@ -91,6 +92,7 @@ namespace Metin2SpeechToData {
 		}
 
 	}
+
 	public static class NativeMethods {
 		[DllImport("user32", SetLastError = true)]
 		internal static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
@@ -486,6 +488,7 @@ namespace Metin2SpeechToData {
 		}
 
 		#endregion
+
 
 		public void RemapHotkey(Keys key, Action<SpeechRecognizedArgs> action, SpeechRecognizedArgs arguments) {
 			FreeSpecific(key, true);

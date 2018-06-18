@@ -34,6 +34,9 @@ namespace Metin2SpeechToData {
 
 		#endregion
 
+		/// <summary>
+		/// Starts session with selected 'grammar'
+		/// </summary>
 		public void StartSession(string grammar) {
 			if (currentSession != null) {
 				currentSession.Finish();
@@ -44,6 +47,9 @@ namespace Metin2SpeechToData {
 			}
 		}
 
+		/// <summary>
+		/// Finalizes session
+		/// </summary>
 		public void StopSession() {
 			if (currentSession != null) {
 				currentSession.Finish();

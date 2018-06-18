@@ -2,7 +2,6 @@
 using System.IO;
 using System.Linq;
 using System.Speech.Recognition;
-using System.Text.RegularExpressions;
 
 namespace Metin2SpeechToData {
 	public class DefinitionParser {
@@ -220,32 +219,29 @@ namespace Metin2SpeechToData {
 			}
 		}
 
-		public FileInfo getFileInfoFromId(string id) {
+		/// <summary>
+		/// Returns the underlying FileInfo from which this definition was parsed
+		/// </summary>
+		private FileInfo GetFileByID(string definitionID) {
 			DirectoryInfo d = new DirectoryInfo(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "Definitions");
 			foreach (DefinitionParserData existing in getDefinitions) {
-				if (Equals(id, existing.ID)) {
-
-					return new FileInfo(d + Path.DirectorySeparatorChar.ToString() + id + ".definition");
-
+				if (Equals(definitionID, existing.ID)) {
+					return new FileInfo(d.FullName + Path.DirectorySeparatorChar + definitionID + Configuration.FILE_EXT);
 				}
 			}
 			foreach (MobParserData existing in getMobDefinitions) {
-				if (Equals(id, existing.ID)) {
-
-					return new FileInfo(d + Path.DirectorySeparatorChar.ToString() + id + ".definition");
-
+				if (Equals(definitionID, existing.ID)) {
+					return new FileInfo(d.FullName + Path.DirectorySeparatorChar + definitionID + Configuration.FILE_EXT);
 				}
 			}
 			throw new CustomException("No definition parser data with that id exists");
-
 		}
 
 		/// <summary>
 		/// Adds a string to the current item.definition file
 		/// </summary>
-		/// <param name="entry">String in correct format</param>
 		public void AddItemEntry(string entry, string newGroup) {
-			FileInfo file = getFileInfoFromId(currentGrammarFile.ID);
+			FileInfo file = GetFileByID(currentGrammarFile.ID);
 			bool endsWithNewLine = false;
 			using (StreamReader s = file.OpenText()) {
 				string all = s.ReadToEnd();
@@ -279,9 +275,8 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Adds a string to the current mob.definition file
 		/// </summary>
-		/// <param name="entry">String in correct format</param>
 		public void AddMobEntry(string entry) {
-			FileInfo file = getFileInfoFromId(currentMobGrammarFile.ID);
+			FileInfo file = GetFileByID(currentMobGrammarFile.ID);
 			bool endsWithNewLine = false;
 			using (StreamReader s = file.OpenText()) {
 				string all = s.ReadToEnd();

@@ -9,10 +9,11 @@ namespace Metin2SpeechToData {
 			NO_ENEMY,
 			FIGHTING
 		}
-		private EnemyState state;
-		public EnemyState State {
+
+		private EnemyState _state;
+		public EnemyState state {
 			get {
-				return state;
+				return _state;
 			}
 			set {
 				if(value == EnemyState.NO_ENEMY) {
@@ -21,9 +22,10 @@ namespace Metin2SpeechToData {
 				else {
 					Console.ForegroundColor = ConsoleColor.Green;
 				}
-				state = value;
+				_state = value;
 			}
 		}
+
 		private readonly SpeechRecognitionEngine masterMobRecognizer;
 		private readonly ManualResetEventSlim evnt;
 		public string currentEnemy { get; set; }
@@ -57,6 +59,7 @@ namespace Metin2SpeechToData {
 			masterMobRecognizer.LoadGrammar(selected);
 		}
 
+		#region New enemy target recognition
 		private string GetEnemy() {
 			Console.WriteLine("Listening for enemy...");
 			masterMobRecognizer.RecognizeAsync(RecognizeMode.Multiple);
@@ -69,6 +72,7 @@ namespace Metin2SpeechToData {
 			currentEnemy = e.Result.Text;
 			evnt.Set();
 		}
+		#endregion
 
 		/// <summary>
 		/// Event fired after a modifier word was said
@@ -77,7 +81,7 @@ namespace Metin2SpeechToData {
 		/// <param name="args">Always supply at least string.Empty as args!</param>
 		private void EnemyTargetingModifierRecognized(object sender, ModiferRecognizedEventArgs args) {
 			if (args.modifier == CCommands.Speech.NEW_TARGET) {
-				switch (State) {
+				switch (state) {
 					case EnemyState.NO_ENEMY: {
 						string enemy = GetEnemy();
 
@@ -87,9 +91,9 @@ namespace Metin2SpeechToData {
 							return;
 						}
 						enemy = DefinitionParser.instance.currentMobGrammarFile.GetMainPronounciation(enemy);
-						State = EnemyState.FIGHTING;
+						state = EnemyState.FIGHTING;
 						currentEnemy = enemy;
-						Undo.instance.EnemyFound(enemy);
+						Undo.instance.AddNewTarget(enemy);
 
 						Console.WriteLine("Acquired target: " + currentEnemy);
 						Console.WriteLine();
@@ -109,16 +113,20 @@ namespace Metin2SpeechToData {
 			}
 		}
 
+		/// <summary>
+		/// Function to kill the last enemy if not killed explicitly by the user
+		/// </summary>
 		public void ForceKill() {
 			EnemyTargetingModifierRecognized(this, new ModiferRecognizedEventArgs(CCommands.Speech.TARGET_KILLED, ""));
 		}
 
-		void EnemyKilled() {
-
-			
+		/// <summary>
+		/// Kill prints and clenup for next enemy
+		/// </summary>
+		private void EnemyKilled() {
 			Console.WriteLine();
 			Console.WriteLine("Killed " + currentEnemy + ", the death count increased");
-			state = EnemyState.NO_ENEMY;
+			_state = EnemyState.NO_ENEMY;
 
 			Undo.instance.EnemyKilled(currentEnemy);
 			currentEnemy = "";
@@ -140,7 +148,7 @@ namespace Metin2SpeechToData {
 		protected virtual void Dispose(bool disposing) {
 			if (!disposedValue) {
 				if (disposing) {
-					State = EnemyState.NO_ENEMY;
+					state = EnemyState.NO_ENEMY;
 					asociated.OnModifierRecognized -= EnemyTargetingModifierRecognized;
 					masterMobRecognizer.SpeechRecognized -= MasterMobRecognizer_SpeechRecognized;
 				}

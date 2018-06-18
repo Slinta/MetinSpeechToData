@@ -15,7 +15,7 @@ namespace Metin2SpeechToData {
 		public static ExcelCellAddress Advance(ExcelWorksheet sheet, ExcelCellAddress currAddr, out bool nextGroup) {
 			currAddr = new ExcelCellAddress(currAddr.Row + 1, currAddr.Column);
 			if (sheet.Cells[currAddr.Address].Value == null) {
-				currAddr = new ExcelCellAddress(H_FIRST_ROW, currAddr.Column + H_COLUMN_INCREMENT);
+				currAddr = new ExcelCellAddress(ITEM_ROW, currAddr.Column + H_COLUMN_INCREMENT);
 				nextGroup = true;
 				if (sheet.Cells[currAddr.Address].Value == null) {
 					return null;
@@ -82,7 +82,9 @@ namespace Metin2SpeechToData {
 			}
 		}
 
-
+		/// <summary>
+		/// Cuts a range 'fromA' - 'toA' to 'fromB' - 'toB' in 'sheet'
+		/// </summary>
 		public static void Cut(ExcelWorksheet sheet, string fromStart, string fromEnd, string toStart, string toEnd) {
 			Copy(sheet, fromStart, fromEnd, toStart, toEnd);
 
@@ -107,8 +109,6 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Gets session name of selected file (as specified in cell B2)
 		/// </summary>
-		/// <param name="session"></param>
-		/// <returns></returns>
 		public static string GetSessionName(FileInfo session) {
 			ExcelCellAddress nameAddr = new ExcelCellAddress(SsControl.C_SHEET_NAME);
 			using (ExcelPackage p = new ExcelPackage(session)) {

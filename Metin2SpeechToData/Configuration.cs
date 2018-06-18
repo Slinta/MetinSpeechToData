@@ -66,7 +66,7 @@ namespace Metin2SpeechToData {
 
 		private void RecreateConfig() {
 			using (StreamWriter sw = File.CreateText(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.cfg")) {
-				bool yes = GetBoolInput("Do you want the .xlsx file in the current directory ?\ny/n");
+				bool yes = Confirmation.WrittenConfirmation("Do you want the .xlsx file in the current directory ?");
 				if (yes) {
 					xlsxFile = new FileInfo(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + DEFAULT_FILE_NAME);
 					ExcelPackage package = new ExcelPackage(xlsxFile);
@@ -197,18 +197,6 @@ namespace Metin2SpeechToData {
 					return;
 				}
 			}
-		}
-
-		/// <summary>
-		/// Asks user a true/false 'question' returns true on 'yes' or 'y' else false
-		/// </summary>
-		public static bool GetBoolInput(string question) {
-			Console.WriteLine(question);
-			string line = Console.ReadLine();
-			if (line == "yes" || line == "y") {
-				return true;
-			}
-			return false;
 		}
 	}
 }

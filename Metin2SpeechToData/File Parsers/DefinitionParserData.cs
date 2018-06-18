@@ -96,6 +96,9 @@ namespace Metin2SpeechToData {
 			throw new CustomException("Data parsed incorrectly");
 		}
 
+		/// <summary>
+		/// Constructs grammar from all parsed strings
+		/// </summary>
 		public void ConstructGrammar() {
 			Choices main = new Choices();
 			foreach (Item e in entries) {
@@ -109,6 +112,9 @@ namespace Metin2SpeechToData {
 			};
 		}
 
+		/// <summary>
+		/// Returns the group for this Item
+		/// </summary>
 		public string GetGroup(string itemName) {
 			foreach (Item entry in entries) {
 				if (entry.mainPronounciation == itemName) {
@@ -118,6 +124,9 @@ namespace Metin2SpeechToData {
 			throw new CustomException("Item doesn't exist in the entries, perhaps the archives are incomplete");
 		}
 
+		/// <summary>
+		/// Returns Item structure for given 'itemName'
+		/// </summary>
 		public Item GetItemEntry(string itemName) {
 			foreach (Item item in entries) {
 				if(item.mainPronounciation == itemName) {
@@ -127,6 +136,9 @@ namespace Metin2SpeechToData {
 			throw new CustomException("Main pronounciation for " + itemName + " not found in entries");
 		}
 
+		/// <summary>
+		/// Appends new item definition into current grammar, runtime
+		/// </summary>
 		public void AddItemDuringRuntime(Item item) {
 			List<Item> itemList = new List<Item>(entries);
 			foreach (Item entry in entries) {

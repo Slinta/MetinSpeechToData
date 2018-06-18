@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Speech.Recognition;
-using System.Collections.Generic;
 
 namespace Metin2SpeechToData {
 	public static class Confirmation {
@@ -12,7 +11,6 @@ namespace Metin2SpeechToData {
 
 		private static bool _booleanResult;
 
-		private static List<int> grammarsThatWereEnabledBefore = new List<int>();
 		public static void Initialize() {
 			_boolConfirmation = new string[2] { CCommands.getConfirmationCommand, CCommands.getRefusalCommand };
 			_confimer.SetInputToDefaultAudioDevice();
@@ -53,23 +51,6 @@ namespace Metin2SpeechToData {
 				_confimer.SpeechRecognized -= Confimer_SpeechRecognized;
 				_confimer.RecognizeAsyncStop();
 				evnt.Set();
-			}
-		}
-
-		public static void SelectivelyDisableEnableGrammars(ref SpeechRecognitionEngine engine, bool disable) {
-			if (disable) {
-				for (int i = 0; i < engine.Grammars.Count; i++) {
-					if (engine.Grammars[i].Enabled) {
-						engine.Grammars[i].Enabled = false;
-						grammarsThatWereEnabledBefore.Add(i);
-					}
-				}
-			}
-			else {
-				for (int i = 0; i < grammarsThatWereEnabledBefore.Count; i++) {
-					engine.Grammars[grammarsThatWereEnabledBefore[i]].Enabled = true;
-				}
-				grammarsThatWereEnabledBefore.Clear();
 			}
 		}
 	}

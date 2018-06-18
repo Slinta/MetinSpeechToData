@@ -29,7 +29,9 @@ namespace Metin2SpeechToData {
 			return package.Workbook.Worksheets;
 		}
 
-
+		/// <summary>
+		/// Creates a copy of session sheet in 'current' workbook
+		/// </summary>
 		public ExcelWorksheet InitSessionSheet(ExcelWorkbook current) {
 			ExcelWorksheet sheet = CreateFromTemplate(current, SpreadsheetPresetType.SESSION, "Session");
 			return sheet;

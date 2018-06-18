@@ -46,6 +46,9 @@ namespace Metin2SpeechToData {
 			CANCEL
 		};
 
+		/// <summary>
+		/// Converts string to enum counterpart 
+		/// </summary>
 		public static Speech GetEnum(string text) {
 			if (text == getStartCommand) {
 				return Speech.START;
@@ -86,12 +89,14 @@ namespace Metin2SpeechToData {
 			else if (text == getCancelCommand) {
 				return Speech.CANCEL;
 			}
-
 			else {
 				return Speech.NONE;
 			}
 		}
 
+		/// <summary>
+		/// Get spoken word definition from enum 
+		/// </summary>
 		public static string GetSpeechString(Speech speech) {
 			switch (speech) {
 				case Speech.NONE: {
