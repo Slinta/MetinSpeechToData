@@ -65,19 +65,19 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		private void Main_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {
 			if (Configuration.acceptanceThreshold < e.Result.Confidence) {
-				SpeechRecognized(sender, new SpeechRecognizedArgs(e.Result.Text, e.Result.Confidence));
+				SpeechRecognized(sender, new SpeechRecognizedEventDetails(e.Result.Text, e.Result.Confidence));
 			}
 		}
 
 		/// <summary>
 		/// Define standard speech recognized behaviour, if the word is determined as a modifier, call 'ModifierRecognized' and return
 		/// </summary>
-		protected abstract void SpeechRecognized(object sender, SpeechRecognizedArgs args);
+		protected abstract void SpeechRecognized(object sender, SpeechRecognizedEventDetails args);
 
 		/// <summary>
 		/// Define modifier recognized behaviour
 		/// </summary>
-		protected abstract void ModifierRecognized(object sender, SpeechRecognizedArgs args);
+		protected abstract void ModifierRecognized(object sender, SpeechRecognizedEventDetails args);
 
 		/// <summary>
 		/// Handler for changing recognition state, 

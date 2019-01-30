@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Speech.Recognition;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Metin2SpeechToData {
 	static class Confirmation {
@@ -16,16 +17,15 @@ namespace Metin2SpeechToData {
 		public static void Initialize() {
 			_boolConfirmation = new string[2] { Program.controlCommands.getConfirmationCommand, Program.controlCommands.getRefusalCommand };
 			_confimer.SetInputToDefaultAudioDevice();
+			_confimer.LoadGrammar(new Grammar(new Choices(_boolConfirmation)));
 		}
 
-		public static bool AskForBooleanConfirmation(string question) {
+		public static async Task<bool> AskForBooleanConfirmation(string question) {
 			evnt.Reset();
-			_confimer.UnloadAllGrammars();
-			_confimer.LoadGrammar(new Grammar(new Choices(_boolConfirmation)));
 			_confimer.RecognizeAsync(RecognizeMode.Multiple);
 			_confimer.SpeechRecognized += Confimer_SpeechRecognized;
 			Console.WriteLine(question);
-			evnt.Wait();
+			await Task.Run(() => evnt.Wait());
 			return _booleanResult;
 		}
 
@@ -43,23 +43,6 @@ namespace Metin2SpeechToData {
 				_confimer.SpeechRecognized -= Confimer_SpeechRecognized;
 				_confimer.RecognizeAsyncStop();
 				evnt.Set();
-			}
-		}
-
-		public static void SelectivelyDisableEnableGrammars(ref SpeechRecognitionEngine engine, bool disable) {
-			if (disable) {
-				for (int i = 0; i < engine.Grammars.Count; i++) {
-					if (engine.Grammars[i].Enabled) {
-						engine.Grammars[i].Enabled = false;
-						grammarsThatWereEnabledBefore.Add(i);
-					}
-				}
-			}
-			else {
-				for (int i = 0; i < grammarsThatWereEnabledBefore.Count; i++) {
-					engine.Grammars[grammarsThatWereEnabledBefore[i]].Enabled = true;
-				}
-				grammarsThatWereEnabledBefore.Clear();
 			}
 		}
 	}

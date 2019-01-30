@@ -16,7 +16,7 @@ namespace Metin2SpeechToData {
 		public SpeechRecognitionHelper helper { get; }
 
 
-		public ChestRecognizer(): base() {
+		public ChestRecognizer() : base() {
 			helper = new SpeechRecognitionHelper(this);
 			stack = new DropOutStack<ItemInsertion>(5);
 			evnt = new ManualResetEventSlim(false);
@@ -39,25 +39,25 @@ namespace Metin2SpeechToData {
 			base.SwitchGrammar(grammarID);
 		}
 
-		protected override void SpeechRecognized(object sender, SpeechRecognizedArgs args) {
+		protected override void SpeechRecognized(object sender, SpeechRecognizedEventDetails args) {
 			if (SpeechRecognitionHelper.reverseModifierDict.ContainsKey(args.text)) {
 				ModifierRecognized(this, args);
 				return;
 			}
 			Console.WriteLine(args.text + " -- " + args.confidence);
-			string mainPronounciation =  DefinitionParser.instance.currentGrammarFile.GetMainPronounciation(args.text);
+			string mainPronounciation = DefinitionParser.instance.currentGrammarFile.GetMainPronounciation(args.text);
 			ExcelCellAddress address = Program.interaction.GetAddress(mainPronounciation);
 			StopRecognition();
 			numbers.RecognizeAsync(RecognizeMode.Multiple);
 			evnt.Wait();
 			//Now we have an address and how many items they received
 			Console.WriteLine("Parsed: " + _count);
-			stack.Push(new ItemInsertion(address,_count));
+			stack.Push(new ItemInsertion(address, _count));
 			Program.interaction.AddNumberTo(address, _count);
 			evnt.Reset();
 		}
 
-		protected override void ModifierRecognized(object sender, SpeechRecognizedArgs args) {
+		protected async override void ModifierRecognized(object sender, SpeechRecognizedEventDetails args) {
 			SpeechRecognitionHelper.ModifierWords current = SpeechRecognitionHelper.reverseModifierDict[args.text];
 			switch (current) {
 				case SpeechRecognitionHelper.ModifierWords.UNDO: {
@@ -67,7 +67,7 @@ namespace Metin2SpeechToData {
 						return;
 					}
 					Console.WriteLine("Undoing... " + Program.interaction.currentSheet.Cells[peeked.address.Row, peeked.address.Column - 2].GetValue<string>() + " with " + peeked.count + " items");
-					if (Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'")) {
+					if (await Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'")) {
 						Console.Write("Confirming");
 						ItemInsertion poped = stack.Pop();
 						Program.interaction.AddNumberTo(poped.address, -poped.count);
@@ -86,13 +86,10 @@ namespace Metin2SpeechToData {
 
 		private int _count = 0;
 		private void Numbers_SpeechRecognized(object sender, SpeechRecognizedEventArgs e) {
-			if (int.TryParse(e.Result.Text, out _count)) {
-				evnt.Set();
-				numbers.RecognizeAsyncStop();
-				BeginRecognition();
-				return;
-			}
-			throw new CustomException("This can never happen bacause the grammar is designed to only have numbers between 0-200 inclusive written as digits");
+			_count = int.Parse(e.Result.Text);
+			evnt.Set();
+			numbers.RecognizeAsyncStop();
+			BeginRecognition();
 		}
 	}
 }

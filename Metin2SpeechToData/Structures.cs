@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using OfficeOpenXml;
 
 namespace Metin2SpeechToData.Structures{
-	public struct SpeechRecognizedArgs {
-		public SpeechRecognizedArgs(string text, float confidence) : this() {
+	public struct SpeechRecognizedEventDetails {
+		public SpeechRecognizedEventDetails(string text, float confidence) : this() {
 			this.text = text;
 			this.confidence = confidence;
 		}
@@ -29,5 +30,10 @@ namespace Metin2SpeechToData.Structures{
 		}
 		public ExcelCellAddress address { get; }
 		public int count { get; }
+	}
+
+	public class ModiferRecognizedEventArgs : EventArgs {
+		public SpeechRecognitionHelper.ModifierWords modifier { get; set; }
+		public string triggeringItem { get; set; }
 	}
 }

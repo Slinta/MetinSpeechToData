@@ -31,7 +31,7 @@ namespace Metin2SpeechToData {
 			}
 		}
 
-		public void Selected_Hotkey(SpeechRecognizedArgs args) {
+		public void Selected_Hotkey(SpeechRecognizedEventDetails args) {
 			Console.WriteLine("Selected " + args.text);
 			for (int i = 0; i < _hotkeySelection.Count; i++) {
 				if (_hotkeySelection[i].name == args.text) {
@@ -50,7 +50,7 @@ namespace Metin2SpeechToData {
 				switch (curr.Length) {
 					case 1: {
 						Keys key = (Keys)Enum.Parse(typeof(Keys), curr[0]);
-						int ID = Program.mapper.AssignToHotkey(key, Program.mapper.EnemyHandlingItemDroppedWrapper, new SpeechRecognizedArgs(itemName, 100));
+						int ID = Program.mapper.AssignToHotkey(key, Program.mapper.EnemyHandlingItemDroppedWrapper, new SpeechRecognizedEventDetails(itemName, 100));
 						Console.WriteLine("Assigning - " + key + " for item " + itemName);
 						activeKeyIDs.Add(ID);
 						currentCustomKeys.Add(key);
@@ -60,7 +60,7 @@ namespace Metin2SpeechToData {
 						bool one = Enum.TryParse(curr[0], out KeyModifiers mod1);
 						Keys key = (Keys)Enum.Parse(typeof(Keys), curr[1]);
 						if (one) {
-							int ID = Program.mapper.AssignToHotkey(key, mod1, Program.mapper.EnemyHandlingItemDroppedWrapper, new SpeechRecognizedArgs(itemName, 100));
+							int ID = Program.mapper.AssignToHotkey(key, mod1, Program.mapper.EnemyHandlingItemDroppedWrapper, new SpeechRecognizedEventDetails(itemName, 100));
 							Console.WriteLine("Assigning - " + mod1 + " + " + key + " for item " + itemName);
 							activeKeyIDs.Add(ID);
 							currentCustomKeys.Add(key);
@@ -75,7 +75,7 @@ namespace Metin2SpeechToData {
 						bool two = Enum.TryParse(curr[1], out KeyModifiers mod2);
 						Keys key = (Keys)Enum.Parse(typeof(Keys), curr[2]);
 						if (one && two) {
-							int ID = Program.mapper.AssignToHotkey(key, mod1, mod2, Program.mapper.EnemyHandlingItemDroppedWrapper, new SpeechRecognizedArgs(itemName, 100));
+							int ID = Program.mapper.AssignToHotkey(key, mod1, mod2, Program.mapper.EnemyHandlingItemDroppedWrapper, new SpeechRecognizedEventDetails(itemName, 100));
 							Console.WriteLine("Assigning - " + mod1 + " + " + mod2 + " + " + key + " for item " + itemName);
 							activeKeyIDs.Add(ID);
 							currentCustomKeys.Add(key);
@@ -91,7 +91,7 @@ namespace Metin2SpeechToData {
 						bool three = Enum.TryParse(curr[2], out KeyModifiers mod3);
 						Keys key = (Keys)Enum.Parse(typeof(Keys), curr[3]);
 						if (one && two && three) {
-							int ID = Program.mapper.AssignToHotkey(key, mod1, mod2, mod3, Program.mapper.EnemyHandlingItemDroppedWrapper, new SpeechRecognizedArgs(itemName, 100));
+							int ID = Program.mapper.AssignToHotkey(key, mod1, mod2, mod3, Program.mapper.EnemyHandlingItemDroppedWrapper, new SpeechRecognizedEventDetails(itemName, 100));
 							Console.WriteLine("Assigning - " + mod1 + " + " + mod2 + " + " + mod3 + " + " + key + " for item " + itemName);
 							activeKeyIDs.Add(ID);
 							currentCustomKeys.Add(key);
@@ -113,7 +113,7 @@ namespace Metin2SpeechToData {
 				Console.WriteLine("Found some hotkey definitions for " + area + ", load them ?");
 				for (int i = 0; i < validForArea.Length; i++) {
 					Console.WriteLine("(" + (i + 1) + ") " + validForArea[i].Name.Split('.')[0]);
-					Program.mapper.AssignToHotkey((Keys)((int)Keys.D1 + i), Selected_Hotkey, new SpeechRecognizedArgs(validForArea[i].Name.Split(':')[0], 100));
+					Program.mapper.AssignToHotkey((Keys)((int)Keys.D1 + i), Selected_Hotkey, new SpeechRecognizedEventDetails(validForArea[i].Name.Split(':')[0], 100));
 					_hotkeySelection.Add(((Keys)((int)Keys.D1 + i), validForArea[i].Name.Split(':')[0]));
 				}
 			}

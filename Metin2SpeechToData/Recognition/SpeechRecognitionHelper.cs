@@ -84,10 +84,10 @@ namespace Metin2SpeechToData {
 						  pauseC + " - Pauses main recognition(F2)\n" +
 						  switchC + " - Changes grammar (your drop location)(F3)\n" +
 						  quitC + " - Exits App(F4)\n");
-			Program.mapper.AssignToHotkey(Keys.F1, Control_SpeechRecognized, new SpeechRecognizedArgs(startC, 100));
-			Program.mapper.AssignToHotkey(Keys.F2, Control_SpeechRecognized, new SpeechRecognizedArgs(pauseC, 100));
-			Program.mapper.AssignToHotkey(Keys.F3, Control_SpeechRecognized, new SpeechRecognizedArgs(switchC, 100));
-			Program.mapper.AssignToHotkey(Keys.F4, Control_SpeechRecognized, new SpeechRecognizedArgs(quitC, 100));
+			Program.mapper.AssignToHotkey(Keys.F1, Control_SpeechRecognized, new SpeechRecognizedEventDetails(startC, 100));
+			Program.mapper.AssignToHotkey(Keys.F2, Control_SpeechRecognized, new SpeechRecognizedEventDetails(pauseC, 100));
+			Program.mapper.AssignToHotkey(Keys.F3, Control_SpeechRecognized, new SpeechRecognizedEventDetails(switchC, 100));
+			Program.mapper.AssignToHotkey(Keys.F4, Control_SpeechRecognized, new SpeechRecognizedEventDetails(quitC, 100));
 
 			if (!Program.debug) {
 				controlingRecognizer.RecognizeAsync(RecognizeMode.Multiple);
@@ -101,10 +101,10 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		protected void Control_SpeechRecognized_Wrapper(object sender, SpeechRecognizedEventArgs e) {
 			if (e.Result.Confidence > Configuration.acceptanceThreshold) {
-				Control_SpeechRecognized(new SpeechRecognizedArgs(e.Result.Text, e.Result.Confidence));
+				Control_SpeechRecognized(new SpeechRecognizedEventDetails(e.Result.Text, e.Result.Confidence));
 			}
 		}
-		protected virtual void Control_SpeechRecognized(SpeechRecognizedArgs e) {
+		protected virtual void Control_SpeechRecognized(SpeechRecognizedEventDetails e) {
 
 			if (e.text == Program.controlCommands.getStartCommand) {
 				if(baseRecognizer.currentState == RecognitionBase.RecognitionState.ACTIVE) {
@@ -134,7 +134,7 @@ namespace Metin2SpeechToData {
 
 					Console.WriteLine("To pause: " + KeyModifiers.Control + " + " + KeyModifiers.Shift + " + " + Keys.F4 + " or '" + Program.controlCommands.getPauseCommand + "'");
 					Console.WriteLine("Pausing will enable the rest of control.");
-					Program.mapper.AssignToHotkey(Keys.F4, KeyModifiers.Control, KeyModifiers.Shift, Control_SpeechRecognized, new SpeechRecognizedArgs(Program.controlCommands.getPauseCommand, 100));
+					Program.mapper.AssignToHotkey(Keys.F4, KeyModifiers.Control, KeyModifiers.Shift, Control_SpeechRecognized, new SpeechRecognizedEventDetails(Program.controlCommands.getPauseCommand, 100));
 					DefinitionParser.instance.hotkeyParser.SetKeysActiveState(true);
 				}
 			}
@@ -168,7 +168,7 @@ namespace Metin2SpeechToData {
 					Program.mapper.SetInactive(Keys.F2, true);
 					Program.mapper.SetInactive(Keys.F3, true);
 					Program.mapper.SetInactive(Keys.F4, true);
-					Program.mapper.AssignToHotkey((Keys.D1 + i), Switch_WordRecognized, new SpeechRecognizedArgs(available[i], 100));
+					Program.mapper.AssignToHotkey((Keys.D1 + i), Switch_WordRecognized, new SpeechRecognizedEventDetails(available[i], 100));
 					if (i == available.Length - 1) {
 						Console.Write("(" + (i + 1) + ")" + available[i]);
 					}
@@ -193,21 +193,21 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		private void Switch_WordRecognized_Wrapper(object sender, SpeechRecognizedEventArgs e) {
 			if (Configuration.acceptanceThreshold < e.Result.Confidence) {
-				Switch_WordRecognized(new SpeechRecognizedArgs(e.Result.Text, e.Result.Confidence));
+				Switch_WordRecognized(new SpeechRecognizedEventDetails(e.Result.Text, e.Result.Confidence));
 			}
 		}
-		protected virtual void Switch_WordRecognized(SpeechRecognizedArgs e) {
+		protected virtual void Switch_WordRecognized(SpeechRecognizedEventDetails details) {
 			controlingRecognizer.SpeechRecognized -= Switch_WordRecognized_Wrapper;
 			controlingRecognizer.SpeechRecognized += Control_SpeechRecognized_Wrapper;
 
-			Console.WriteLine("\nSelected - " + e.text);
+			Console.WriteLine("\nSelected - " + details.text);
 			for (int i = (int)Keys.D1; i < (int)Keys.D9; i++) {
 				Program.mapper.FreeSpecific((Keys)i, true);
 			}
 
-			DefinitionParser.instance.UpdateCurrents(e.text);
+			DefinitionParser.instance.UpdateCurrents(details.text);
 
-			baseRecognizer.SwitchGrammar(e.text);
+			baseRecognizer.SwitchGrammar(details.text);
 			baseRecognizer.isPrimaryDefinitionLoaded = true;
 
 
@@ -216,7 +216,7 @@ namespace Metin2SpeechToData {
 			}
 			controlingRecognizer.UnloadGrammar(controlingRecognizer.Grammars[_currentGrammars.Count]);
 
-			Program.interaction.OpenWorksheet(e.text);
+			Program.interaction.OpenWorksheet(details.text);
 			Program.mapper.SetInactive(Keys.F1, false);
 			Program.mapper.SetInactive(Keys.F2, true);
 			Program.mapper.SetInactive(Keys.F3, true);
@@ -224,7 +224,7 @@ namespace Metin2SpeechToData {
 
 			Console.Clear();
 			Console.WriteLine("Grammar initialized!");
-			DefinitionParser.instance.LoadHotkeys(e.text);
+			DefinitionParser.instance.LoadHotkeys(details.text);
 			Console.WriteLine("(F1) or '" + Program.controlCommands.getStartCommand + "' to start\n" +
 							  "(F4) or '" + Program.controlCommands.getStopCommand + "' to stop");
 			baseRecognizer.currentState = RecognitionBase.RecognitionState.GRAMMAR_SELECTED;
@@ -265,10 +265,5 @@ namespace Metin2SpeechToData {
 				throw new CustomException("Grammar name " + name + " not found!");
 			}
 		}
-	}
-
-	public sealed class ModiferRecognizedEventArgs : EventArgs {
-		public SpeechRecognitionHelper.ModifierWords modifier { get; set; }
-		public string triggeringItem { get; set; }
 	}
 }

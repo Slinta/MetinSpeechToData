@@ -130,7 +130,7 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Assign hotkey 'selectedKey' to call function 'action' with 'arguments'
 		/// </summary>
-		public int AssignToHotkey(Keys selectedKey, Action<SpeechRecognizedArgs> action, SpeechRecognizedArgs arguments) {
+		public int AssignToHotkey(Keys selectedKey, Action<SpeechRecognizedEventDetails> action, SpeechRecognizedEventDetails arguments) {
 			if (voiceHotkeys.ContainsKey(selectedKey)) {
 				throw new CustomException(selectedKey + " already mapped to " + voiceHotkeys[selectedKey] + "!");
 			}
@@ -147,7 +147,7 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Assign hotkey 'selectedKey' + a 'modifier' key to call function 'action' with 'arguments'
 		/// </summary>
-		public int AssignToHotkey(Keys selectedKey, KeyModifiers modifier, Action<SpeechRecognizedArgs> action, SpeechRecognizedArgs arguments) {
+		public int AssignToHotkey(Keys selectedKey, KeyModifiers modifier, Action<SpeechRecognizedEventDetails> action, SpeechRecognizedEventDetails arguments) {
 			if (voiceHotkeys.ContainsKey(selectedKey)) {
 				throw new CustomException(selectedKey + " already mapped to " + voiceHotkeys[selectedKey] + "!");
 			}
@@ -164,7 +164,7 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Assign hotkey 'selectedKey' + 'modifier' keys to call function 'action' with 'arguments'
 		/// </summary>
-		public int AssignToHotkey(Keys selectedKey, KeyModifiers modifier1, KeyModifiers modifier2, Action<SpeechRecognizedArgs> action, SpeechRecognizedArgs arguments) {
+		public int AssignToHotkey(Keys selectedKey, KeyModifiers modifier1, KeyModifiers modifier2, Action<SpeechRecognizedEventDetails> action, SpeechRecognizedEventDetails arguments) {
 			if (voiceHotkeys.ContainsKey(selectedKey)) {
 				throw new CustomException(selectedKey + " already mapped to " + voiceHotkeys[selectedKey] + "!");
 			}
@@ -181,7 +181,7 @@ namespace Metin2SpeechToData {
 		/// <summary>
 		/// Assign hotkey 'selectedKey' + 'modifier' keys to call function 'action' with 'arguments'
 		/// </summary>
-		public int AssignToHotkey(Keys selectedKey, KeyModifiers modifier1, KeyModifiers modifier2, KeyModifiers modifier3, Action<SpeechRecognizedArgs> action, SpeechRecognizedArgs arguments) {
+		public int AssignToHotkey(Keys selectedKey, KeyModifiers modifier1, KeyModifiers modifier2, KeyModifiers modifier3, Action<SpeechRecognizedEventDetails> action, SpeechRecognizedEventDetails arguments) {
 			if (voiceHotkeys.ContainsKey(selectedKey)) {
 				throw new CustomException(selectedKey + " already mapped to " + voiceHotkeys[selectedKey] + "!");
 			}
@@ -328,7 +328,7 @@ namespace Metin2SpeechToData {
 		}
 		#endregion
 
-		public void RemapHotkey(Keys key, Action<SpeechRecognizedArgs> action, SpeechRecognizedArgs arguments) {
+		public void RemapHotkey(Keys key, Action<SpeechRecognizedEventDetails> action, SpeechRecognizedEventDetails arguments) {
 			FreeSpecific(key, false);
 			AssignToHotkey(key, action, arguments);
 		}
@@ -352,7 +352,7 @@ namespace Metin2SpeechToData {
 			PostMessage(Process.GetCurrentProcess().MainWindowHandle, 0x100, 0x0D, 0);
 		}
 
-		public void EnemyHandlingItemDroppedWrapper(SpeechRecognizedArgs args) {
+		public void EnemyHandlingItemDroppedWrapper(SpeechRecognizedEventDetails args) {
 			Console.WriteLine("Activated hotkey for item " + args.text + "!");
 			Program.gameRecognizer.enemyHandling.ItemDropped(args.text, 1);
 		}
@@ -383,8 +383,8 @@ namespace Metin2SpeechToData {
 
 		private struct ActionStashSpeechArgs {
 			public KeyModifiers _keyModifier;
-			public Action<SpeechRecognizedArgs> _action;
-			public SpeechRecognizedArgs _data;
+			public Action<SpeechRecognizedEventDetails> _action;
+			public SpeechRecognizedEventDetails _data;
 			public int _unregID;
 			public bool _isInactive;
 		}

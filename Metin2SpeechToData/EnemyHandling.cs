@@ -58,7 +58,7 @@ namespace Metin2SpeechToData {
 		/// </summary>
 		/// <param name="keyWord">"NEW_TARGET" // "UNDO" // "REMOVE_TARGET" // TARGET_KILLED</param>
 		/// <param name="args">Always supply at least string.Empty as args!</param>
-		private void EnemyTargetingModifierRecognized(object sender, ModiferRecognizedEventArgs args) {
+		private async void EnemyTargetingModifierRecognized(object sender, ModiferRecognizedEventArgs args) {
 			if (args.modifier == ModifierWords.NEW_TARGET) {
 
 				switch (state) {
@@ -109,14 +109,14 @@ namespace Metin2SpeechToData {
 				}
 				Console.WriteLine("Would remove " + action.count + " items from " + Program.interaction.currentSheet.Cells[action.address.Row, action.address.Column - 2].Value);
 
-				bool resultUndo = Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'?");
+				bool resultUndo = await Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'?");
 				if (resultUndo) {
 					action = stack.Pop();
 					Program.interaction.AddNumberTo(action.address, -action.count);
 					if (Program.interaction.currentSheet.Cells[action.address.Row, action.address.Column].GetValue<int>() == 0 && currentEnemy != "") {
 						string itemName = Program.interaction.currentSheet.Cells[action.address.Row, action.address.Column - 2].Value.ToString();
 						Console.WriteLine("Remove " + currentItem + " from current enemy's (" + currentEnemy + ") item list?");
-						bool resultRemoveFromFile = Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'?");
+						bool resultRemoveFromFile = await Confirmation.AskForBooleanConfirmation("'Confirm'/'Refuse'?");
 						if (resultRemoveFromFile) {
 							currentItem = itemName;
 							mobDrops.RemoveItemEntry(currentEnemy, currentItem, true);
